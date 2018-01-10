@@ -9,7 +9,7 @@ python main.py
 
 ## Implemented Agents
 
-- DQN
+- DQN with epsilon-greedy exploration strategy
 
 ## Implemented Extensions
 

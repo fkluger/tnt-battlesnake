@@ -1,9 +1,20 @@
 DIRECTIONS = ['up', 'right', 'down', 'left']
 
+
+def get_state_shape(width, height, num_frames):
+    '''
+    Get the shape of the state tensor. The health of the snake is encoded
+    next to the board with the given width.
+    '''
+
+    return (width + 1, height, num_frames)
+
+
 def get_next_coord(coord, direction):
     '''
     Get the next coordinate when moving from coord in the given direction.
     '''
+
     if direction == 'up':
         return [coord[0], coord[1] - 1]
     elif direction == 'right':
@@ -19,6 +30,7 @@ def is_coord_on_board(coord, width, height):
     Check whether the given coord is on the board.
     (The width and height include the border.)
     '''
+
     x, y = coord[0], coord[1]
     if x < 1 or y < 1 or x >= width - 1 or y >= height - 1:
         return False
@@ -30,6 +42,7 @@ def getDirection(action, snake_direction):
     '''
     Get the direction of movement for a given action and snake direction.
     '''
+
     if snake_direction == 'up':
         if action == 0:
             return 'left'
@@ -65,6 +78,7 @@ def get_next_snake_coords(snake, direction, fruits):
     Get the snake body if it moves in a given direction. Grow the snake
     if there is a fruit on the next coordinate.
     '''
+
     next_snake = [get_next_coord(snake[0], direction)]
     if next_snake[0] in fruits:
         next_snake.extend(snake)

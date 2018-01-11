@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
 
+
 class Memory(ABC):
 
     @abstractmethod
-    def add(self, sample):
+    def add(self, observation):
         '''
         Add a sample to the memory.
         '''

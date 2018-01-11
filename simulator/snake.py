@@ -1,6 +1,7 @@
 import numpy as np
 from .utils import get_next_coord, is_coord_on_board, DIRECTIONS
 
+
 class Snake:
 
     def __init__(self, head, length, board_width, board_height, occupied_coords, idx):
@@ -10,12 +11,7 @@ class Snake:
         self.health = 100
         self.id = idx
 
-    @property
-    def length(self):
-        return len(self.body)
-
     def generate_body(self, head, length, board_width, board_height, occupied_coords):
-
         '''
         Generates a random body for the snake on the board.
         '''

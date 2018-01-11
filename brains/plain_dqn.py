@@ -6,6 +6,9 @@ from . import Brain
 
 
 class PlainDQNBrain(Brain):
+    '''
+    Brain that encapsulates the DQN CNN.
+    '''
 
     tensorboard_callback = TensorBoard(log_dir='./logs')
 
@@ -26,8 +29,6 @@ class PlainDQNBrain(Brain):
         self.model.compile(loss='mse', optimizer=opt)
         if verbose:
             self.tensorboard_callback.set_model(self.model)
-            
-
 
     def predict(self, state):
         return self.model.predict(state)

@@ -5,6 +5,9 @@ from . import Agent
 
 
 class DQNAgent(Agent):
+    '''
+    DQN Agent that uses epsilon-greedy for exploration.
+    '''
 
     steps = 0
     epsilon = 0
@@ -27,35 +30,32 @@ class DQNAgent(Agent):
         else:
             return np.argmax(self.brain.predict(state[np.newaxis, ...]))
 
-    def observe(self, sample):
-        self.memory.add(sample)
+    def observe(self, observation):
+        self.memory.add(observation)
         self.steps += 1
-        self.epsilon = self.EPSILON_MIN + \
-            (self.EPSILON_MAX - self.EPSILON_MIN) * \
-            math.exp(-self.LAMBDA * self.steps)
+        self.epsilon = self.EPSILON_MIN + (self.EPSILON_MAX - self.EPSILON_MIN) * math.exp(-self.LAMBDA * self.steps)
 
     def replay(self):
         batch = self.memory.sample(self.batch_size)
 
-        no_state = np.zeros(self.input_shape)
+        states = np.array([observation[0] for observation in batch])
 
-        states = np.array([o[0] for o in batch])
-        states_ = np.array([(no_state if o[3] is None else o[3])
-                            for o in batch])
-
-        p = self.brain.predict(states)
-        p_ = self.brain.predict(states_)
+        q_values = self.brain.predict(states)
 
         x = np.zeros((len(batch), self.input_shape[0], self.input_shape[1], self.input_shape[2]))
         y = np.zeros((len(batch), self.num_actions))
-        for i, o in enumerate(batch):
-            state, action, reward, next_state = o[0], o[1], o[2], o[3]
+        for i, observation in enumerate(batch):
+            state, action, reward, next_state = observation[0], observation[1], observation[2], observation[3]
 
-            target = p[i]
+            target = q_values[i]
             if next_state is None:
                 target[action] = reward
             else:
-                target[action] = reward + self.GAMMA * np.amax(p_[i])
+                no_state = np.zeros(self.input_shape)
+                next_states = np.array([(no_state if observation[3] is None else observation[3])
+                                        for observation in batch])
+                q_values_next = self.brain.predict(next_states)
+                target[action] = reward + self.GAMMA * np.amax(q_values_next[i])
 
             x[i] = state
             y[i] = target

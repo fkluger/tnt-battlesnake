@@ -1,7 +1,13 @@
 import numpy as np
+
 from .snake import Snake
+from .enums import Field
+
 
 class State:
+    '''
+    Represents the state of the simulator.
+    '''
 
     def __init__(self, width, height, num_snakes, num_fruits):
         self.width = width
@@ -15,13 +21,14 @@ class State:
     def generate_fruits(self, num_fruits, occupied_coords):
         '''
         Generate a number of fruits on random coordinates that are not occupied.
-        ''' 
+        '''
+
         for _ in range(0, num_fruits):
             fruit = None
             # Find free field for the fruit
             while fruit is None:
                 fruit = [np.random.randint(1, self.width - 2),
-                                np.random.randint(1, self.height - 2)]
+                         np.random.randint(1, self.height - 2)]
                 for coord in occupied_coords:
                     if np.array_equal(fruit, coord):
                         fruit = None
@@ -30,16 +37,18 @@ class State:
     def eat_fruit(self, fruit):
         '''
         Remove the given fruit and generate a new one.
-        ''' 
+        '''
+
         self.fruits.remove(fruit)
         occupied_coords = list(self.snakes)
         occupied_coords.extend(self.fruits)
         self.generate_fruits(1, occupied_coords)
 
     def generate_snakes(self, num_snakes, occupied_coords):
-        ''' 
+        '''
         Generate a number of snakes at random coordinates
         '''
+
         for i in range(0, num_snakes):
             head = None
             # Find free field for snake head
@@ -55,7 +64,8 @@ class State:
     def observe(self):
         '''
         Create a tensor with shape (width+1, height) describing the current state.
-        ''' 
+        '''
+
         observation = np.zeros([self.width + 1, self.height], dtype=int)
         for x in range(0, self.width):
             for y in range(0, self.height):
@@ -84,15 +94,3 @@ class State:
         for [x, y] in self.fruits:
             observation[x][y] = Field.fruit
         return observation
-
-class Field:
-    own_head_up = -42
-    own_head_right = -43
-    own_head_down = -44
-    own_head_left = -45
-    own_body = 32
-    own_tail = 33
-    head = 31
-    body = 32
-    tail = 33
-    fruit = 42

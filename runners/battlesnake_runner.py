@@ -1,6 +1,10 @@
 from . import Runner
 
+
 class SimpleRunner(Runner):
+    '''
+    Runner that runs the episodes and collects some statistics.
+    '''
 
     episode_rewards = []
     episode_lengths = []
@@ -23,7 +27,7 @@ class SimpleRunner(Runner):
 
             if terminal:
                 next_state = None
-            
+
             self.agent.observe((state, action, reward, next_state))
             self.agent.replay()
 

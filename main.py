@@ -5,7 +5,8 @@ from agents.dqn import DQNAgent
 from memories.replay import ReplayMemory
 from brains.plain_dqn import PlainDQNBrain
 from runners.battlesnake_runner import SimpleRunner
-from simulator.simulator import BattlesnakeSimulator, get_state_shape
+from simulator.simulator import BattlesnakeSimulator
+from simulator.utils import get_state_shape
 
 
 width = 10
@@ -35,7 +36,7 @@ while episodes < max_episodes:
         mean_episode_length = sum(runner.episode_lengths[-report_interval:]) * 1.0 / report_interval
         mean_episode_rewards = sum(runner.episode_rewards[-report_interval:]) * 1.0 / report_interval
         ts = datetime.datetime.fromtimestamp(time.time()).strftime('%d.%m.%Y %H:%M:%S')
-        print('{} - Episode: {}\tMean reward: {:4.4f}\tMean length: {:4.4f}'.format(ts, episodes, mean_episode_rewards, mean_episode_length))
+        print('{} - Episode: {}\tMean reward: {:4.4f}\tMean length: {:4.4f}'.format(ts,
+                                                                                    episodes, mean_episode_rewards, mean_episode_length))
     if episodes % (report_interval * 10) == 0:
         simulator.play_longest_episode()
-

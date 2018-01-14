@@ -38,18 +38,22 @@ def main():
         if episodes % args.report_interval == 0:
             mean_episode_length = sum(runner.episode_lengths[-args.report_interval:]) * 1.0 / args.report_interval
             mean_episode_rewards = sum(runner.episode_rewards[-args.report_interval:]) * 1.0 / args.report_interval
+            mean_loss = sum(runner.losses[-args.report_interval:]) * 1.0 / args.report_interval
+            mean_q_value_estimates = sum(runner.q_value_estimates[-args.report_interval:]) * 1.0 / args.report_interval
             ts = datetime.datetime.fromtimestamp(time.time()).strftime('%d.%m.%Y %H:%M:%S')
             print('{} - Episode: {}\tMean reward: {:4.4f}\tMean length: {:4.4f}'.format(ts,
                                                                                         episodes, mean_episode_rewards, mean_episode_length))
             metrics = [
                 {'name': 'mean rewards', 'value': mean_episode_rewards},
-                {'name': 'mean episode length', 'value': mean_episode_length}
+                {'name': 'mean episode length', 'value': mean_episode_length},
+                {'name': 'mean loss', 'value': mean_loss},
+                {'name': 'mean q value estimates', 'value': mean_q_value_estimates}
             ]
 
             write_summary(summary_writer, agent.steps, metrics)
 
-        if episodes % (args.report_interval * 10) == 0:
-            simulator.play_longest_episode()
+        if episodes % (args.report_interval * 100) == 0:
+            simulator.save_longest_episode()
     summary_writer.close()
 
 

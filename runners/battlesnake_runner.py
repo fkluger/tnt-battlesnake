@@ -1,4 +1,4 @@
-import tensorflow as tf
+import numpy as np
 
 from . import Runner
 
@@ -10,8 +10,8 @@ class SimpleRunner(Runner):
 
     episode_rewards = []
     episode_lengths = []
-    episode_losses = []
-    episode_q_value_estimates = []
+    losses = []
+    q_value_estimates = []
 
     def __init__(self, agent, simulator):
         self.agent = agent
@@ -20,6 +20,8 @@ class SimpleRunner(Runner):
     def run(self):
         episode_reward = 0
         episode_length = 0
+        episode_q_value_estimates = []
+        episode_losses = []
         state = self.simulator.reset()
         terminal = False
         while not terminal:
@@ -33,7 +35,12 @@ class SimpleRunner(Runner):
                 next_state = None
 
             self.agent.observe((state, action, reward, next_state))
-            self.agent.replay()
+            loss, mean_q_estimates = self.agent.replay()
+            episode_q_value_estimates.append(mean_q_estimates)
+            episode_losses.append(loss)
             state = next_state
+        self.losses.append(np.mean(episode_losses))
+        self.q_value_estimates.append(np.mean(episode_q_value_estimates))
         self.episode_rewards.append(episode_reward)
         self.episode_lengths.append(episode_length)
+

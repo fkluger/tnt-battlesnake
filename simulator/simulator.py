@@ -38,7 +38,7 @@ class BattlesnakeSimulator(Simulator):
 
         return self.get_last_frames(self.state.observe())
 
-    def play_longest_episode(self):
+    def save_longest_episode(self):
         '''
         Persist longest run since this method was called last time as a *.mp4.
         '''

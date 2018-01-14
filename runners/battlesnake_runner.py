@@ -1,3 +1,5 @@
+import tensorflow as tf
+
 from . import Runner
 
 
@@ -8,6 +10,8 @@ class SimpleRunner(Runner):
 
     episode_rewards = []
     episode_lengths = []
+    episode_losses = []
+    episode_q_value_estimates = []
 
     def __init__(self, agent, simulator):
         self.agent = agent
@@ -30,7 +34,6 @@ class SimpleRunner(Runner):
 
             self.agent.observe((state, action, reward, next_state))
             self.agent.replay()
-
             state = next_state
         self.episode_rewards.append(episode_reward)
         self.episode_lengths.append(episode_length)

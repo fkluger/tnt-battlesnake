@@ -47,7 +47,8 @@ def main():
                 {'name': 'mean rewards', 'value': mean_episode_rewards},
                 {'name': 'mean episode length', 'value': mean_episode_length},
                 {'name': 'mean loss', 'value': mean_loss},
-                {'name': 'mean q value estimates', 'value': mean_q_value_estimates}
+                {'name': 'mean q value estimates', 'value': mean_q_value_estimates},
+                {'name': 'epsilon', 'value': agent.epsilon}
             ]
 
             write_summary(summary_writer, agent.steps, metrics)

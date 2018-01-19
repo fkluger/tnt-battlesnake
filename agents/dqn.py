@@ -1,7 +1,6 @@
 import random
 import math
 import numpy as np
-import tensorflow as tf
 
 from . import Agent
 
@@ -14,10 +13,9 @@ class DQNAgent(Agent):
     steps = 0
     epsilon = 0
 
-    def __init__(self, brain, memory, summary_writer, input_shape, num_actions, GAMMA=0.99, EPSILON_MAX=1, EPSILON_MIN=0.01, LAMBDA=0.001, batch_size=64):
+    def __init__(self, brain, memory, input_shape, num_actions, GAMMA=0.99, EPSILON_MAX=1, EPSILON_MIN=0.01, LAMBDA=1e-4, batch_size=64):
         self.brain = brain
         self.memory = memory
-        self.summary_writer = summary_writer
         self.input_shape = input_shape
         self.num_actions = num_actions
         self.EPSILON_MAX = EPSILON_MAX
@@ -26,6 +24,9 @@ class DQNAgent(Agent):
         self.GAMMA = GAMMA
         self.epsilon = EPSILON_MAX
         self.batch_size = batch_size
+
+    def get_metrics(self):
+        return [{'name': 'epsilon', 'value': self.epsilon}]
 
     def act(self, state):
         if random.random() < self.epsilon:
@@ -69,6 +70,6 @@ class DQNAgent(Agent):
             q_value_estimates[i] = target[action]
 
         history = self.brain.train(x, y, len(batch))
-        loss = history.history['loss']
+        loss = history.history['loss'][0]
         return loss, np.mean(q_value_estimates)
         # TODO: Update memory (https://github.com/fkluger/tnt-battlesnake/issues/1)

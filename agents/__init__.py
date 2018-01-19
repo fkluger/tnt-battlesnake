@@ -4,6 +4,13 @@ from abc import ABC, abstractmethod
 class Agent(ABC):
 
     @abstractmethod
+    def get_metrics(self):
+        '''
+        Get metrics for tensorflow summaries.
+        '''
+        pass
+
+    @abstractmethod
     def act(self, state):
         '''
         Choose action for the given state.

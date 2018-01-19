@@ -9,7 +9,7 @@ class ReplayMemory(Memory):
 
     observations = []
 
-    def __init__(self, capacity=100000):
+    def __init__(self, capacity=1000000):
         self.capacity = capacity
 
     def add(self, observation):

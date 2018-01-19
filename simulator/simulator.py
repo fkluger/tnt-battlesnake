@@ -43,18 +43,19 @@ class BattlesnakeSimulator(Simulator):
         Persist longest run since this method was called last time as a *.mp4.
         '''
 
-        self.longest_episode = 0
-        ims = []
-        fig = plt.figure()
-        for s in self.longest_run_states:
-            if s is not None:
-                img = s[0:self.width, :, self.num_frames - 1]
-                im = plt.imshow(img, animated=True)
-                ims.append([im])
-        ani = animation.ArtistAnimation(
-            fig, ims, interval=100, repeat=False, blit=True)
-        ani.save('{}.mp4'.format(self.episodes))
-        plt.close()
+        if self.longest_episode > 1:
+            self.longest_episode = 0
+            ims = []
+            fig = plt.figure()
+            for s in self.longest_run_states:
+                if s is not None:
+                    img = s[0:self.width, :, self.num_frames - 1]
+                    im = plt.imshow(img, animated=True)
+                    ims.append([im])
+            ani = animation.ArtistAnimation(
+                fig, ims, interval=100, repeat=False, blit=True)
+            ani.save('{}.mp4'.format(self.episodes))
+            plt.close()
 
     def get_last_frames(self, observation):
         '''
@@ -114,6 +115,9 @@ class BattlesnakeSimulator(Simulator):
                     terminal = False
                     reward = Reward.nothing
 
+        # Compute next state
+        next_state = None if terminal else self.get_last_frames(self.state.observe())
+
         # Update statistics
         if self.steps >= self.num_frames:
             self.state_history.append(next_state)
@@ -121,13 +125,9 @@ class BattlesnakeSimulator(Simulator):
             self.longest_episode = self.steps
             self.longest_run_states = list(self.state_history)
 
-        # Compute next state
-        next_state = None if terminal else self.get_last_frames(self.state.observe())
-
         return next_state, reward, terminal
 
     def check_collision(self, snake):
-
         '''
         Check whether the snake collided with itself or another snake or the wall.
         '''
@@ -147,7 +147,6 @@ class BattlesnakeSimulator(Simulator):
         return collision
 
     def check_starved(self, snake):
-
         '''
         Check whether the snake starved.
         '''
@@ -155,7 +154,6 @@ class BattlesnakeSimulator(Simulator):
         return snake.health == 0
 
     def check_fruit(self, snake):
-
         '''
         Check whether the snake ate a fruit.
         '''

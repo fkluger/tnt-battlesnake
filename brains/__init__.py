@@ -4,7 +4,11 @@ from abc import ABC, abstractmethod
 class Brain(ABC):
 
     @abstractmethod
-    def predict(self, state):
+    def update_target(self):
+        pass
+
+    @abstractmethod
+    def predict(self, state, target=False):
         '''
         Predict Q-Values for the given state.
         '''

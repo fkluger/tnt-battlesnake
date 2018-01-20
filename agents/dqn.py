@@ -13,7 +13,7 @@ class DQNAgent(Agent):
     steps = 0
     epsilon = 0
 
-    def __init__(self, brain, memory, input_shape, num_actions, GAMMA=0.99, EPSILON_MAX=1, EPSILON_MIN=0.01, LAMBDA=1e-4, batch_size=64):
+    def __init__(self, brain, memory, input_shape, num_actions, GAMMA=0.99, EPSILON_MAX=1, EPSILON_MIN=0.01, LAMBDA=1e-5, batch_size=64, update_target_freq=10000):
         self.brain = brain
         self.memory = memory
         self.input_shape = input_shape
@@ -24,6 +24,7 @@ class DQNAgent(Agent):
         self.GAMMA = GAMMA
         self.epsilon = EPSILON_MAX
         self.batch_size = batch_size
+        self.update_target_freq = update_target_freq
 
     def get_metrics(self):
         return [{'name': 'epsilon', 'value': self.epsilon}]
@@ -37,10 +38,12 @@ class DQNAgent(Agent):
     def observe(self, observation):
         self.memory.add(observation)
         self.steps += 1
+        if self.steps % self.update_target_freq == 0:
+            self.brain.update_target()
         self.epsilon = self.EPSILON_MIN + (self.EPSILON_MAX - self.EPSILON_MIN) * math.exp(-self.LAMBDA * self.steps)
 
     def replay(self):
-        batch = self.memory.sample(self.batch_size)
+        batch, indices = self.memory.sample(self.batch_size)
 
         no_state = np.zeros(self.input_shape)
         next_states = np.array([(no_state if observation[3] is None else observation[3])
@@ -48,7 +51,7 @@ class DQNAgent(Agent):
         states = np.array([observation[0] for observation in batch])
 
         q_values = self.brain.predict(states)
-        q_values_next = self.brain.predict(next_states)
+        q_values_next = self.brain.predict(next_states, target=True)
 
         x = np.zeros((len(batch), self.input_shape[0], self.input_shape[1], self.input_shape[2]))
         y = np.zeros((len(batch), self.num_actions))
@@ -68,6 +71,7 @@ class DQNAgent(Agent):
             y[i] = target
             errors[i] = abs(target_old - target[action])
             q_value_estimates[i] = target[action]
+            self.memory.update(indices[i], errors[i])
 
         history = self.brain.train(x, y, len(batch))
         loss = history.history['loss'][0]

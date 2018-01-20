@@ -7,8 +7,8 @@ import tensorflow as tf
 
 from agents.dqn import DQNAgent
 from agents.random import RandomAgent
-from memories.replay import ReplayMemory
-from brains.plain_dqn import PlainDQNBrain
+from memories.prioritized_replay import PrioritizedReplayMemory
+from brains.double_dqn import DoubleDQNBrain
 from runners.battlesnake_runner import SimpleRunner
 from simulator.simulator import BattlesnakeSimulator
 from simulator.utils import get_state_shape
@@ -16,7 +16,6 @@ from cli_args import get_args
 
 # Suppress Traceback on Ctrl-C
 signal.signal(signal.SIGINT, lambda x, y: sys.exit(0))
-
 
 def main():
     args = get_args()
@@ -26,8 +25,8 @@ def main():
 
     simulator = BattlesnakeSimulator(args.width, args.height, args.snakes, args.fruits, args.frames)
     summary_writer = tf.summary.FileWriter(args.log_dir)
-    brain = PlainDQNBrain(shape, num_actions)
-    memory = ReplayMemory()
+    brain = DoubleDQNBrain(shape, num_actions)
+    memory = PrioritizedReplayMemory(100000)
     random_agent = RandomAgent(memory, num_actions)
     agent = DQNAgent(brain, memory, shape, num_actions)
     runner = SimpleRunner(random_agent, simulator)
@@ -36,38 +35,44 @@ def main():
 
     training = False
     print('Running {} random steps.'.format(memory.capacity))
-    while training is False or episodes < args.max_episodes:
 
-        if training is False and len(memory.observations) == memory.capacity:
-            print('Collecting random observations finished. Beginning training...')
-            runner.agent = agent
-            training = True
+    try:
+        while training is False or episodes < args.max_episodes:
 
-        episodes += 1
-        runner.run()
+            if training is False and memory.size() == memory.capacity:
+                print('Collecting random observations finished. Beginning training...')
+                runner.agent = agent
+                training = True
 
-        if training is True and episodes % args.report_interval == 0:
-            mean_episode_length = sum(runner.episode_lengths[-args.report_interval:]) * 1.0 / args.report_interval
-            mean_episode_rewards = sum(runner.episode_rewards[-args.report_interval:]) * 1.0 / args.report_interval
-            mean_loss = sum(runner.losses[-args.report_interval:]) * 1.0 / args.report_interval
-            mean_q_value_estimates = sum(runner.q_value_estimates[-args.report_interval:]) * 1.0 / args.report_interval
-            ts = datetime.datetime.fromtimestamp(time.time()).strftime('%d.%m.%Y %H:%M:%S')
-            print('{} - Episode: {}\tMean reward: {:4.4f}\tMean length: {:4.4f}'.format(ts,
-                                                                                        episodes, mean_episode_rewards, mean_episode_length))
-            metrics = [
-                {'name': 'mean rewards', 'value': mean_episode_rewards},
-                {'name': 'mean episode length', 'value': mean_episode_length},
-                {'name': 'mean loss', 'value': mean_loss},
-                {'name': 'mean q value estimates', 'value': mean_q_value_estimates}
-            ]
+            episodes += 1
+            runner.run()
 
-            metrics.extend(agent.get_metrics())
+            if training is True and episodes % args.report_interval == 0:
+                mean_episode_length = sum(runner.episode_lengths[-args.report_interval:]) * 1.0 / args.report_interval
+                mean_episode_rewards = sum(runner.episode_rewards[-args.report_interval:]) * 1.0 / args.report_interval
+                mean_loss = sum(runner.losses[-args.report_interval:]) * 1.0 / args.report_interval
+                mean_q_value_estimates = sum(runner.q_value_estimates[-args.report_interval:]) * 1.0 / args.report_interval
+                ts = datetime.datetime.fromtimestamp(time.time()).strftime('%d.%m.%Y %H:%M:%S')
+                print('{} - Episode: {}\tMean reward: {:4.4f}\tMean length: {:4.4f}'.format(ts,
+                                                                                            episodes, mean_episode_rewards, mean_episode_length))
+                metrics = [
+                    {'name': 'mean rewards', 'value': mean_episode_rewards},
+                    {'name': 'mean episode length', 'value': mean_episode_length},
+                    {'name': 'mean loss', 'value': mean_loss},
+                    {'name': 'mean q value estimates', 'value': mean_q_value_estimates}
+                ]
 
-            write_summary(summary_writer, runner.steps, metrics)
+                metrics.extend(agent.get_metrics())
 
-        if training is True and episodes % (args.report_interval * 500) == 0:
-            simulator.save_longest_episode()
-    summary_writer.close()
+                write_summary(summary_writer, runner.steps, metrics)
+
+            if training is True and episodes % (args.report_interval * 500) == 0:
+                simulator.save_longest_episode()
+        summary_writer.close()
+    finally:
+        ts = datetime.datetime.fromtimestamp(time.time()).strftime('%d.%m.%Y %H:%M:%S')
+        brain.model.save('{}-model.h5'.format(ts))
+        # TODO: Persist episode count, steps, epsilon, ...
 
 
 def write_summary(summary_writer, steps, metrics):

@@ -54,6 +54,7 @@ class BattlesnakeSimulator(Simulator):
                     ims.append([im])
             ani = animation.ArtistAnimation(
                 fig, ims, interval=100, repeat=False, blit=True)
+            print('Saving longest episode till {} with length {}.'.format(self.episodes, len(self.longest_run_states)))
             ani.save('{}.mp4'.format(self.episodes))
             plt.close()
 

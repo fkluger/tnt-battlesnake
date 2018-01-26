@@ -8,6 +8,7 @@ import tensorflow as tf
 from agents.dqn import DQNAgent
 from agents.random import RandomAgent
 from memories.prioritized_replay import PrioritizedReplayMemory
+from brains.dueling_double_dqn import DuelingDoubleDQNBrain
 from brains.double_dqn import DoubleDQNBrain
 from runners.battlesnake_runner import SimpleRunner
 from simulator.simulator import BattlesnakeSimulator
@@ -17,6 +18,7 @@ from cli_args import get_args
 # Suppress Traceback on Ctrl-C
 signal.signal(signal.SIGINT, lambda x, y: sys.exit(0))
 
+
 def main():
     args = get_args()
 
@@ -25,8 +27,8 @@ def main():
 
     simulator = BattlesnakeSimulator(args.width, args.height, args.snakes, args.fruits, args.frames)
     summary_writer = tf.summary.FileWriter(args.log_dir)
-    brain = DoubleDQNBrain(shape, num_actions)
-    memory = PrioritizedReplayMemory(100000)
+    brain = DuelingDoubleDQNBrain(shape, num_actions)
+    memory = PrioritizedReplayMemory(200000)
     random_agent = RandomAgent(memory, num_actions)
     agent = DQNAgent(brain, memory, shape, num_actions)
     runner = SimpleRunner(random_agent, simulator)
@@ -51,10 +53,11 @@ def main():
                 mean_episode_length = sum(runner.episode_lengths[-args.report_interval:]) * 1.0 / args.report_interval
                 mean_episode_rewards = sum(runner.episode_rewards[-args.report_interval:]) * 1.0 / args.report_interval
                 mean_loss = sum(runner.losses[-args.report_interval:]) * 1.0 / args.report_interval
-                mean_q_value_estimates = sum(runner.q_value_estimates[-args.report_interval:]) * 1.0 / args.report_interval
+                mean_q_value_estimates = sum(
+                    runner.q_value_estimates[-args.report_interval:]) * 1.0 / args.report_interval
                 ts = datetime.datetime.fromtimestamp(time.time()).strftime('%d.%m.%Y %H:%M:%S')
-                print('{} - Episode: {}\tMean reward: {:4.4f}\tMean length: {:4.4f}'.format(ts,
-                                                                                            episodes, mean_episode_rewards, mean_episode_length))
+                print('{} - Episode: {}\tSteps: {}\tMean reward: {:4.4f}\tMean length: {:4.4f}'.format(ts,
+                                                                                                       episodes, runner.steps, mean_episode_rewards, mean_episode_length))
                 metrics = [
                     {'name': 'mean rewards', 'value': mean_episode_rewards},
                     {'name': 'mean episode length', 'value': mean_episode_length},
@@ -70,8 +73,7 @@ def main():
                 simulator.save_longest_episode()
         summary_writer.close()
     finally:
-        ts = datetime.datetime.fromtimestamp(time.time()).strftime('%d.%m.%Y %H:%M:%S')
-        brain.model.save('{}-model.h5'.format(ts))
+        brain.model.save('{}-model.h5'.format(episodes))
         # TODO: Persist episode count, steps, epsilon, ...
 
 

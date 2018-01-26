@@ -105,5 +105,6 @@ model/
 stats/
 *.mp4
 geckodriver
+*.h5
 
 .DS_Store

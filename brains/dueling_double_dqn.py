@@ -1,11 +1,10 @@
 from keras import Model, Input
-from keras.layers import Conv2D, Flatten, Dense, BatchNormalization, Lambda, Add
+from keras.layers import Conv2D, Flatten, Dense, Lambda, Add
 from keras.optimizers import RMSprop
 import tensorflow as tf
 
 from .double_dqn import DoubleDQNBrain
 from .huber_loss import huber_loss
-
 
 
 class DuelingDoubleDQNBrain(DoubleDQNBrain):
@@ -17,7 +16,7 @@ class DuelingDoubleDQNBrain(DoubleDQNBrain):
         net = Conv2D(64, 3, activation='relu')(net)
         net = Flatten()(net)
         advt = Dense(256, activation='relu')(net)
-        advt = Dense(self.num_actions)(advt)
+        advt = Dense(self.num_actions, activation='tanh')(advt)
         value = Dense(256, activation='relu')(net)
         value = Dense(1)(value)
         # now to combine the two streams

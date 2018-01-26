@@ -40,7 +40,8 @@ class State:
         '''
 
         self.fruits.remove(fruit)
-        occupied_coords = list(self.snakes)
+        occupied_coords = list([coord for snake in self.snakes for coord in snake.body])
+        occupied_coords.append(fruit)
         occupied_coords.extend(self.fruits)
         self.generate_fruits(1, occupied_coords)
 

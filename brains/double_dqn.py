@@ -9,8 +9,8 @@ class DoubleDQNBrain(PlainDQNBrain):
     def __init__(self, input_shape, num_actions, learning_rate=0.00025):
         super().__init__(input_shape, num_actions, learning_rate)
 
-        self.model = super().create_model()
-        self.target_model = super().create_model()
+        self.model = self.create_model()
+        self.target_model = self.create_model()
 
         self.model.compile(loss=huber_loss, optimizer=RMSprop(lr=self.learning_rate))
         self.target_model.compile(loss=huber_loss, optimizer=RMSprop(lr=self.learning_rate))

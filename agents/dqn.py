@@ -13,7 +13,7 @@ class DQNAgent(Agent):
     steps = 0
     epsilon = 0
 
-    def __init__(self, brain, memory, input_shape, num_actions, GAMMA=0.99, EPSILON_MAX=1, EPSILON_MIN=0.01, LAMBDA=1e-5, batch_size=64, update_target_freq=10000):
+    def __init__(self, brain, memory, input_shape, num_actions, GAMMA=0.9, EPSILON_MAX=1, EPSILON_MIN=0.1, LAMBDA=1e-4, batch_size=32, update_target_freq=10000):
         self.brain = brain
         self.memory = memory
         self.input_shape = input_shape

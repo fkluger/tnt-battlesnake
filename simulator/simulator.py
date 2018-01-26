@@ -1,3 +1,4 @@
+import json
 from collections import deque
 import numpy as np
 import matplotlib.pyplot as plt
@@ -37,6 +38,26 @@ class BattlesnakeSimulator(Simulator):
         self.state = State(self.width, self.height, self.num_snakes, self.num_fruits)
 
         return self.get_last_frames(self.state.observe())
+
+    def to_battlesnake_json(self, idx):
+        bs_state = {
+            'you': str(idx),
+            'width': self.width - 2,
+            'height': self.height - 2,
+            'turn': self.steps,
+            'game_id': 0,
+            'food': self.state.fruits,
+            'dead_snakes': [],
+            'mode': 'simple'
+        }
+        snakes = []
+        for s in self.state.snakes:
+            snake = {'id': 'de508402-17c8-4ac7-ab0b-f96cb53fbee8', 'name': str(idx), 'health_points': s.health}
+            coords = [[coord[0] - 1, coord[1] - 1] for coord in s.body]
+            snake['coords'] = coords
+            snakes.append(snake)
+        bs_state['snakes'] = snakes
+        return bs_state
 
     def save_longest_episode(self):
         '''

@@ -1,4 +1,7 @@
+from keras.optimizers import RMSprop
+
 from .plain_dqn import PlainDQNBrain
+from .huber_loss import huber_loss
 
 
 class DoubleDQNBrain(PlainDQNBrain):
@@ -8,6 +11,9 @@ class DoubleDQNBrain(PlainDQNBrain):
 
         self.model = super().create_model()
         self.target_model = super().create_model()
+
+        self.model.compile(loss=huber_loss, optimizer=RMSprop(lr=self.learning_rate))
+        self.target_model.compile(loss=huber_loss, optimizer=RMSprop(lr=self.learning_rate))
 
     def predict(self, state, target=False):
         if target:

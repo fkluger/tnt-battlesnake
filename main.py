@@ -66,7 +66,7 @@ def main():
 
                 write_summary(summary_writer, runner.steps, metrics)
 
-            if training is True and episodes % (args.report_interval * 500) == 0:
+            if training is True and episodes % (args.report_interval * 50) == 0:
                 simulator.save_longest_episode()
         summary_writer.close()
     finally:

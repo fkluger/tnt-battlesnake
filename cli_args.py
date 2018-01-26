@@ -15,6 +15,6 @@ def get_args():
     parser.add_argument('--snakes', default=1, help='Number of snakes on the board')
     parser.add_argument('--fruits', default=1, help='Number of fruits on the board')
 
-    parser.add_argument('--frames', default=1, help='Frames of the game to concatenate')
+    parser.add_argument('--frames', default=2, help='Frames of the game to concatenate')
 
     return parser.parse_args()

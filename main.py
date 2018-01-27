@@ -36,7 +36,7 @@ def main():
                                      args.replay_alpha_prio, args.replay_max_prio)
     random_agent = RandomAgent(memory, num_actions)
     agent = DQNAgent(brain, memory, shape, num_actions, args.gamma, args.epsilon_max,
-                     args.epsilon_min, args.epsilon_lambda, args.batch_size, args.target_update_freq)
+                     args.epsilon_min, args.epsilon_lambda, args.batch_size, args.target_update_freq, args.replay_beta_min)
     runner = SimpleRunner(random_agent, simulator)
 
     output_directory = 'experiment - ' + get_time_string()
@@ -90,6 +90,7 @@ def main():
                         'episodes': episodes,
                         'steps': runner.steps,
                         'epsilon': agent.epsilon,
+                        'beta': agent.beta,
                         'replay_max_prio': memory.max_priority
                     }
                     json.dump(checkpoint, f, indent=2)

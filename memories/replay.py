@@ -20,7 +20,7 @@ class ReplayMemory(Memory):
         if len(self.observations) > self.capacity:
             self.observations.pop()
 
-    def sample(self, n):
+    def sample(self, n, beta):
         n = min(n, len(self.observations))
         indices = np.random.randint(0, len(self.observations) - 1, n, dtype=int)
         batch = [o for i, o in enumerate(self.observations) if i in indices]

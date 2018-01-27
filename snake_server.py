@@ -29,7 +29,7 @@ def start():
         snakes.append(RLSnake(board_width, board_height, sys.argv[2], sys.argv[3]))
 
     return {
-        'color': '#00FF00',
+        'color': '#FF0000',
         'taunt': '{} ({}x{})'.format(game_id, board_width, board_height),
         'head_url': head_url,
         'name': 'rl-snake'

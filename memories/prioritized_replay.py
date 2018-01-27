@@ -1,4 +1,5 @@
 import random
+import numpy as np
 from . import Memory
 from .sum_tree import SumTree
 
@@ -21,9 +22,10 @@ class PrioritizedReplayMemory(Memory):
     def add(self, observation):
         self.tree.add(self.max_priority, observation)
 
-    def sample(self, n):
+    def sample(self, n, beta):
         batch = []
         indices = []
+        weights = []
         segment = self.tree.total() / n
 
         for i in range(n):
@@ -31,11 +33,13 @@ class PrioritizedReplayMemory(Memory):
             b = segment * (i + 1)
 
             s = random.uniform(a, b)
-            (idx, p, observation) = self.tree.get(s)
+            (idx, priority, observation) = self.tree.get(s)
+            weights.append((n * priority)**-beta)
             batch.append(observation)
             indices.append(idx)
 
-        return batch, indices
+        weights /= max(weights)
+        return batch, indices, weights
 
     def update(self, idx, error):
         p = self._getPriority(error)

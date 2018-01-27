@@ -37,5 +37,5 @@ class PlainDQNBrain(Brain):
     def predict(self, state, target=False):
         return self.model.predict(state)
 
-    def train(self, x, y, batch_size, verbose=0):
-        return self.model.fit(x=x, y=y, batch_size=batch_size, verbose=verbose)
+    def train(self, x, y, batch_size, weights):
+        return self.model.fit(x=x, y=y, batch_size=batch_size, verbose=0, sample_weight=weights)

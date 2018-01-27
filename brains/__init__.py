@@ -15,7 +15,7 @@ class Brain(ABC):
         pass
 
     @abstractmethod
-    def train(self, x, y, batch_size, verbose):
+    def train(self, x, y, batch_size, weights):
         '''
         Perform supervised training on the sample batch.
         '''

@@ -18,7 +18,7 @@ class Memory(ABC):
         pass
 
     @abstractmethod
-    def sample(self, n):
+    def sample(self, n, beta):
         '''
         Choose a random sample from the memory.
         '''

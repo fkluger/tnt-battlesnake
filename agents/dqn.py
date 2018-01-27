@@ -13,7 +13,7 @@ class DQNAgent(Agent):
     steps = 0
     epsilon = 0
 
-    def __init__(self, brain, memory, input_shape, num_actions, GAMMA=0.9, EPSILON_MAX=1, EPSILON_MIN=0.1, LAMBDA=1e-4, batch_size=32, update_target_freq=10000):
+    def __init__(self, brain, memory, input_shape, num_actions, GAMMA=0.9, EPSILON_MAX=1, EPSILON_MIN=0.1, LAMBDA=1e-4, batch_size=32, update_target_freq=10000, replay_beta_min=0.4):
         self.brain = brain
         self.memory = memory
         self.input_shape = input_shape
@@ -25,6 +25,7 @@ class DQNAgent(Agent):
         self.epsilon = EPSILON_MAX
         self.batch_size = batch_size
         self.update_target_freq = update_target_freq
+        self.beta = replay_beta_min
 
     def get_metrics(self):
         return [{'name': 'epsilon', 'value': self.epsilon}]
@@ -41,9 +42,10 @@ class DQNAgent(Agent):
         if self.steps % self.update_target_freq == 0:
             self.brain.update_target()
         self.epsilon = self.EPSILON_MIN + (self.EPSILON_MAX - self.EPSILON_MIN) * math.exp(-self.LAMBDA * self.steps)
+        self.beta += (1. - self.beta) / 1e6
 
     def replay(self):
-        batch, indices = self.memory.sample(self.batch_size)
+        batch, indices, weights = self.memory.sample(self.batch_size, self.beta)
 
         no_state = np.zeros(self.input_shape)
         next_states = np.array([(no_state if observation[3] is None else observation[3])
@@ -73,6 +75,6 @@ class DQNAgent(Agent):
             q_value_estimates[i] = target[action]
             self.memory.update(indices[i], errors[i])
 
-        history = self.brain.train(x, y, len(batch))
+        history = self.brain.train(x, y, len(batch), weights)
         loss = history.history['loss'][0]
         return loss, np.mean(q_value_estimates)

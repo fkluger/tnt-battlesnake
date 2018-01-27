@@ -1,6 +1,5 @@
 import numpy as np
 from collections import deque
-from keras.models import load_model
 from keras.optimizers import RMSprop
 
 from brains.dueling_double_dqn import DuelingDoubleDQNBrain
@@ -14,8 +13,7 @@ class RLSnake:
         self.width = width + 2
         self.height = height + 2
         self.brain = DuelingDoubleDQNBrain(input_shape=(self.width + 1, self.height, 1), num_actions=3)
-        self.brain.model = load_model(dqn_weights_path, compile=False)
-        self.brain.model.compile(optimizer=RMSprop(lr=self.brain.learning_rate), loss='mse')
+        self.brain.model.load_weights(dqn_weights_path)
         self.snake_direction = None
         self.frames = None
         self.num_frames = int(num_frames)

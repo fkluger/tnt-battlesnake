@@ -2,9 +2,15 @@
 
 ## Usage
 
-```
-pip install numpy matplotlib keras tensorflow
+```bash
+# install requirements
+pip install -r requirements.txt
+
+# train agent
 python main.py
+
+# start battlesnake server at port 8080
+python snake_server.py 8080 2 ./experiment - */*.h5
 ```
 
 ## Implemented Agents
@@ -14,3 +20,6 @@ python main.py
 ## Implemented Extensions
 
 - Experience replay
+- Prioritized experience replay
+- Double DQN
+- Dueling Double DQN

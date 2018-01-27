@@ -3,6 +3,7 @@ import datetime
 import signal
 import sys
 import os
+import json
 
 import tensorflow as tf
 
@@ -30,14 +31,19 @@ def main():
     num_actions = 3
 
     simulator = BattlesnakeSimulator(args.width, args.height, args.snakes, args.fruits, args.frames)
-    brain = DuelingDoubleDQNBrain(shape, num_actions)
-    memory = PrioritizedReplayMemory(200000)
+    brain = DuelingDoubleDQNBrain(shape, num_actions, args.learning_rate)
+    memory = PrioritizedReplayMemory(args.replay_capacity, args.replay_min_prio,
+                                     args.replay_alpha_prio, args.replay_max_prio)
     random_agent = RandomAgent(memory, num_actions)
-    agent = DQNAgent(brain, memory, shape, num_actions)
+    agent = DQNAgent(brain, memory, shape, num_actions, args.gamma, args.epsilon_max,
+                     args.epsilon_min, args.epsilon_lambda, args.batch_size, args.target_update_freq)
     runner = SimpleRunner(random_agent, simulator)
 
     output_directory = 'experiment - ' + get_time_string()
     os.makedirs(output_directory)
+
+    with open('{}/parameters.json'.format(output_directory), 'w') as f:
+        json.dump(vars(args), f, indent=2)
     summary_writer = tf.summary.FileWriter(output_directory)
 
     episodes = 0
@@ -79,10 +85,17 @@ def main():
                 simulator.save_longest_episode(output_directory)
             if training is True and episodes % (args.report_interval * 100) == 0:
                 brain.model.save_weights('{}/{}-model.h5'.format(output_directory, episodes))
+                with open('{}/{}-checkpoint.json'.format(output_directory, episodes), 'w') as f:
+                    checkpoint = {
+                        'episodes': episodes,
+                        'steps': runner.steps,
+                        'epsilon': agent.epsilon,
+                        'replay_max_prio': memory.max_priority
+                    }
+                    json.dump(checkpoint, f, indent=2)
         summary_writer.close()
     finally:
         brain.model.save_weights('{}/{}-model.h5'.format(output_directory, episodes))
-        # TODO: Persist episode count, steps, epsilon, ...
 
 
 def write_summary(summary_writer, steps, metrics):

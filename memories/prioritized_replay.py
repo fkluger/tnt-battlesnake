@@ -8,13 +8,12 @@ class PrioritizedReplayMemory(Memory):
     Memory that samples observations proportional to their time-difference error.
     '''
 
-    epsilon = 0.01
-    alpha = 0.9
-    max_priority = 1
-
-    def __init__(self, capacity):
+    def __init__(self, capacity, epsilon, alpha, max_priority):
         self.tree = SumTree(capacity)
         self.capacity = capacity
+        self.epsilon = epsilon
+        self.alpha = alpha
+        self.max_priority = max_priority
 
     def size(self):
         return self.tree.size

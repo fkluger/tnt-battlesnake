@@ -20,7 +20,7 @@ class DuelingDoubleDQNBrain(DoubleDQNBrain):
         value = Dense(256, activation='relu')(net)
         value = Dense(1)(value)
         # now to combine the two streams
-        advt = Lambda(lambda advt: advt - tf.reduce_mean(advt, axis=-1, keep_dims=True))(advt)
+        advt = Lambda(lambda advt: advt - tf.reduce_mean(advt, axis=-1, keepdims=True))(advt)
         value = Lambda(lambda value: tf.tile(value, [1, self.num_actions]))(value)
         final = Add()([value, advt])
         model = Model(inputs=inputs, outputs=final)

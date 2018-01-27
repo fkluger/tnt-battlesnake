@@ -107,4 +107,6 @@ stats/
 geckodriver
 *.h5
 
+experiment - */
+
 .DS_Store

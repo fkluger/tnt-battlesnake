@@ -2,6 +2,7 @@ import time
 import datetime
 import signal
 import sys
+import os
 
 import tensorflow as tf
 
@@ -18,6 +19,9 @@ from cli_args import get_args
 # Suppress Traceback on Ctrl-C
 signal.signal(signal.SIGINT, lambda x, y: sys.exit(0))
 
+def get_time_string():
+    return datetime.datetime.fromtimestamp(time.time()).strftime('%d.%m.%Y %H:%M:%S')
+
 
 def main():
     args = get_args()
@@ -26,12 +30,15 @@ def main():
     num_actions = 3
 
     simulator = BattlesnakeSimulator(args.width, args.height, args.snakes, args.fruits, args.frames)
-    summary_writer = tf.summary.FileWriter(args.log_dir)
     brain = DuelingDoubleDQNBrain(shape, num_actions)
     memory = PrioritizedReplayMemory(200000)
     random_agent = RandomAgent(memory, num_actions)
     agent = DQNAgent(brain, memory, shape, num_actions)
     runner = SimpleRunner(random_agent, simulator)
+
+    output_directory = 'experiment - ' + get_time_string()
+    os.makedirs(output_directory)
+    summary_writer = tf.summary.FileWriter(output_directory)
 
     episodes = 0
 
@@ -55,8 +62,7 @@ def main():
                 mean_loss = sum(runner.losses[-args.report_interval:]) * 1.0 / args.report_interval
                 mean_q_value_estimates = sum(
                     runner.q_value_estimates[-args.report_interval:]) * 1.0 / args.report_interval
-                ts = datetime.datetime.fromtimestamp(time.time()).strftime('%d.%m.%Y %H:%M:%S')
-                print('{} - Episode: {}\tSteps: {}\tMean reward: {:4.4f}\tMean length: {:4.4f}'.format(ts,
+                print('{} - Episode: {}\tSteps: {}\tMean reward: {:4.4f}\tMean length: {:4.4f}'.format(get_time_string(),
                                                                                                        episodes, runner.steps, mean_episode_rewards, mean_episode_length))
                 metrics = [
                     {'name': 'mean rewards', 'value': mean_episode_rewards},
@@ -70,10 +76,12 @@ def main():
                 write_summary(summary_writer, runner.steps, metrics)
 
             if training is True and episodes % (args.report_interval * 50) == 0:
-                simulator.save_longest_episode()
+                simulator.save_longest_episode(output_directory)
+            if training is True and episodes % (args.report_interval * 100) == 0:
+                brain.model.save_weights('{}/{}-model.h5'.format(output_directory, episodes))
         summary_writer.close()
     finally:
-        brain.model.save('{}-model.h5'.format(episodes))
+        brain.model.save_weights('{}/{}-model.h5'.format(output_directory, episodes))
         # TODO: Persist episode count, steps, epsilon, ...
 
 

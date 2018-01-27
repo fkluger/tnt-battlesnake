@@ -76,4 +76,3 @@ class DQNAgent(Agent):
         history = self.brain.train(x, y, len(batch))
         loss = history.history['loss'][0]
         return loss, np.mean(q_value_estimates)
-        # TODO: Update memory (https://github.com/fkluger/tnt-battlesnake/issues/1)

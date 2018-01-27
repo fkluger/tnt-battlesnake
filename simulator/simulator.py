@@ -59,7 +59,7 @@ class BattlesnakeSimulator(Simulator):
         bs_state['snakes'] = snakes
         return bs_state
 
-    def save_longest_episode(self):
+    def save_longest_episode(self, output_directory):
         '''
         Persist longest run since this method was called last time as a *.mp4.
         '''
@@ -76,7 +76,7 @@ class BattlesnakeSimulator(Simulator):
             ani = animation.ArtistAnimation(
                 fig, ims, interval=100, repeat=False, blit=True)
             print('Saving longest episode till {} with length {}.'.format(self.episodes, len(self.longest_run_states)))
-            ani.save('{}.mp4'.format(self.episodes))
+            ani.save('{}/episode-{}-steps-{}.mp4'.format(output_directory, self.episodes, len(self.longest_run_states)))
             plt.close()
 
     def get_last_frames(self, observation):

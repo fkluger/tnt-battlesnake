@@ -21,7 +21,7 @@ from cli_args import get_args
 signal.signal(signal.SIGINT, lambda x, y: sys.exit(0))
 
 def get_time_string():
-    return datetime.datetime.fromtimestamp(time.time()).strftime('%d.%m.%Y %H:%M:%S')
+    return datetime.datetime.fromtimestamp(time.time()).strftime('%d.%m.%Y %H-%M-%S')
 
 
 def main():

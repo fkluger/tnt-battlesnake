@@ -16,7 +16,7 @@ def get_args():
 
     parser.add_argument('--gamma', type=float, default=0.9, help='Discount factor for Bellman update.')
     parser.add_argument('--epsilon_max', type=float, default=1.0, help='Start value for epsilon greedy exploration.')
-    parser.add_argument('--epsilon_min', type=float, default=0.1, help='End value for epsilon greedy exploration.')
+    parser.add_argument('--epsilon_min', type=float, default=0.05, help='End value for epsilon greedy exploration.')
     parser.add_argument('--epsilon_lambda', type=float, default=1e-4,
                         help='Decay rate for epsilon greedy exploration. Example: 1e-4 means that epsilon is cut in half every 1e4 steps.')
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size that the DQN is trained on.')

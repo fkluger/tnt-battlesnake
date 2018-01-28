@@ -1,6 +1,8 @@
-import numpy as np
 from collections import deque
-from keras.optimizers import RMSprop
+import numpy as np
+
+import matplotlib.pyplot as plt
+from matplotlib import animation
 
 from brains.dueling_double_dqn import DuelingDoubleDQNBrain
 from simulator.utils import getDirection, is_coord_on_board, get_next_coord
@@ -12,11 +14,11 @@ class RLSnake:
     def __init__(self, width, height, num_frames, dqn_weights_path):
         self.width = width + 2
         self.height = height + 2
-        self.brain = DuelingDoubleDQNBrain(input_shape=(self.width + 1, self.height, 1), num_actions=3)
+        self.num_frames = int(num_frames)
+        self.brain = DuelingDoubleDQNBrain(input_shape=(self.width + 1, self.height, self.num_frames), num_actions=3)
         self.brain.model.load_weights(dqn_weights_path)
         self.snake_direction = None
         self.frames = None
-        self.num_frames = int(num_frames)
 
     def get_last_frames(self, observation):
         '''
@@ -32,23 +34,13 @@ class RLSnake:
             self.frames.popleft()
         return np.moveaxis(np.array(self.frames), 0, -1)
 
-    def get_initial_snake_direction(self, data):
-        snake = [snake for snake in data['snakes'] if snake['id'] == data['you']][0]
-        head = snake['coords'][0]
-        neck = snake['coords'][1]
-        if head[0] < neck[0]:
-            return 'left'
-        elif head[0] > neck[0]:
-            return 'right'
-        elif head[1] < neck[1]:
-            return 'down'
-        else:
-            return 'up'
+    def get_initial_snake_direction(self):
+        return np.random.choice(['up', 'right', 'down', 'left'])
 
     def get_direction(self, data):
 
         if self.snake_direction is None:
-            self.snake_direction = self.get_initial_snake_direction(data)
+            self.snake_direction = self.get_initial_snake_direction()
             print('Initial snake direction is {}'.format(self.snake_direction))
 
         state = data_to_state(data, self.snake_direction)

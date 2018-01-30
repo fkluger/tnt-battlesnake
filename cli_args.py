@@ -7,6 +7,8 @@ def get_args():
     parser.add_argument('--max_episodes', type=int, default=200000000, help='Number of episodes to run.')
     parser.add_argument('--report_interval', type=int, default=10, help='Interval of the reports.')
 
+    parser.add_argument('--continue_experiment', type=str, default=None, help='Continue experiment at the given directory.')
+
     parser.add_argument('--width', type=int, default=20, help='Width of the board.')
     parser.add_argument('--height', type=int, default=20, help='Height of the board.')
     parser.add_argument('--snakes', type=int, default=1, help='Number of snakes on the board.')

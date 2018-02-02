@@ -100,6 +100,9 @@ def main():
             episodes += 1
             runner.run()
 
+            if training is False and memory.size() % 1000 == 0:
+                print(f'Random run {memory.size()}')
+
             if training is True and episodes % args['report_interval'] == 0:
                 mean_episode_length = sum(
                     runner.episode_lengths[-args['report_interval']:]) * 1.0 / args['report_interval']

@@ -1,6 +1,15 @@
-import json
+import os
 from collections import deque
 import numpy as np
+import matplotlib
+
+try:
+    if os.environ['DISPLAY']:
+        print('Found display')
+except KeyError:
+    matplotlib.use('Agg')
+
+
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 

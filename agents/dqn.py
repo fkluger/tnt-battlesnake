@@ -28,7 +28,7 @@ class DQNAgent(Agent):
         self.beta = replay_beta_min
 
     def get_metrics(self):
-        return [{'name': 'epsilon', 'value': self.epsilon}]
+        return [{'name': 'epsilon', 'value': self.epsilon, 'type': 'value'}]
 
     def act(self, state):
         if random.random() < self.epsilon:

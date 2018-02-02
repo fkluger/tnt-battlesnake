@@ -39,4 +39,5 @@ def data_to_state(data, snake_direction):
         x += 1
         y += 1
         state[x][y] = Field.fruit
+    print(np.transpose(state))
     return state

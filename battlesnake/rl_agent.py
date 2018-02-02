@@ -2,7 +2,8 @@ import random
 from collections import deque
 import numpy as np
 
-from brains.dueling_double_dqn import DuelingDoubleDQNBrain
+from agents.distributional_dqn import DistributionalDQNAgent
+from brains.distributional_dueling_double_dqn import DistributionalDuelingDoubleDQNBrain
 from simulator.utils import getDirection, is_coord_on_board, get_next_coord
 from .utils import data_to_state
 
@@ -14,8 +15,13 @@ class RLSnake:
         self.width = width + 2
         self.height = height + 2
         self.num_frames = int(num_frames)
-        self.brain = DuelingDoubleDQNBrain(input_shape=(self.width + 1, self.height, self.num_frames), num_actions=3)
+        num_quantiles = 200
+        input_shape = (self.width + 1, self.height, self.num_frames)
+        num_actions = 3
+        self.brain = DistributionalDuelingDoubleDQNBrain(num_quantiles=num_quantiles, input_shape=input_shape, num_actions=num_actions)
         self.brain.model.load_weights(dqn_weights_path)
+        self.agent = DistributionalDQNAgent(num_quantiles=num_quantiles, brain=self.brain, memory=None, input_shape=input_shape, num_actions=num_actions)
+        self.agent.epsilon = 0.01
         self.snake_direction = None
         self.frames = None
 
@@ -44,19 +50,20 @@ class RLSnake:
 
         state = data_to_state(data, self.snake_direction)
         frames = self.get_last_frames(state)
-        q_values = self.brain.predict(frames[np.newaxis, ...])[0]
-        print('Q-Values: {} with direction {}'.format(q_values, self.snake_direction))
-        self.snake_direction = self.find_best_action(q_values, data)
+        best_action = self.agent.act(frames)
+        actions = [best_action]
+        for i in range(3):
+            if i not in actions:
+                actions.append(i)
+        # TODO: If distributional compute mean over quantiles per action
+        print('Actions: {} with direction {}'.format(actions, self.snake_direction))
+        self.snake_direction = self.find_best_action(actions, data)
         print('Choosing direction {}'.format(self.snake_direction))
         return self.snake_direction
 
-    def find_best_action(self, q_values, data):
+    def find_best_action(self, actions, data):
         head = [snake['coords'][0] for snake in data['snakes'] if snake['id'] == data['you']][0]
         head = [head[0] + 1, head[1] + 1]
-        if random.random() < 0.05:
-            actions = np.random.choice([0, 1, 2], 3)
-        else:
-            actions = np.argsort(q_values)[::-1]
         directions = [getDirection(i, self.snake_direction) for i in actions]
         for direction in directions:
             next_coord = get_next_coord(head, direction)

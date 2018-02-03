@@ -14,13 +14,14 @@ def get_args():
     parser.add_argument('--snakes', type=int, default=1, help='Number of snakes on the board.')
     parser.add_argument('--fruits', type=int, default=3, help='Number of fruits on the board.')
 
+    parser.add_argument('--multi_step_n', type=int, default=3, help='Evaluate n-step discounted returns.')
     parser.add_argument('--frames', type=int, default=2, help='Frames of the game to concatenate.')
     parser.add_argument('--num_quantiles', type=int, default=200, help='Number of quantiles for the distributional agent.')
 
     parser.add_argument('--gamma', type=float, default=0.9, help='Discount factor for Bellman update.')
     parser.add_argument('--epsilon_max', type=float, default=1.0, help='Start value for epsilon greedy exploration.')
-    parser.add_argument('--epsilon_min', type=float, default=0.05, help='End value for epsilon greedy exploration.')
-    parser.add_argument('--epsilon_lambda', type=float, default=1e-4,
+    parser.add_argument('--epsilon_min', type=float, default=0.01, help='End value for epsilon greedy exploration.')
+    parser.add_argument('--epsilon_lambda', type=float, default=1e-5,
                         help='Decay rate for epsilon greedy exploration. Example: 1e-4 means that epsilon is cut in half every 1e4 steps.')
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size that the DQN is trained on.')
     parser.add_argument('--learning_rate', type=float, default=0.00025, help='Learning rate of the RMSprop optimizer.')

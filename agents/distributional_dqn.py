@@ -68,7 +68,7 @@ class DistributionalDQNAgent(DQNAgent):
             if next_state is None:
                 target[action] = reward
             else:
-                target[action] = reward + self.GAMMA * q_value_quantiles_next[i, best_action[i], :]
+                target[action] = reward + (self.GAMMA**self.multi_step_n) * q_value_quantiles_next[i, best_action[i], :]
 
             x[i] = state
             y[i] = target

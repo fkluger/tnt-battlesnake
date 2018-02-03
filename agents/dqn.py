@@ -12,8 +12,10 @@ class DQNAgent(Agent):
 
     steps = 0
     epsilon = 0
+    episode_observations = []
+    episode_observation_indices = []
 
-    def __init__(self, brain, memory, input_shape, num_actions, GAMMA=0.9, EPSILON_MAX=1, EPSILON_MIN=0.1, LAMBDA=1e-4, batch_size=32, update_target_freq=10000, replay_beta_min=0.4):
+    def __init__(self, brain, memory, input_shape, num_actions, GAMMA=0.9, EPSILON_MAX=1, EPSILON_MIN=0.1, LAMBDA=1e-4, batch_size=32, update_target_freq=10000, replay_beta_min=0.4, multi_step_n=10):
         self.brain = brain
         self.memory = memory
         self.input_shape = input_shape
@@ -26,6 +28,7 @@ class DQNAgent(Agent):
         self.batch_size = batch_size
         self.update_target_freq = update_target_freq
         self.beta = replay_beta_min
+        self.multi_step_n = multi_step_n
 
     def get_metrics(self):
         return [{'name': 'epsilon', 'value': self.epsilon, 'type': 'value'}]
@@ -37,12 +40,30 @@ class DQNAgent(Agent):
             return np.argmax(self.brain.predict(state[np.newaxis, ...]))
 
     def observe(self, observation):
-        self.memory.add(observation)
+        self.episode_observations.append(observation)
+        self.episode_observation_indices.append(self.memory.add(observation))
+        if observation[3] is None:
+            self.update_episode_observations()
+            self.episode_observation_indices = []
+            self.episode_observations = []
         self.steps += 1
         if self.steps % self.update_target_freq == 0:
             self.brain.update_target()
         self.epsilon = self.EPSILON_MIN + (self.EPSILON_MAX - self.EPSILON_MIN) * math.exp(-self.LAMBDA * self.steps)
         self.beta += (1. - self.beta) / 1e6
+    
+    def update_episode_observations(self):
+        for idx, observation in enumerate(self.episode_observations):
+            n_step_reward = observation[2]
+            for t in range(1, self.multi_step_n + 1):
+                next_t = idx + t
+                next_state = None
+                if next_t >= len(self.episode_observations):
+                    break
+                else:
+                    n_step_reward += (self.GAMMA**(t - 1)) * self.episode_observations[next_t][2]
+                    next_state = self.episode_observations[next_t][0]
+            self.memory.update_observation(self.episode_observation_indices[idx], (observation[0], observation[1], n_step_reward, next_state))
 
     def replay(self):
         batch, indices, weights = self.memory.sample(self.batch_size, self.beta)

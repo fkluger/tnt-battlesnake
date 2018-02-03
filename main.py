@@ -57,7 +57,7 @@ def main():
                                      args['replay_alpha_prio'], args['replay_max_prio'])
     random_agent = RandomAgent(memory, num_actions)
     agent = DistributionalDQNAgent(num_quantiles=args['num_quantiles'], brain=brain, memory=memory, input_shape=shape, num_actions=num_actions, GAMMA=args['gamma'], EPSILON_MAX=args['epsilon_max'],
-                                   EPSILON_MIN=args['epsilon_min'], LAMBDA=args['epsilon_lambda'], batch_size=args['batch_size'], update_target_freq=args['target_update_freq'], replay_beta_min=args['replay_beta_min'])
+                                   EPSILON_MIN=args['epsilon_min'], LAMBDA=args['epsilon_lambda'], batch_size=args['batch_size'], update_target_freq=args['target_update_freq'], replay_beta_min=args['replay_beta_min'], multi_step_n=args['multi_step_n'])
     runner = SimpleRunner(random_agent, simulator)
 
     summary_writer = tf.summary.FileWriter(output_directory)

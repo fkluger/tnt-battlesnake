@@ -24,9 +24,9 @@ class DistributionalDuelingDoubleDQNBrain(DuelingDoubleDQNBrain):
         cnn_features = Conv2D(64, 3, activation='relu')(cnn_features)
         cnn_features = Flatten()(cnn_features)
         advantage = Dense(256, activation='relu')(cnn_features)
-        advantage = Dense(self.num_actions)(advantage)
+        advantage = Dense(self.num_quantiles * self.num_actions)(advantage)
         value = Dense(256, activation='relu')(cnn_features)
-        value = Dense(1)(value)
+        value = Dense(self.num_quantiles)(value)
         # now to combine the two streams
         advantage = Lambda(lambda advantage: advantage - tf.reduce_mean(advantage, axis=-1, keepdims=True))(advantage)
         value = Lambda(lambda value: tf.tile(value, [1, self.num_actions]))(value)

@@ -30,11 +30,11 @@ def get_args():
     parser.add_argument('--target_update_freq', type=int, default=10000,
                         help='Double DQN target network parameter update frequency.')
 
-    parser.add_argument('--replay_capacity', type=int, default=200000, help='Capacity of the replay memory.')
+    parser.add_argument('--replay_capacity', type=int, default=2000000, help='Capacity of the replay memory.')
 
     parser.add_argument('--replay_beta_min', type=float, default=0.4,
                         help='Degree of importance weighting that is used. This value is linearly increased to 1 during training.')
-    parser.add_argument('--replay_alpha_prio', type=float, default=0.9,
+    parser.add_argument('--replay_alpha_prio', type=float, default=0.6,
                         help='Degree of prioritization for prioritized experience replay. 0 means all experiences have the same priority.')
     parser.add_argument('--replay_min_prio', type=float, default=0.01,
                         help='Minimum priority for prioritized experience replay.')

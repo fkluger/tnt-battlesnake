@@ -95,12 +95,12 @@ def main():
                 memory.max_priority = checkpoint['replay_max_prio']
 
     training = False
-    print('Running {} random steps.'.format(memory.capacity))
+    print('Running {} random steps.'.format(80000))
 
     try:
         while training is False or episodes < args['max_episodes']:
 
-            if training is False and memory.size() == memory.capacity:
+            if training is False and memory.size() > 80000:
                 print('Collecting random observations finished. Beginning training...')
                 runner.agent = agent
                 training = True
@@ -109,7 +109,7 @@ def main():
             runner.run()
 
             if training is False and episodes % 1000 == 0:
-                print(f'Random runs {memory.size() * 100 / memory.capacity}% complete.')
+                print(f'Random runs {memory.size() * 100 / 80000}% complete.')
 
             if training is True and episodes % args['report_interval'] == 0:
                 mean_episode_length = sum(

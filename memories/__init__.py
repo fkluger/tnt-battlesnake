@@ -11,7 +11,7 @@ class Memory(ABC):
         pass
 
     @abstractmethod
-    def add(self, observation):
+    def add(self, observation, error):
         '''
         Add a sample to the memory.
         '''

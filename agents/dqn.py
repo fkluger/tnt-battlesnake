@@ -3,6 +3,7 @@ import math
 import numpy as np
 
 from . import Agent
+from brains.huber_loss import np_huber_loss#
 
 
 class DQNAgent(Agent):
@@ -41,7 +42,15 @@ class DQNAgent(Agent):
 
     def observe(self, observation):
         self.episode_observations.append(observation)
-        self.episode_observation_indices.append(self.memory.add(observation))
+        state, next_state = observation[0], observation[3]
+        q_values = self.brain.predict(state[np.newaxis, ...])
+        if next_state is None:
+            next_state = np.zeros(self.input_shape)
+        q_values_next = self.brain.predict(next_state[np.newaxis, ...])
+
+        _, _, error = self.create_target(observation, q_values[0], q_values_next[0])
+        
+        self.episode_observation_indices.append(self.memory.add(observation, error))
         if observation[3] is None:
             self.update_episode_observations()
             self.episode_observation_indices = []
@@ -65,6 +74,21 @@ class DQNAgent(Agent):
                     next_state = self.episode_observations[next_t][0]
             self.memory.update_observation(self.episode_observation_indices[idx], (observation[0], observation[1], n_step_reward, next_state))
 
+    def create_target(self, observation, q_values, q_values_next):
+        state, action, reward, next_state = observation[0], observation[1], observation[2], observation[3]
+
+        target = q_values
+        target_old = target[action]
+        if next_state is None:
+            target[action] = reward
+        else:
+            target[action] = reward + (self.GAMMA**self.multi_step_n) * np.amax(q_values_next)
+        
+        error = np_huber_loss(target[action], target_old)
+        
+        return state, target, error
+        
+
     def replay(self):
         batch, indices, weights = self.memory.sample(self.batch_size, self.beta)
 
@@ -81,19 +105,12 @@ class DQNAgent(Agent):
         errors = np.zeros(len(batch))
         q_value_estimates = np.zeros(len(batch))
         for i, observation in enumerate(batch):
-            state, action, reward, next_state = observation[0], observation[1], observation[2], observation[3]
-
-            target = q_values[i]
-            target_old = target[action]
-            if next_state is None:
-                target[action] = reward
-            else:
-                target[action] = reward + (self.GAMMA**self.multi_step_n) * np.amax(q_values_next[i])
+            state, target, error = self.create_target(observation, q_values[i], q_values_next[i])
 
             x[i] = state
             y[i] = target
-            errors[i] = abs(target_old - target[action])
-            q_value_estimates[i] = target[action]
+            errors[i] = error
+            q_value_estimates[i] = target[observation[1]]
             self.memory.update(indices[i], errors[i])
 
         history = self.brain.train(x, y, len(batch), weights)

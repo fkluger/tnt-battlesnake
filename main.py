@@ -51,12 +51,20 @@ def main():
             json.dump(args, f, indent=2)
 
     simulator = BattlesnakeSimulator(args['width'], args['height'], args['snakes'], args['fruits'], args['frames'])
-    brain = DistributionalDuelingDoubleDQNBrain(
-        num_quantiles=args['num_quantiles'], input_shape=shape, num_actions=num_actions, learning_rate=args['learning_rate'])
+    if args["distributional"]:
+        brain = DistributionalDuelingDoubleDQNBrain(
+            num_quantiles=args['num_quantiles'], input_shape=shape, num_actions=num_actions, learning_rate=args['learning_rate'])
+    else:
+        brain = DuelingDoubleDQNBrain(input_shape=shape, num_actions=num_actions, learning_rate=args['learning_rate'])
+
     memory = PrioritizedReplayMemory(args['replay_capacity'], args['replay_min_prio'],
                                      args['replay_alpha_prio'], args['replay_max_prio'])
     random_agent = RandomAgent(memory, num_actions)
-    agent = DistributionalDQNAgent(num_quantiles=args['num_quantiles'], brain=brain, memory=memory, input_shape=shape, num_actions=num_actions, GAMMA=args['gamma'], EPSILON_MAX=args['epsilon_max'],
+    if args["distributional"]:
+        agent = DistributionalDQNAgent(num_quantiles=args['num_quantiles'], brain=brain, memory=memory, input_shape=shape, num_actions=num_actions, GAMMA=args['gamma'], EPSILON_MAX=args['epsilon_max'],
+                                       EPSILON_MIN=args['epsilon_min'], LAMBDA=args['epsilon_lambda'], batch_size=args['batch_size'], update_target_freq=args['target_update_freq'], replay_beta_min=args['replay_beta_min'], multi_step_n=args['multi_step_n'])
+    else:
+        agent = DQNAgent(brain=brain, memory=memory, input_shape=shape, num_actions=num_actions, GAMMA=args['gamma'], EPSILON_MAX=args['epsilon_max'],
                                    EPSILON_MIN=args['epsilon_min'], LAMBDA=args['epsilon_lambda'], batch_size=args['batch_size'], update_target_freq=args['target_update_freq'], replay_beta_min=args['replay_beta_min'], multi_step_n=args['multi_step_n'])
     runner = SimpleRunner(random_agent, simulator)
 

@@ -88,7 +88,7 @@ class DQNAgent(Agent):
             if next_state is None:
                 target[action] = reward
             else:
-                target[action] = reward + self.GAMMA * np.amax(q_values_next[i])
+                target[action] = reward + (self.GAMMA**self.multi_step_n) * np.amax(q_values_next[i])
 
             x[i] = state
             y[i] = target

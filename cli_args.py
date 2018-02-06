@@ -6,6 +6,7 @@ def get_args():
 
     parser.add_argument('--max_episodes', type=int, default=200000000, help='Number of episodes to run.')
     parser.add_argument('--report_interval', type=int, default=10, help='Interval of the reports.')
+    parser.add_argument('--distributional', type=bool, default=False, help='Use distributional RL agents.')
 
     parser.add_argument('--continue_experiment', type=str, default=None, help='Continue experiment at the given directory.')
 

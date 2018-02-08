@@ -18,7 +18,7 @@ def huber_loss(y_true, y_pred):
 
 
 def create_quantile_huber_loss(num_quantiles):
-    tau = tf.range(0, 1, 1.0 / num_quantiles)
+    tau = tf.range(1.0 / num_quantiles, 1.0 + 1.0 / num_quantiles, 1.0 / num_quantiles)
 
     def quantile_huber_loss(y_true, y_pred):
         loss = huber_loss(y_true, y_pred)
@@ -41,7 +41,7 @@ def np_huber_loss(y_true, y_pred):
 
 
 def create_np_quantile_huber_loss(num_quantiles):
-    tau = np.arange(0.0, 1.0, 1.0 / num_quantiles)
+    tau = np.arange(1.0 / num_quantiles, 1.0 + 1.0 / num_quantiles, 1.0 / num_quantiles)
 
     def quantile_huber_loss(y_true, y_pred):
         loss = np_huber_loss(y_true, y_pred)

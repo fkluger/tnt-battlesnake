@@ -13,8 +13,6 @@ class DQNAgent(Agent):
 
     steps = 0
     epsilon = 0
-    episode_observations = []
-    episode_observation_indices = []
 
     def __init__(self, brain, memory, input_shape, num_actions, GAMMA=0.9, EPSILON_MAX=1, EPSILON_MIN=0.1, LAMBDA=1e-4, batch_size=32, update_target_freq=10000, replay_beta_min=0.4, multi_step_n=10):
         self.brain = brain
@@ -41,7 +39,6 @@ class DQNAgent(Agent):
             return np.argmax(self.brain.predict(state[np.newaxis, ...]))
 
     def observe(self, observation):
-        self.episode_observations.append(observation)
         state, next_state = observation[0], observation[3]
         q_values = self.brain.predict(state[np.newaxis, ...])
         if next_state is None:
@@ -49,31 +46,13 @@ class DQNAgent(Agent):
         q_values_next = self.brain.predict(next_state[np.newaxis, ...])
 
         _, _, error = self.create_target(observation, q_values[0], q_values_next[0])
-        
-        self.episode_observation_indices.append(self.memory.add(observation, error))
-        if observation[3] is None:
-            self.update_episode_observations()
-            self.episode_observation_indices = []
-            self.episode_observations = []
+        self.memory.add(observation, error)
         self.steps += 1
         if self.steps % self.update_target_freq == 0:
             self.brain.update_target()
         self.epsilon = self.EPSILON_MIN + (self.EPSILON_MAX - self.EPSILON_MIN) * math.exp(-self.LAMBDA * self.steps)
         self.beta += (1. - self.beta) / 1e6
     
-    def update_episode_observations(self):
-        for idx, observation in enumerate(self.episode_observations):
-            n_step_reward = observation[2]
-            for t in range(1, self.multi_step_n + 1):
-                next_t = idx + t
-                next_state = None
-                if next_t >= len(self.episode_observations):
-                    break
-                else:
-                    n_step_reward += (self.GAMMA**(t - 1)) * self.episode_observations[next_t][2]
-                    next_state = self.episode_observations[next_t][0]
-            self.memory.update_observation(self.episode_observation_indices[idx], (observation[0], observation[1], n_step_reward, next_state))
-
     def create_target(self, observation, q_values, q_values_next):
         state, action, reward, next_state = observation[0], observation[1], observation[2], observation[3]
 
@@ -82,7 +61,7 @@ class DQNAgent(Agent):
         if next_state is None:
             target[action] = reward
         else:
-            target[action] = reward + (self.GAMMA**self.multi_step_n) * np.amax(q_values_next)
+            target[action] = reward + self.GAMMA * np.amax(q_values_next)
         
         error = np_huber_loss(target[action], target_old)
         

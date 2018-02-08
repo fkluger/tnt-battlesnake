@@ -3,6 +3,7 @@ from keras import Model, Input
 from keras.layers import Conv2D, Flatten, Dense, Lambda, Add, Dropout
 from keras.optimizers import RMSprop
 import tensorflow as tf
+import numpy as np
 
 from .double_dqn import DoubleDQNBrain
 from .huber_loss import huber_loss
@@ -16,18 +17,21 @@ class DuelingDoubleDQNBrain(DoubleDQNBrain):
 
     def predict(self, state, target=False):
         self.steps += 1
-        self.rate = 0 + math.exp(-1e-6 * self.steps)
+        self.rate = 0.001 + (1.0 - 0.001) * math.exp(-1e-6 * self.steps)
         for layer in self.dropout_layers:
             layer.rate = self.rate
         if self.steps % 10000 == 0:
             print(f'Dropout rate: {self.rate}')
-        return super().predict(state, target)
+        predictions = []
+        for _ in range(3):
+            predictions.append(super().predict(state, target))
+        return np.mean(predictions, axis=0)
 
     def create_model(self):
         inputs = Input(shape=self.input_shape)
-        net = Conv2D(32, 8, activation='relu', padding='same')(inputs)
-        net = Conv2D(64, 4, activation='relu')(net)
-        net = Conv2D(64, 3, activation='relu')(net)
+        net = Conv2D(32, 8, activation='relu', strides=(1, 1))(inputs)
+        net = Conv2D(64, 4, activation='relu', strides=(2, 2))(net)
+        net = Conv2D(64, 3, activation='relu', strides=(1, 1))(net)
         net = Flatten()(net)
         advt = Dense(512, activation='relu')(net)
         advt = Dropout(self.rate)(advt)

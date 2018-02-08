@@ -1,4 +1,5 @@
 import random
+import math
 import numpy as np
 from collections import deque
 
@@ -35,6 +36,34 @@ class DistributionalDQNAgent(DQNAgent):
         quantiles_mean = np.mean(quantiles, axis=2)
         return np.argmax(quantiles_mean, axis=1)
 
+    def observe(self, observation):
+        state, action, reward, next_state = observation[0], observation[1], observation[2], observation[3]
+        q_value_quantiles = np.array(self.brain.predict(state[np.newaxis, ...]))
+        q_value_quantiles = np.swapaxes(q_value_quantiles, 0, 1)
+        if next_state is None:
+            next_state = np.zeros(self.input_shape)
+        q_value_quantiles_next = np.array(self.brain.predict(next_state[np.newaxis, ...]))
+        q_value_quantiles_next = np.swapaxes(q_value_quantiles_next, 0, 1)
+
+        best_action = self.compute_best_action(q_value_quantiles)
+
+        target = q_value_quantiles[0, :, :]
+        target_old = list(target[action])
+        reward = np.tile([reward], self.num_quantiles)
+        if next_state is None:
+            target[action] = reward
+        else:
+            target[action] = reward + self.GAMMA * q_value_quantiles_next[0, best_action[0], :]
+        
+        error = self.huber_loss(target_old, target[action])
+        
+        self.memory.add(observation, error)
+        self.steps += 1
+        if self.steps % self.update_target_freq == 0:
+            self.brain.update_target()
+        self.epsilon = self.EPSILON_MIN + (self.EPSILON_MAX - self.EPSILON_MIN) * math.exp(-self.LAMBDA * self.steps)
+        self.beta += (1. - self.beta) / 1e6
+
     def replay(self):
         batch, indices, weights = self.memory.sample(self.batch_size, self.beta)
 
@@ -68,7 +97,7 @@ class DistributionalDQNAgent(DQNAgent):
             if next_state is None:
                 target[action] = reward
             else:
-                target[action] = reward + (self.GAMMA**self.multi_step_n) * q_value_quantiles_next[i, best_action[i], :]
+                target[action] = reward + self.GAMMA * q_value_quantiles_next[i, best_action[i], :]
 
             x[i] = state
             y[i] = target

@@ -55,7 +55,6 @@ class RLSnake:
         for i in range(3):
             if i not in actions:
                 actions.append(i)
-        # TODO: If distributional compute mean over quantiles per action
         print('Actions: {} with direction {}'.format(actions, self.snake_direction))
         self.snake_direction = self.find_best_action(actions, data)
         print('Choosing direction {}'.format(self.snake_direction))

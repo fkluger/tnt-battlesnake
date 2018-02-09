@@ -21,7 +21,9 @@ class RLSnake:
         self.brain = DistributionalDuelingDoubleDQNBrain(num_quantiles=num_quantiles, input_shape=input_shape, num_actions=num_actions)
         self.brain.model.load_weights(dqn_weights_path)
         self.agent = DistributionalDQNAgent(num_quantiles=num_quantiles, brain=self.brain, memory=None, input_shape=input_shape, num_actions=num_actions)
-        self.agent.epsilon = 0.01
+        self.agent.epsilon = 0
+        for layer in self.brain.dropout_layers:
+            layer.rate = 0
         self.snake_direction = None
         self.frames = None
 

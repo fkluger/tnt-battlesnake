@@ -16,7 +16,7 @@ def get_args():
     parser.add_argument('--fruits', type=int, default=3, help='Number of fruits on the board.')
 
     parser.add_argument('--multi_step_n', type=int, default=3, help='Evaluate n-step discounted returns.')
-    parser.add_argument('--frames', type=int, default=2, help='Frames of the game to concatenate.')
+    parser.add_argument('--frames', type=int, default=4, help='Frames of the game to concatenate.')
     parser.add_argument('--num_quantiles', type=int, default=200, help='Number of quantiles for the distributional agent.')
 
     parser.add_argument('--gamma', type=float, default=0.9, help='Discount factor for Bellman update.')
@@ -34,7 +34,7 @@ def get_args():
 
     parser.add_argument('--replay_beta_min', type=float, default=0.4,
                         help='Degree of importance weighting that is used. This value is linearly increased to 1 during training.')
-    parser.add_argument('--replay_alpha_prio', type=float, default=0.6,
+    parser.add_argument('--replay_alpha_prio', type=float, default=0.9,
                         help='Degree of prioritization for prioritized experience replay. 0 means all experiences have the same priority.')
     parser.add_argument('--replay_min_prio', type=float, default=0.01,
                         help='Minimum priority for prioritized experience replay.')

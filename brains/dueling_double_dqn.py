@@ -17,7 +17,7 @@ class DuelingDoubleDQNBrain(DoubleDQNBrain):
 
     def predict(self, state, target=False):
         self.steps += 1
-        self.rate = 0.001 + (1.0 - 0.001) * math.exp(-1e-6 * self.steps)
+        self.rate = 0 + math.exp(-1e-6 * self.steps)
         for layer in self.dropout_layers:
             layer.rate = self.rate
         if self.steps % 10000 == 0:

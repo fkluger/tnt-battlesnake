@@ -25,7 +25,7 @@ def get_args():
     parser.add_argument('--epsilon_lambda', type=float, default=1e-5,
                         help='Decay rate for epsilon greedy exploration. Example: 1e-4 means that epsilon is cut in half every 1e4 steps.')
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size that the DQN is trained on.')
-    parser.add_argument('--learning_rate', type=float, default=0.00025, help='Learning rate of the RMSprop optimizer.')
+    parser.add_argument('--learning_rate', type=float, default=0.00005, help='Learning rate of the RMSprop optimizer.')
 
     parser.add_argument('--target_update_freq', type=int, default=10000,
                         help='Double DQN target network parameter update frequency.')

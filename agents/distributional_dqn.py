@@ -2,6 +2,7 @@ import random
 import math
 import numpy as np
 from collections import deque
+from scipy.stats import kendalltau
 
 from brains.huber_loss import create_np_quantile_huber_loss
 from .dqn import DQNAgent
@@ -10,24 +11,28 @@ from .dqn import DQNAgent
 class DistributionalDQNAgent(DQNAgent):
 
     q_value_quantile_history = deque([], maxlen=10000)
+    kendall_tau_history = []
 
     def __init__(self, num_quantiles, **kwargs):
         self.num_quantiles = num_quantiles
+        self.optimal_quantile_ordering = np.arange(self.num_quantiles - 1, -1, -1)
         self.huber_loss = create_np_quantile_huber_loss(self.num_quantiles)
         super().__init__(**kwargs)
 
     def get_metrics(self):
         metrics = [
-            {'name': 'epsilon', 'value': self.epsilon, 'type': 'value'}, 
-            {'name': 'quantile_histogram', 'value': self.q_value_quantile_history, 'type': 'histogram'}
+            # {'name': 'epsilon', 'value': self.epsilon, 'type': 'value'}, 
+            {'name': 'quantile_histogram', 'value': self.q_value_quantile_history, 'type': 'histogram'},
+            {'name': 'mean quantile ordering coefficient', 'value': np.mean(self.kendall_tau_history), 'type': 'value'}
         ]
+        self.kendall_tau_history = []
         return metrics
 
     def act(self, state):
         if random.random() < self.epsilon:
             return random.randint(0, self.num_actions - 1)
         else:
-            quantiles = np.array(self.brain.predict(state[np.newaxis, ...]))
+            quantiles = np.array(self.brain.predict(np.expand_dims(state, 0)))
             quantiles = np.swapaxes(quantiles, 0, 1)
             best_action = self.compute_best_action(quantiles)
             return best_action
@@ -38,11 +43,11 @@ class DistributionalDQNAgent(DQNAgent):
 
     def observe(self, observation):
         state, action, reward, next_state = observation[0], observation[1], observation[2], observation[3]
-        q_value_quantiles = np.array(self.brain.predict(state[np.newaxis, ...]))
+        q_value_quantiles = np.array(self.brain.predict(np.expand_dims(state, 0)))
         q_value_quantiles = np.swapaxes(q_value_quantiles, 0, 1)
         if next_state is None:
             next_state = np.zeros(self.input_shape)
-        q_value_quantiles_next = np.array(self.brain.predict(next_state[np.newaxis, ...]))
+        q_value_quantiles_next = np.array(self.brain.predict(np.expand_dims(next_state, 0)))
         q_value_quantiles_next = np.swapaxes(q_value_quantiles_next, 0, 1)
 
         best_action = self.compute_best_action(q_value_quantiles)
@@ -98,11 +103,11 @@ class DistributionalDQNAgent(DQNAgent):
                 target[action] = reward
             else:
                 target[action] = reward + self.GAMMA * q_value_quantiles_next[i, best_action[i], :]
-
             x[i] = state
             y[i] = target
             errors[i] = self.huber_loss(target_old, target[action])
             self.q_value_quantile_history.append(np.squeeze(target[action]))
+            self.kendall_tau_history.append(kendalltau(np.argsort(np.squeeze(target[action])), self.optimal_quantile_ordering))
             self.memory.update(indices[i], errors[i])
 
         y = [y[:, i, :] for i in range(self.num_actions)]

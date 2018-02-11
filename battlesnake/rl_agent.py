@@ -10,12 +10,14 @@ from .utils import data_to_state
 
 class RLSnake:
 
+    history = []
+
     def __init__(self, width, height, num_frames, dqn_weights_path):
         # TODO(frederik): Let user pass in experiment path and check whether parameters are correct
         self.width = width + 2
         self.height = height + 2
         self.num_frames = int(num_frames)
-        num_quantiles = 200
+        num_quantiles = 20
         input_shape = (self.width + 1, self.height, self.num_frames)
         num_actions = 3
         self.brain = DistributionalDuelingDoubleDQNBrain(num_quantiles=num_quantiles, input_shape=input_shape, num_actions=num_actions)
@@ -52,7 +54,13 @@ class RLSnake:
 
         state = data_to_state(data, self.snake_direction)
         frames = self.get_last_frames(state)
-        best_action = self.agent.act(frames)
+        quantiles = self.get_quantiles(frames)
+        self.history.append({
+            'state': state,
+            'quantiles': quantiles,
+            'snake_direction': self.snake_direction
+        })
+        best_action = self.agent.compute_best_action(quantiles)
         actions = [best_action]
         for i in range(3):
             if i not in actions:
@@ -61,6 +69,10 @@ class RLSnake:
         self.snake_direction = self.find_best_action(actions, data)
         print('Choosing direction {}'.format(self.snake_direction))
         return self.snake_direction
+
+    def get_quantiles(self, state):
+        quantiles = np.array(self.brain.predict(np.expand_dims(state, 0)))
+        return np.swapaxes(quantiles, 0, 1)
 
     def find_best_action(self, actions, data):
         head = [snake['coords'][0] for snake in data['snakes'] if snake['id'] == data['you']][0]

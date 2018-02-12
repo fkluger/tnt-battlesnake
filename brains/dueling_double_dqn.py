@@ -20,12 +20,9 @@ class DuelingDoubleDQNBrain(DoubleDQNBrain):
         self.rate = 0 + math.exp(-1e-6 * self.steps)
         for layer in self.dropout_layers:
             layer.rate = self.rate
-        if self.steps % 10000 == 0:
+        if self.steps % 10000 == 0 and self.rate > 0.01:
             print(f'Dropout rate: {self.rate}')
-        predictions = []
-        for _ in range(3):
-            predictions.append(super().predict(state, target))
-        return np.mean(predictions, axis=0)
+        return super().predict(state, target)
 
     def create_model(self):
         inputs = Input(shape=self.input_shape)

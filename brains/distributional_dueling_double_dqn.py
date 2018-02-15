@@ -25,8 +25,8 @@ class DistributionalDuelingDoubleDQNBrain(DuelingDoubleDQNBrain):
         Returns a tensor with shape (num_actions, batch_size, num_quantiles).
         '''
         inputs = Input(shape=self.input_shape)
-        cnn_features = Conv2D(32, 8, activation='relu', strides=(1, 1))(inputs)
-        cnn_features = Conv2D(64, 4, activation='relu', strides=(2, 2))(cnn_features)
+        cnn_features = Conv2D(32, 3, activation='relu', strides=(1, 1))(inputs)
+        cnn_features = Conv2D(64, 5, activation='relu', strides=(2, 2))(cnn_features)
         cnn_features = Conv2D(64, 3, activation='relu', strides=(1, 1))(cnn_features)
         cnn_features = Flatten()(cnn_features)
         advantage = Dense(512, activation='relu')(cnn_features)

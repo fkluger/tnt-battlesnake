@@ -1,3 +1,4 @@
+import math
 import os
 from collections import deque
 import numpy as np
@@ -101,6 +102,14 @@ class BattlesnakeSimulator(Simulator):
             self.frames.append(frame)
             self.frames.popleft()
         return np.moveaxis(np.array(self.frames), 0, -1)
+    
+    def get_closest_fruit_distance(self, head):
+        minimum_distance = math.inf
+        for fruit in self.state.fruits:
+            fruit_distance = np.linalg.norm(np.subtract(fruit, head))
+            if fruit_distance < minimum_distance:
+                minimum_distance = fruit_distance
+        return minimum_distance
 
     def step(self, actions):
         '''
@@ -114,16 +123,21 @@ class BattlesnakeSimulator(Simulator):
         terminal = False
         reward = None
 
+        fruit_distance_differences = []
+
         # Compute next snake positions and health
         for idx, action in enumerate(actions):
             snake = self.state.snakes[idx]
+            old_fruit_distance = self.get_closest_fruit_distance(snake.body[0])
             direction = getDirection(action, snake.direction)
             snake_next_body = get_next_snake_coords(
                 snake.body, direction, self.state.fruits)
             self.state.snakes[idx].direction = direction
             self.state.snakes[idx].body = snake_next_body
             self.state.snakes[idx].health -= 1
-
+            fruit_distance = self.get_closest_fruit_distance(snake_next_body[0])
+            fruit_distance_differences.append(old_fruit_distance - fruit_distance)
+        
         # Compute rewards and whether the episode ended (terminal)
         for idx, snake in enumerate(self.state.snakes):
             collided = self.check_collision(snake)
@@ -144,7 +158,12 @@ class BattlesnakeSimulator(Simulator):
                     reward = Reward.starve
                 else:
                     terminal = False
-                    reward = Reward.nothing
+                    if fruit_distance_differences[idx] > 0:
+                        reward = Reward.moved_to_fruit
+                    elif fruit_distance_differences[idx] == 0:
+                        reward = Reward.nothing
+                    else:
+                        reward = -Reward.moved_to_fruit
 
         # Compute next state
         next_state = None if terminal else self.get_last_frames(self.state.observe())

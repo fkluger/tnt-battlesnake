@@ -168,7 +168,7 @@ class BattlesnakeSimulator(Simulator):
                     elif fruit_distance_differences[idx] == 0:
                         reward = Reward.nothing
                     else:
-                        reward = -Reward.moved_to_fruit * 2
+                        reward = -Reward.moved_to_fruit
 
         # Compute next state
         next_state = None if terminal else self.get_last_frames(self.state.observe())

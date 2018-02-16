@@ -14,23 +14,19 @@ def huber_loss(y_true, y_pred):
 
     loss = tf.where(cond, L2, L1)
 
-    return tf.reduce_mean(loss)
+    return loss
 
 
 def create_quantile_huber_loss(num_quantiles):
-    tau = tf.range(num_quantiles + 1, dtype=tf.float32) / num_quantiles * 1.0
+    tau_i = tf.range(num_quantiles + 1, dtype=tf.float32) / num_quantiles * 1.0
 
     def quantile_huber_loss(y_true, y_pred):
-        tau_hat = 0.5 * (tau[1:] + tau[:-1])
-        sorted_quantiles = tf.nn.top_k(y_pred[1, :], k=num_quantiles, sorted=True).indices[0]
-        tau_hat = tau_hat[sorted_quantiles]
-        time_difference_error = tf.cast(y_true - y_pred, tf.float32)
-        cond = tf.abs(time_difference_error) < HUBER_LOSS_DELTA
-        L2 = 0.5 * tf.square(time_difference_error)
-        L1 = HUBER_LOSS_DELTA * (tf.abs(time_difference_error) - 0.5 * HUBER_LOSS_DELTA)
-        loss = tf.where(cond, L2, L1)
-        delta = tf.cast(time_difference_error < 0, tf.float32)
-        return tf.reduce_mean(tf.abs(tau_hat - delta) * loss)
+        tau_hat_i = 0.5 * (tau_i[1:] + tau_i[:-1]) # quantile midpoints
+        error = tf.cast(y_true - y_pred, tf.float32)
+        loss = huber_loss(y_true, y_pred)
+        delta = tf.cast(error < 0, tf.float32)
+        quantile_loss = tf.abs(tau_hat_i - delta) * loss
+        return tf.reduce_mean(quantile_loss)
     return quantile_huber_loss
 
 
@@ -43,7 +39,7 @@ def np_huber_loss(y_true, y_pred):
 
     loss = np.where(cond, L2, L1)
 
-    return np.mean(loss)
+    return loss
 
 
 def create_np_quantile_huber_loss(num_quantiles):
@@ -51,13 +47,9 @@ def create_np_quantile_huber_loss(num_quantiles):
 
     def quantile_huber_loss(y_true, y_pred):
         tau_hat = 0.5 * (tau[1:] + tau[:-1])
-        sorted_quantiles = np.argsort(y_pred)
-        tau_hat = tau_hat[sorted_quantiles]
-        time_difference_error = y_true - y_pred
-        cond = abs(time_difference_error) < HUBER_LOSS_DELTA
-        L2 = 0.5 * time_difference_error**2
-        L1 = HUBER_LOSS_DELTA * (abs(time_difference_error) - 0.5 * HUBER_LOSS_DELTA)
-        loss = np.where(cond, L2, L1)
-        delta = [time_difference_error < 0]
-        return np.mean(abs(tau_hat - delta) * loss)
+        error = y_true - y_pred
+        loss = np_huber_loss(y_true, y_pred)
+        delta = [error < 0]
+        quantile_loss = abs(tau_hat - delta) * loss
+        return np.mean(quantile_loss)
     return quantile_huber_loss

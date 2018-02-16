@@ -21,8 +21,10 @@ class PrioritizedReplayMemory(Memory):
 
     def add(self, observation, error=None):
         if error is None:
-            error = self.max_priority
-        return self.tree.add(self._getPriority(error), observation)
+            priority = self.max_priority
+        else:
+            priority = self._getPriority(error)
+        return self.tree.add(priority, observation)
 
     def sample(self, n, beta):
         batch = []

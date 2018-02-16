@@ -12,9 +12,6 @@ class DoubleDQNBrain(PlainDQNBrain):
         self.model = self.create_model()
         self.target_model = self.create_model()
 
-        self.model.compile(loss=huber_loss, optimizer=RMSprop(lr=self.learning_rate))
-        self.target_model.compile(loss=huber_loss, optimizer=RMSprop(lr=self.learning_rate))
-
     def predict(self, state, target=False):
         if target:
             return self.target_model.predict(state)

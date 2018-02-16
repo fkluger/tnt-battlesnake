@@ -27,6 +27,8 @@ class BattlesnakeSimulator(Simulator):
     episodes = 0
     steps = 0
     state_history = []
+    fruits_eaten = 0
+    fruits_per_episode = []
 
     def __init__(self, width, height, num_snakes, num_fruits, num_frames):
         self.width = width
@@ -45,6 +47,8 @@ class BattlesnakeSimulator(Simulator):
         self.steps = 0
         self.episodes += 1
         self.state_history = []
+        self.fruits_per_episode.append(self.fruits_eaten)
+        self.fruits_eaten = 0
         self.state = State(self.width, self.height, self.num_snakes, self.num_fruits)
 
         return self.get_last_frames(self.state.observe())
@@ -149,6 +153,7 @@ class BattlesnakeSimulator(Simulator):
                     terminal = True
                     reward = Reward.collision
                 elif ate_fruit:
+                    self.fruits_eaten += 1
                     snake.health = 100
                     self.state.eat_fruit(snake.body[0])
                     terminal = False
@@ -158,12 +163,13 @@ class BattlesnakeSimulator(Simulator):
                     reward = Reward.starve
                 else:
                     terminal = False
-                    if fruit_distance_differences[idx] > 0:
-                        reward = Reward.moved_to_fruit
-                    elif fruit_distance_differences[idx] == 0:
-                        reward = Reward.nothing
-                    else:
-                        reward = -Reward.moved_to_fruit * 2
+                    # if fruit_distance_differences[idx] > 0:
+                    #     reward = Reward.moved_to_fruit
+                    # elif fruit_distance_differences[idx] == 0:
+                    #     reward = Reward.nothing
+                    # else:
+                    #     reward = -Reward.moved_to_fruit * 2
+                    reward = Reward.nothing
 
         # Compute next state
         next_state = None if terminal else self.get_last_frames(self.state.observe())

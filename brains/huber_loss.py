@@ -18,14 +18,19 @@ def huber_loss(y_true, y_pred):
 
 
 def create_quantile_huber_loss(num_quantiles):
-    tau_i = tf.range(num_quantiles + 1, dtype=tf.float32) / num_quantiles * 1.0
+    tau = tf.range(num_quantiles + 1, dtype=tf.float32) / num_quantiles * 1.0
 
     def quantile_huber_loss(y_true, y_pred):
-        tau_hat_i = 0.5 * (tau_i[1:] + tau_i[:-1]) # quantile midpoints
-        error = tf.cast(y_true - y_pred, tf.float32)
-        loss = huber_loss(y_true, y_pred)
+        tau_hat = 0.5 * (tau[1:] + tau[:-1]) # quantile midpoints
+        tau_hat = tf.identity(tau_hat)
+
+        theta_i = tf.transpose(tf.tile(tf.expand_dims(y_pred, -1), [1, 1, 1, num_quantiles]), perm=[0, 1, 3, 2])
+        T_theta_j = tf.tile(tf.expand_dims(y_true, -1), [1, 1, 1, num_quantiles])
+
+        error = tf.cast(T_theta_j - theta_i, tf.float32)
+        loss = huber_loss(T_theta_j, theta_i)
         delta = tf.cast(error < 0, tf.float32)
-        quantile_loss = tf.abs(tau_hat_i - delta) * loss
+        quantile_loss = tf.abs(tau_hat - delta) * loss
         return tf.reduce_mean(quantile_loss)
     return quantile_huber_loss
 

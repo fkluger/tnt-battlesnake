@@ -1,9 +1,9 @@
 from keras import Sequential
 from keras.layers import Conv2D, Flatten, Dense, BatchNormalization
 from keras.optimizers import RMSprop
+from keras.callbacks import Callback
 
 from . import Brain
-
 
 class PlainDQNBrain(Brain):
     '''

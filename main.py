@@ -25,7 +25,8 @@ signal.signal(signal.SIGINT, lambda x, y: sys.exit(0))
 
 
 def get_time_string():
-    return datetime.datetime.fromtimestamp(time.time()).strftime('%d.%m.%Y %H-%M-%S')
+    return datetime.datetime.fromtimestamp(
+        time.time()).strftime('%d.%m.%Y %H-%M-%S')
 
 
 def main():
@@ -50,22 +51,54 @@ def main():
         with open('{}/parameters.json'.format(output_directory), 'w') as f:
             json.dump(args, f, indent=2)
 
-    simulator = BattlesnakeSimulator(args['width'], args['height'], args['snakes'], args['fruits'], args['frames'])
+    simulator = BattlesnakeSimulator(args['width'], args['height'],
+                                     args['snakes'], args['fruits'],
+                                     args['frames'])
     if args["distributional"]:
         brain = DistributionalDuelingDoubleDQNBrain(
-            num_quantiles=args['num_quantiles'], input_shape=shape, num_actions=num_actions, learning_rate=args['learning_rate'])
+            num_quantiles=args['num_quantiles'],
+            input_shape=shape,
+            num_actions=num_actions,
+            learning_rate=args['learning_rate'])
     else:
-        brain = DuelingDoubleDQNBrain(input_shape=shape, num_actions=num_actions, learning_rate=args['learning_rate'])
+        brain = DuelingDoubleDQNBrain(
+            input_shape=shape,
+            num_actions=num_actions,
+            learning_rate=args['learning_rate'])
 
-    memory = PrioritizedReplayMemory(args['replay_capacity'], args['replay_min_prio'],
-                                     args['replay_alpha_prio'], args['replay_max_prio'])
+    memory = PrioritizedReplayMemory(
+        args['replay_capacity'], args['replay_min_prio'],
+        args['replay_alpha_prio'], args['replay_max_prio'])
     random_agent = RandomAgent(memory, num_actions)
     if args["distributional"]:
-        agent = DistributionalDQNAgent(num_quantiles=args['num_quantiles'], brain=brain, memory=memory, input_shape=shape, num_actions=num_actions, GAMMA=args['gamma'], EPSILON_MAX=args['epsilon_max'],
-                                       EPSILON_MIN=args['epsilon_min'], LAMBDA=args['epsilon_lambda'], batch_size=args['batch_size'], update_target_freq=args['target_update_freq'], replay_beta_min=args['replay_beta_min'], multi_step_n=args['multi_step_n'])
+        agent = DistributionalDQNAgent(
+            num_quantiles=args['num_quantiles'],
+            brain=brain,
+            memory=memory,
+            input_shape=shape,
+            num_actions=num_actions,
+            GAMMA=args['gamma'],
+            EPSILON_MAX=args['epsilon_max'],
+            EPSILON_MIN=args['epsilon_min'],
+            LAMBDA=args['epsilon_lambda'],
+            batch_size=args['batch_size'],
+            update_target_freq=args['target_update_freq'],
+            replay_beta_min=args['replay_beta_min'],
+            multi_step_n=args['multi_step_n'])
     else:
-        agent = DQNAgent(brain=brain, memory=memory, input_shape=shape, num_actions=num_actions, GAMMA=args['gamma'], EPSILON_MAX=args['epsilon_max'],
-                                   EPSILON_MIN=args['epsilon_min'], LAMBDA=args['epsilon_lambda'], batch_size=args['batch_size'], update_target_freq=args['target_update_freq'], replay_beta_min=args['replay_beta_min'], multi_step_n=args['multi_step_n'])
+        agent = DQNAgent(
+            brain=brain,
+            memory=memory,
+            input_shape=shape,
+            num_actions=num_actions,
+            GAMMA=args['gamma'],
+            EPSILON_MAX=args['epsilon_max'],
+            EPSILON_MIN=args['epsilon_min'],
+            LAMBDA=args['epsilon_lambda'],
+            batch_size=args['batch_size'],
+            update_target_freq=args['target_update_freq'],
+            replay_beta_min=args['replay_beta_min'],
+            multi_step_n=args['multi_step_n'])
     runner = SimpleRunner(random_agent, simulator)
 
     summary_writer = tf.summary.FileWriter(output_directory)
@@ -78,20 +111,28 @@ def main():
     if args['continue_experiment'] is not None:
         checkpoint_files = os.listdir(output_directory)
         checkpoint_files = [
-            checkpoint_file for checkpoint_file in checkpoint_files if checkpoint_file.endswith('-checkpoint.json')]
+            checkpoint_file for checkpoint_file in checkpoint_files
+            if checkpoint_file.endswith('-checkpoint.json')
+        ]
         if checkpoint_files:
-            checkpoint_files = sorted(checkpoint_files, key=sort_checkpoint_files, reverse=True)
+            checkpoint_files = sorted(
+                checkpoint_files, key=sort_checkpoint_files, reverse=True)
             checkpoint_file = checkpoint_files[0]
             with open(f'{output_directory}/{checkpoint_file}') as f:
                 checkpoint = json.load(f)
-                print('Restoring checkpoint file {} with content {}.'.format(checkpoint_file, checkpoint))
-                episodes, simulator.episodes = checkpoint['episodes'], checkpoint['episodes']
-                runner.steps, agent.steps, simulator.steps = checkpoint['steps'], checkpoint['steps'], checkpoint['steps']
+                print('Restoring checkpoint file {} with content {}.'.format(
+                    checkpoint_file, checkpoint))
+                episodes, simulator.episodes = checkpoint[
+                    'episodes'], checkpoint['episodes']
+                runner.steps, agent.steps, simulator.steps = checkpoint[
+                    'steps'], checkpoint['steps'], checkpoint['steps']
                 agent.epsilon = checkpoint['epsilon']
                 agent.beta = checkpoint['beta']
-                weight_file = checkpoint_file.replace('checkpoint.json', 'model.h5')
+                weight_file = checkpoint_file.replace('checkpoint.json',
+                                                      'model.h5')
                 brain.model.load_weights(f'{output_directory}/{weight_file}')
-                brain.target_model.load_weights(f'{output_directory}/{weight_file}')
+                brain.target_model.load_weights(
+                    f'{output_directory}/{weight_file}')
                 memory.max_priority = checkpoint['replay_max_prio']
 
     training = False
@@ -101,7 +142,9 @@ def main():
         while training is False or episodes < args['max_episodes']:
 
             if training is False and memory.size() > 80000:
-                print('Collecting random observations finished. Beginning training...')
+                print(
+                    'Collecting random observations finished. Beginning training...'
+                )
                 runner.agent = agent
                 training = True
 
@@ -112,31 +155,55 @@ def main():
                 print(f'Random runs {memory.size() * 100 / 80000}% complete.')
 
             if training is True and episodes % args['report_interval'] == 0:
-                mean_episode_length = sum(
-                    runner.episode_lengths[-args['report_interval']:]) * 1.0 / args['report_interval']
-                mean_episode_rewards = sum(
-                    runner.episode_rewards[-args['report_interval']:]) * 1.0 / args['report_interval']
-                mean_loss = sum(runner.losses[-args['report_interval']:]) * 1.0 / args['report_interval']
-                mean_q_value_estimates = sum(
-                    runner.q_value_estimates[-args['report_interval']:]) * 1.0 / args['report_interval']
-                print('{} - Episode: {}\tSteps: {}\tMean reward: {:4.4f}\tMean length: {:4.4f}'.format(get_time_string(),
-                                                                                                       episodes, runner.steps, mean_episode_rewards, mean_episode_length))
-                metrics = [
-                    {'name': 'mean rewards', 'value': mean_episode_rewards, 'type': 'value'},
-                    {'name': 'mean episode length', 'value': mean_episode_length, 'type': 'value'},
-                    {'name': 'mean loss', 'value': mean_loss, 'type': 'value'},
-                    {'name': 'mean q value estimates', 'value': mean_q_value_estimates, 'type': 'value'}
-                ]
+                mean_fruits_eaten = sum(simulator.fruits_per_episode[
+                    -args['report_interval']:]) * 1.0 / args['report_interval']
+                mean_episode_length = sum(runner.episode_lengths[
+                    -args['report_interval']:]) * 1.0 / args['report_interval']
+                mean_episode_rewards = sum(runner.episode_rewards[
+                    -args['report_interval']:]) * 1.0 / args['report_interval']
+                mean_loss = sum(runner.losses[
+                    -args['report_interval']:]) * 1.0 / args['report_interval']
+                mean_q_value_estimates = sum(runner.q_value_estimates[
+                    -args['report_interval']:]) * 1.0 / args['report_interval']
+                print(
+                    '{} - Episode: {}\tSteps: {}\tMean reward: {:4.4f}\tMean length: {:4.4f}'.
+                    format(get_time_string(), episodes, runner.steps,
+                           mean_episode_rewards, mean_episode_length))
+                metrics = [{
+                    'name': 'mean rewards',
+                    'value': mean_episode_rewards,
+                    'type': 'value'
+                }, {
+                    'name': 'mean episode length',
+                    'value': mean_episode_length,
+                    'type': 'value'
+                }, {
+                    'name': 'mean loss',
+                    'value': mean_loss,
+                    'type': 'value'
+                }, {
+                    'name': 'mean q value estimates',
+                    'value': mean_q_value_estimates,
+                    'type': 'value'
+                }, {
+                    'name': 'mean fruits eaten',
+                    'value': mean_fruits_eaten,
+                    'type': 'value'
+                }]
 
                 metrics.extend(agent.get_metrics())
 
                 write_summary(summary_writer, runner.steps, metrics)
 
-            if training is True and episodes % (args['report_interval'] * 50) == 0:
+            if training is True and episodes % (
+                    args['report_interval'] * 50) == 0:
                 simulator.save_longest_episode(output_directory)
-            if training is True and episodes % (args['report_interval'] * 100) == 0:
-                brain.model.save_weights('{}/{}-model.h5'.format(output_directory, episodes))
-                with open('{}/{}-checkpoint.json'.format(output_directory, episodes), 'w') as f:
+            if training is True and episodes % (
+                    args['report_interval'] * 100) == 0:
+                brain.model.save_weights('{}/{}-model.h5'.format(
+                    output_directory, episodes))
+                with open('{}/{}-checkpoint.json'.format(
+                        output_directory, episodes), 'w') as f:
                     checkpoint = {
                         'episodes': episodes,
                         'steps': runner.steps,
@@ -147,20 +214,24 @@ def main():
                     json.dump(checkpoint, f, indent=2)
         summary_writer.close()
     finally:
-        brain.model.save_weights('{}/{}-model.h5'.format(output_directory, episodes))
+        brain.model.save_weights('{}/{}-model.h5'.format(
+            output_directory, episodes))
 
 
 def write_summary(summary_writer, steps, metrics):
     for metric in metrics:
         if metric['type'] == 'value':
-            summary_writer.add_summary(tf.Summary(value=[
-                tf.Summary.Value(
-                    tag=metric['name'],
-                    simple_value=metric['value'])
-            ]), global_step=steps)
+            summary_writer.add_summary(
+                tf.Summary(value=[
+                    tf.Summary.Value(
+                        tag=metric['name'], simple_value=metric['value'])
+                ]),
+                global_step=steps)
         elif metric['type'] == 'histogram':
             if metric['value']:
-                summary_writer.add_summary(log_histogram(tag=metric['name'], values=metric['value']), global_step=steps)
+                summary_writer.add_summary(
+                    log_histogram(tag=metric['name'], values=metric['value']),
+                    global_step=steps)
     summary_writer.flush()
 
 

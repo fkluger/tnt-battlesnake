@@ -163,8 +163,6 @@ def main():
                     -args['report_interval']:]) * 1.0 / args['report_interval']
                 mean_loss = sum(runner.losses[
                     -args['report_interval']:]) * 1.0 / args['report_interval']
-                mean_q_value_estimates = sum(runner.q_value_estimates[
-                    -args['report_interval']:]) * 1.0 / args['report_interval']
                 print(
                     '{} - Episode: {}\tSteps: {}\tMean reward: {:4.4f}\tMean length: {:4.4f}'.
                     format(get_time_string(), episodes, runner.steps,
@@ -180,10 +178,6 @@ def main():
                 }, {
                     'name': 'mean loss',
                     'value': mean_loss,
-                    'type': 'value'
-                }, {
-                    'name': 'mean q value estimates',
-                    'value': mean_q_value_estimates,
                     'type': 'value'
                 }, {
                     'name': 'mean fruits eaten',

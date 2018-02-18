@@ -23,7 +23,7 @@ class DistributionalDuelingDoubleDQNBrain(DuelingDoubleDQNBrain):
 
     def create_model(self):
         '''
-        Returns a tensor with shape (num_actions, batch_size, num_quantiles).
+        Returns a tensor with shape (batch_size, num_actions, num_quantiles).
         '''
         inputs = Input(shape=self.input_shape)
         cnn_features = Conv2D(32, 3, activation='relu', strides=(1, 1))(inputs)

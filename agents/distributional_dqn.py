@@ -16,13 +16,13 @@ class DistributionalDQNAgent(DQNAgent):
 
     def __init__(self, num_quantiles, **kwargs):
         self.num_quantiles = num_quantiles
-        self.optimal_quantile_ordering = np.arange(self.num_quantiles - 1, -1, -1)
+        self.optimal_quantile_ordering = np.arange(self.num_quantiles)
         self.huber_loss = create_np_quantile_huber_loss(self.num_quantiles)
         super().__init__(**kwargs)
 
     def get_metrics(self):
         metrics = [
-            # {'name': 'epsilon', 'value': self.epsilon, 'type': 'value'}, 
+            {'name': 'epsilon', 'value': self.epsilon, 'type': 'value'}, 
             {'name': 'quantile_histogram', 'value': self.q_value_quantile_history, 'type': 'histogram'},
             {'name': 'mean quantile ordering coefficient', 'value': np.mean(self.kendall_tau_history), 'type': 'value'}
         ]

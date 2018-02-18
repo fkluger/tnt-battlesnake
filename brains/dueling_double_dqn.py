@@ -12,12 +12,12 @@ from .huber_loss import huber_loss
 class DuelingDoubleDQNBrain(DoubleDQNBrain):
 
     dropout_layers = []
-    rate = 1.0
+    rate = 0.9
     steps = 0
 
     def predict(self, state, target=False):
         self.steps += 1
-        self.rate = 0 + math.exp(-1e-6 * self.steps)
+        self.rate = 0.1 + (0.9 - 0.1) * math.exp(-1e-6 * self.steps)
         for layer in self.dropout_layers:
             layer.rate = self.rate
         if self.steps % 10000 == 0 and self.rate > 0.01:

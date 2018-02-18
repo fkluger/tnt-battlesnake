@@ -52,8 +52,12 @@ def create_np_quantile_huber_loss(num_quantiles):
 
     def quantile_huber_loss(y_true, y_pred):
         tau_hat = 0.5 * (tau[1:] + tau[:-1])
-        error = y_true - y_pred
-        loss = np_huber_loss(y_true, y_pred)
+
+        theta_i = np.transpose(np.tile(np.expand_dims(y_pred, -1), [1, 1, 1, num_quantiles]), axes=[0, 1, 3, 2])
+        T_theta_j = np.tile(np.expand_dims(y_true, -1), [1, 1, 1, num_quantiles])
+
+        error = T_theta_j - theta_i
+        loss = np_huber_loss(T_theta_j, theta_i)
         delta = [error < 0]
         quantile_loss = abs(tau_hat - delta) * loss
         return np.mean(quantile_loss)

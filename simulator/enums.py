@@ -1,6 +1,6 @@
 class Reward:
     collision = -1
-    starve = 0
+    starve = -1
     nothing = 0
     fruit = 1
     moved_to_fruit = 0.01

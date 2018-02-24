@@ -35,10 +35,12 @@ class PrioritizedReplayMemory(Memory):
         for i in range(n):
             a = segment * i
             b = segment * (i + 1)
-
             s = random.uniform(a, b)
+
             (idx, priority, observation) = self.tree.get(s)
-            weights.append((self.capacity * priority)**-beta)
+            weight = (self.capacity * priority)**-beta
+
+            weights.append(weight)
             batch.append(observation)
             indices.append(idx)
 

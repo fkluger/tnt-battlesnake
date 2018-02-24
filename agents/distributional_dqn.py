@@ -46,7 +46,7 @@ class DistributionalDQNAgent(DQNAgent):
         if self.steps % self.update_target_freq == 0:
             self.brain.update_target()
         self.epsilon = self.EPSILON_MIN + (self.EPSILON_MAX - self.EPSILON_MIN) * math.exp(-self.LAMBDA * self.steps)
-        self.beta += (1. - self.beta) / self.LAMBDA
+        self.beta += (1. - self.beta) * self.LAMBDA
 
     def replay(self):
         batch, indices, weights = self.memory.sample(self.batch_size, self.beta)

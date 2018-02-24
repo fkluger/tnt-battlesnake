@@ -16,8 +16,8 @@ def get_args():
     parser.add_argument('--fruits', type=int, default=3, help='Number of fruits on the board.')
 
     parser.add_argument('--multi_step_n', type=int, default=3, help='Evaluate n-step discounted returns.')
-    parser.add_argument('--frames', type=int, default=4, help='Frames of the game to concatenate.')
-    parser.add_argument('--num_quantiles', type=int, default=200, help='Number of quantiles for the distributional agent.')
+    parser.add_argument('--frames', type=int, default=2, help='Frames of the game to concatenate.')
+    parser.add_argument('--num_quantiles', type=int, default=40, help='Number of quantiles for the distributional agent.')
 
     parser.add_argument('--gamma', type=float, default=0.99, help='Discount factor for Bellman update.')
     parser.add_argument('--epsilon_max', type=float, default=1.0, help='Start value for epsilon greedy exploration.')

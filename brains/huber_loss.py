@@ -66,9 +66,9 @@ def create_np_quantile_huber_loss(num_quantiles):
 def np_huber_loss(y_true, y_pred):
     time_difference_error = y_true - y_pred
 
-    cond = abs(time_difference_error) < HUBER_LOSS_DELTA
-    L2 = 0.5 * time_difference_error**2
-    L1 = HUBER_LOSS_DELTA * (abs(time_difference_error) - 0.5 * HUBER_LOSS_DELTA)
+    cond = np.abs(time_difference_error) < HUBER_LOSS_DELTA
+    L2 = 0.5 * np.square(time_difference_error)
+    L1 = HUBER_LOSS_DELTA * (np.abs(time_difference_error) - 0.5 * HUBER_LOSS_DELTA)
 
     loss = np.where(cond, L2, L1)
 

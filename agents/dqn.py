@@ -3,7 +3,7 @@ import math
 import numpy as np
 
 from . import Agent
-from brains.huber_loss import np_huber_loss#
+from brains.huber_loss import np_huber_loss
 
 
 class DQNAgent(Agent):

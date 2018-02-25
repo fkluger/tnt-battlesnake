@@ -22,13 +22,13 @@ class SumTree:
         self.observations[self.write_pointer] = observation
         self.update(idx, priority)
 
-        observation_position = self.write_pointer
+        observation_idx = self.write_pointer
 
         self.write_pointer += 1
         # If capacity is reached, reset write pointer
         if self.write_pointer >= self.capacity:
             self.write_pointer = 0
-        return observation_position
+        return observation_idx
 
     def update(self, idx, priority):
         priority_difference = priority - self.tree[idx]

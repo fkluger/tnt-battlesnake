@@ -2,7 +2,6 @@ import random
 import math
 import numpy as np
 from collections import deque
-from scipy.stats import kendalltau
 
 from .dqn import DQNAgent
 from brains.huber_loss import create_np_quantile_huber_loss
@@ -11,19 +10,20 @@ class DistributionalDQNAgent(DQNAgent):
 
     q_value_quantile_history = deque([], maxlen=10000)
     kendall_tau_history = []
-    K = 10
+    episode_observations = []
+    episode_observation_indices = []
 
     def __init__(self, num_quantiles, **kwargs):
         self.num_quantiles = num_quantiles
         self.quantile_huber_loss = create_np_quantile_huber_loss(self.num_quantiles)
-        self.optimal_quantile_ordering = np.arange(self.num_quantiles)[::-1]
+        self.optimal_quantile_ordering = np.arange(self.num_quantiles)
         super().__init__(**kwargs)
 
     def get_metrics(self):
         metrics = [
             {'name': 'epsilon', 'value': self.epsilon, 'type': 'value'}, 
             {'name': 'quantile_histogram', 'value': self.q_value_quantile_history, 'type': 'histogram'},
-            {'name': 'mean quantile ordering coefficient', 'value': np.mean(self.kendall_tau_history), 'type': 'value'}
+            {'name': 'mean quantile ordering error', 'value': np.mean(self.kendall_tau_history), 'type': 'value'}
         ]
         self.kendall_tau_history = []
         return metrics
@@ -39,9 +39,28 @@ class DistributionalDQNAgent(DQNAgent):
     def compute_best_action(self, quantiles):
         quantiles_mean = np.mean(quantiles, axis=2)
         return np.argmax(quantiles_mean, axis=1)
+    
+    def update_episode_observations(self):
+        for idx, observation in enumerate(self.episode_observations):
+            n_step_reward = observation[2]
+            next_state = observation[3]
+            for t in range(1, self.multi_step_n):
+                next_t = idx + t
+                if next_t >= len(self.episode_observations):
+                    next_state = None
+                    break
+                else:
+                    n_step_reward += (self.GAMMA**t) * self.episode_observations[next_t][2]
+                    next_state = self.episode_observations[next_t][0]
+            self.memory.update_observation(self.episode_observation_indices[idx], (observation[0], observation[1], n_step_reward, next_state))
+        self.episode_observation_indices = []
+        self.episode_observations = []
 
-    def observe(self, observation):        
-        self.memory.add(observation)
+    def observe(self, observation):
+        self.episode_observations.append(observation)
+        self.episode_observation_indices.append(self.memory.add(observation))
+        if observation[3] is None:
+            self.update_episode_observations()
         self.steps += 1
         if self.steps % self.update_target_freq == 0:
             self.brain.update_target()
@@ -77,12 +96,12 @@ class DistributionalDQNAgent(DQNAgent):
             if next_state is None:
                 target[action] = reward
             else:
-                target[action] = reward + self.GAMMA * q_value_quantiles_next[i, best_action[i]]
+                target[action] = reward + (self.GAMMA**self.multi_step_n) * q_value_quantiles_next[i, best_action[i]]
             x[i] = state
             y[i] = target
             errors[i] = self.quantile_huber_loss(np.expand_dims(target, 0), np.expand_dims(target_old, 0))
             self.q_value_quantile_history.append(np.squeeze(target[action]))
-            self.kendall_tau_history.append(kendalltau(np.argsort(np.squeeze(target_old[action])), self.optimal_quantile_ordering))
+            self.kendall_tau_history.append(np.linalg.norm(np.argsort(np.squeeze(target_old[action])) - self.optimal_quantile_ordering))
             self.memory.update(indices[i], errors[i])
         history = self.brain.train(x, y, batch_size, weights)
         loss = history.history['loss'][0]

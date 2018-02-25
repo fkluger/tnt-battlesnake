@@ -47,6 +47,9 @@ class PrioritizedReplayMemory(Memory):
         weights /= max(weights)
         return batch, indices, weights
 
+    def update_observation(self, observation_idx, observation):
+        self.tree.observations[observation_idx] = observation
+
     def update(self, idx, error):
         p = self._getPriority(error)
         self.max_priority = max(p, self.max_priority)

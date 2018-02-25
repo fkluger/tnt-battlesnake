@@ -20,10 +20,6 @@ def create_quantile_midpoints(tau, y_pred):
     tau_hat = 0.5 * (tau[1:] + tau[:-1]) # quantile midpoints
     shape = np.shape(y_pred)
     tau_hat = np.tile(tau_hat, (shape[0], shape[1], 1))
-    sorted_indices = np.argsort(y_pred, axis=-1)
-    for b in range(shape[0]):
-        for a in range(shape[1]):
-            tau_hat[b, a] = tau_hat[b, a, sorted_indices[b, a]]
     return tau_hat
 
 

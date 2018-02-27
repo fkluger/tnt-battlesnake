@@ -4,8 +4,6 @@ import numpy as np
 from keras.layers import Dense
 from keras.engine import InputSpec
 
-np.seterr(all='raise')
-
 
 class NoisyDense(Dense):
     def build(self, input_shape):

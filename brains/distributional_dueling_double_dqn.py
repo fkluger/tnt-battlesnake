@@ -8,6 +8,7 @@ import numpy as np
 
 from .dueling_double_dqn import DuelingDoubleDQNBrain
 from .huber_loss import create_quantile_huber_loss
+from .layers import NoisyDense
 
 
 class DistributionalDuelingDoubleDQNBrain(DuelingDoubleDQNBrain):
@@ -26,11 +27,11 @@ class DistributionalDuelingDoubleDQNBrain(DuelingDoubleDQNBrain):
         cnn_features = Conv2D(64, 5, activation='relu', strides=(2, 2))(cnn_features)
         cnn_features = Conv2D(64, 3, activation='relu', strides=(1, 1))(cnn_features)
         cnn_features = Flatten()(cnn_features)
-        advt = Dense(256, activation='relu')(cnn_features)
-        advt = Dense(self.num_quantiles * self.num_actions)(advt)
+        advt = NoisyDense(256, activation='relu')(cnn_features)
+        advt = NoisyDense(self.num_quantiles * self.num_actions)(advt)
         advt = Reshape((self.num_actions, self.num_quantiles))(advt)
-        value = Dense(256, activation='relu')(cnn_features)
-        value = Dense(self.num_quantiles)(value)
+        value = NoisyDense(256, activation='relu')(cnn_features)
+        value = NoisyDense(self.num_quantiles)(value)
         # now to combine the two streams
         advt = Lambda(lambda advt: advt - tf.reduce_mean(advt, axis=-2, keepdims=True))(advt)
         value = Lambda(lambda value: tf.tile(tf.expand_dims(value, -2), [1, self.num_actions, 1]))(value)

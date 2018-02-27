@@ -59,7 +59,8 @@ def main():
             num_quantiles=args['num_quantiles'],
             input_shape=shape,
             num_actions=num_actions,
-            learning_rate=args['learning_rate'])
+            learning_rate=args['learning_rate'],
+            output_dir=output_directory)
     else:
         brain = DuelingDoubleDQNBrain(
             input_shape=shape,

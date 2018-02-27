@@ -1,7 +1,6 @@
 from keras import Sequential
 from keras.layers import Conv2D, Flatten, Dense, BatchNormalization
 from keras.optimizers import RMSprop
-from keras.callbacks import Callback
 
 from . import Brain
 
@@ -10,10 +9,11 @@ class PlainDQNBrain(Brain):
     Brain that encapsulates the DQN CNN.
     '''
 
-    def __init__(self, input_shape, num_actions, learning_rate=0.00025):
+    def __init__(self, input_shape, num_actions, learning_rate, output_dir):
         self.input_shape = input_shape
         self.num_actions = num_actions
         self.learning_rate = learning_rate
+        self.output_dir = output_dir
 
         self.model = self.create_model()
 

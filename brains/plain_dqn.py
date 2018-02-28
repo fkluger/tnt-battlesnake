@@ -1,21 +1,27 @@
+import numpy as np
 from keras import Sequential
 from keras.layers import Conv2D, Flatten, Dense, BatchNormalization
 from keras.optimizers import RMSprop
 
 from . import Brain
 
+
 class PlainDQNBrain(Brain):
     '''
     Brain that encapsulates the DQN CNN.
     '''
 
-    def __init__(self, input_shape, num_actions, learning_rate, output_dir):
+    def __init__(self, input_shape, num_actions, learning_rate,
+                 report_interval):
         self.input_shape = input_shape
         self.num_actions = num_actions
         self.learning_rate = learning_rate
-        self.output_dir = output_dir
+        self.report_interval = report_interval
 
         self.model = self.create_model()
+
+    def set_callbacks(self, callbacks):
+        self.callbacks = callbacks
 
     def create_model(self):
         model = Sequential()
@@ -38,4 +44,10 @@ class PlainDQNBrain(Brain):
         return self.model.predict(state)
 
     def train(self, x, y, batch_size, weights):
-        return self.model.fit(x=x, y=y, batch_size=batch_size, verbose=0, sample_weight=weights)
+        self.model.fit(
+            x=x,
+            y=y,
+            batch_size=batch_size,
+            verbose=0,
+            sample_weight=weights,
+            callbacks=self.callbacks)

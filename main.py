@@ -19,6 +19,7 @@ from runners.battlesnake_runner import SimpleRunner
 from simulator.simulator import BattlesnakeSimulator
 from simulator.utils import get_state_shape
 from cli_args import get_args
+from tensorboard import CustomTensorboard
 
 # Suppress Traceback on Ctrl-C
 signal.signal(signal.SIGINT, lambda x, y: sys.exit(0))
@@ -53,14 +54,15 @@ def main():
 
     simulator = BattlesnakeSimulator(args['width'], args['height'],
                                      args['snakes'], args['fruits'],
-                                     args['frames'])
+                                     args['frames'], args['report_interval'])
+
     if args["distributional"]:
         brain = DistributionalDuelingDoubleDQNBrain(
             num_quantiles=args['num_quantiles'],
             input_shape=shape,
             num_actions=num_actions,
             learning_rate=args['learning_rate'],
-            output_dir=output_directory)
+            report_interval=args['report_interval'])
     else:
         brain = DuelingDoubleDQNBrain(
             input_shape=shape,
@@ -100,9 +102,18 @@ def main():
             update_target_freq=args['target_update_freq'],
             replay_beta_min=args['replay_beta_min'],
             multi_step_n=args['multi_step_n'])
-    runner = SimpleRunner(random_agent, simulator)
 
-    summary_writer = tf.summary.FileWriter(output_directory)
+    tensorboard_cb = CustomTensorboard(log_dir=output_directory, report_interval=args['report_interval'], histogram_freq=1)
+    runner = SimpleRunner(random_agent, simulator, args['training_interval'],
+                          args['report_interval'], tensorboard_cb)
+
+
+    tensorboard_cb.register_metrics_callback(agent.get_metrics)
+    tensorboard_cb.register_metrics_callback(memory.get_metrics)
+    tensorboard_cb.register_metrics_callback(simulator.get_metrics)
+    tensorboard_cb.register_metrics_callback(runner.get_metrics)
+
+    brain.set_callbacks([tensorboard_cb])
 
     episodes = 0
 
@@ -139,126 +150,37 @@ def main():
     training = False
     print('Running {} random steps.'.format(80000))
 
-    try:
-        while training is False or episodes < args['max_episodes']:
+    while training is False or episodes < args['max_episodes']:
 
-            if training is False and memory.size() > 80000:
-                print(
-                    'Collecting random observations finished. Beginning training...'
-                )
-                runner.agent = agent
-                training = True
+        if training is False and memory.size() > 80000:
+            print(
+                'Collecting random observations finished. Beginning training...'
+            )
+            runner.agent = agent
+            training = True
 
-            episodes += 1
-            runner.run()
+        episodes += 1
+        runner.run()
 
-            if training is False and episodes % 1000 == 0:
-                print(f'Random runs {memory.size() * 100 / 80000}% complete.')
+        if training is False and episodes % 1000 == 0:
+            print(f'Random runs {memory.size() * 100 / 80000}% complete.')
 
-            if training is True and episodes % args['report_interval'] == 0:
-                mean_fruits_eaten = sum(simulator.fruits_per_episode[
-                    -args['report_interval']:]) * 1.0 / args['report_interval']
-                mean_episode_length = sum(runner.episode_lengths[
-                    -args['report_interval']:]) * 1.0 / args['report_interval']
-                mean_episode_rewards = sum(runner.episode_rewards[
-                    -args['report_interval']:]) * 1.0 / args['report_interval']
-                mean_loss = sum(runner.losses[
-                    -args['report_interval']:]) * 1.0 / args['report_interval']
-                print(
-                    '{} - Episode: {}\tSteps: {}\tMean reward: {:4.4f}\tMean length: {:4.4f}'.
-                    format(get_time_string(), episodes, runner.steps,
-                           mean_episode_rewards, mean_episode_length))
-                metrics = [{
-                    'name': 'mean rewards',
-                    'value': mean_episode_rewards,
-                    'type': 'value'
-                }, {
-                    'name': 'mean episode length',
-                    'value': mean_episode_length,
-                    'type': 'value'
-                }, {
-                    'name': 'mean loss',
-                    'value': mean_loss,
-                    'type': 'value'
-                }, {
-                    'name': 'mean fruits eaten',
-                    'value': mean_fruits_eaten,
-                    'type': 'value'
-                }]
-
-                metrics.extend(agent.get_metrics())
-                metrics.extend(memory.get_metrics())
-
-                write_summary(summary_writer, runner.steps, metrics)
-
-            if training is True and episodes % (
-                    args['report_interval'] * 50) == 0:
-                simulator.save_longest_episode(output_directory)
-            if training is True and episodes % (
-                    args['report_interval'] * 100) == 0:
-                brain.model.save_weights('{}/{}-model.h5'.format(
-                    output_directory, episodes))
-                with open('{}/{}-checkpoint.json'.format(
-                        output_directory, episodes), 'w') as f:
-                    checkpoint = {
-                        'episodes': episodes,
-                        'steps': runner.steps,
-                        'epsilon': agent.epsilon,
-                        'beta': agent.beta,
-                        'replay_max_prio': memory.max_priority
-                    }
-                    json.dump(checkpoint, f, indent=2)
-        summary_writer.close()
-    finally:
-        brain.model.save_weights('{}/{}-model.h5'.format(
-            output_directory, episodes))
-
-
-def write_summary(summary_writer, steps, metrics):
-    for metric in metrics:
-        if metric['type'] == 'value':
-            summary_writer.add_summary(
-                tf.Summary(value=[
-                    tf.Summary.Value(
-                        tag=metric['name'], simple_value=metric['value'])
-                ]),
-                global_step=steps)
-        elif metric['type'] == 'histogram':
-            if metric['value']:
-                summary_writer.add_summary(
-                    log_histogram(tag=metric['name'], values=metric['value']),
-                    global_step=steps)
-    summary_writer.flush()
-
-
-def log_histogram(tag, values, bins=1000):
-
-    # Convert to a numpy array
-    values = np.array(values)
-
-    # Create histogram using numpy
-    counts, bin_edges = np.histogram(values, bins=bins)
-
-    # Fill fields of histogram proto
-    hist = tf.HistogramProto()
-    hist.min = float(np.min(values))
-    hist.max = float(np.max(values))
-    hist.num = int(np.prod(values.shape))
-    hist.sum = float(np.sum(values))
-    hist.sum_squares = float(np.sum(values**2))
-
-    # Requires equal number as bins, where the first goes from -DBL_MAX to bin_edges[1]
-    # See https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/framework/summary.proto#L30
-    # Thus, we drop the start of the first bin
-    bin_edges = bin_edges[1:]
-
-    # Add bin edges and counts
-    for edge in bin_edges:
-        hist.bucket_limit.append(edge)
-    for c in counts:
-        hist.bucket.append(c)
-
-    return tf.Summary(value=[tf.Summary.Value(tag=tag, histo=hist)])
+        if training is True and episodes % (args['report_interval'] * 50) == 0:
+            simulator.save_longest_episode(output_directory)
+        if training is True and episodes % (
+                args['report_interval'] * 100) == 0:
+            brain.model.save_weights('{}/{}-model.h5'.format(
+                output_directory, episodes))
+            with open('{}/{}-checkpoint.json'.format(output_directory,
+                                                     episodes), 'w') as f:
+                checkpoint = {
+                    'episodes': episodes,
+                    'steps': runner.steps,
+                    'epsilon': agent.epsilon,
+                    'beta': agent.beta,
+                    'replay_max_prio': memory.max_priority
+                }
+                json.dump(checkpoint, f, indent=2)
 
 
 if __name__ == '__main__':

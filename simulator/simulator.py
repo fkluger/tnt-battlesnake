@@ -10,7 +10,6 @@ try:
 except KeyError:
     matplotlib.use('Agg')
 
-
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
@@ -30,11 +29,13 @@ class BattlesnakeSimulator(Simulator):
     fruits_eaten = 0
     fruits_per_episode = []
 
-    def __init__(self, width, height, num_snakes, num_fruits, num_frames):
+    def __init__(self, width, height, num_snakes, num_fruits, num_frames,
+                 report_interval):
         self.width = width
         self.height = height
         self.num_snakes = num_snakes
         self.num_fruits = num_fruits
+        self.report_interval = report_interval
         self.state = None
         self.num_frames = num_frames
         self.frames = None
@@ -49,29 +50,19 @@ class BattlesnakeSimulator(Simulator):
         self.state_history = []
         self.fruits_per_episode.append(self.fruits_eaten)
         self.fruits_eaten = 0
-        self.state = State(self.width, self.height, self.num_snakes, self.num_fruits)
+        self.state = State(self.width, self.height, self.num_snakes,
+                           self.num_fruits)
 
         return self.get_last_frames(self.state.observe())
 
-    def to_battlesnake_json(self, idx):
-        bs_state = {
-            'you': str(idx),
-            'width': self.width - 2,
-            'height': self.height - 2,
-            'turn': self.steps,
-            'game_id': 0,
-            'food': self.state.fruits,
-            'dead_snakes': [],
-            'mode': 'simple'
-        }
-        snakes = []
-        for s in self.state.snakes:
-            snake = {'id': 'de508402-17c8-4ac7-ab0b-f96cb53fbee8', 'name': str(idx), 'health_points': s.health}
-            coords = [[coord[0] - 1, coord[1] - 1] for coord in s.body]
-            snake['coords'] = coords
-            snakes.append(snake)
-        bs_state['snakes'] = snakes
-        return bs_state
+    def get_metrics(self):
+        mean_fruits_eaten = sum(self.fruits_per_episode[
+            -self.report_interval:]) * 1.0 / self.report_interval
+        return [{
+            'name': 'simulator/mean fruits eaten',
+            'value': mean_fruits_eaten,
+            'type': 'value'
+        }]
 
     def save_longest_episode(self, output_directory):
         '''
@@ -89,8 +80,10 @@ class BattlesnakeSimulator(Simulator):
                     ims.append([im])
             ani = animation.ArtistAnimation(
                 fig, ims, interval=100, repeat=False, blit=True)
-            print('Saving longest episode till {} with length {}.'.format(self.episodes, len(self.longest_run_states)))
-            ani.save('{}/episode-{}-steps-{}.mp4'.format(output_directory, self.episodes, len(self.longest_run_states)))
+            print('Saving longest episode till {} with length {}.'.format(
+                self.episodes, len(self.longest_run_states)))
+            ani.save('{}/episode-{}-steps-{}.mp4'.format(
+                output_directory, self.episodes, len(self.longest_run_states)))
             plt.close()
 
     def get_last_frames(self, observation):
@@ -106,7 +99,7 @@ class BattlesnakeSimulator(Simulator):
             self.frames.append(frame)
             self.frames.popleft()
         return np.moveaxis(np.array(self.frames), 0, -1)
-    
+
     def get_closest_fruit_distance(self, head):
         minimum_distance = math.inf
         for fruit in self.state.fruits:
@@ -134,14 +127,16 @@ class BattlesnakeSimulator(Simulator):
             snake = self.state.snakes[idx]
             old_fruit_distance = self.get_closest_fruit_distance(snake.body[0])
             direction = getDirection(action, snake.direction)
-            snake_next_body = get_next_snake_coords(
-                snake.body, direction, self.state.fruits)
+            snake_next_body = get_next_snake_coords(snake.body, direction,
+                                                    self.state.fruits)
             self.state.snakes[idx].direction = direction
             self.state.snakes[idx].body = snake_next_body
             self.state.snakes[idx].health -= 1
-            fruit_distance = self.get_closest_fruit_distance(snake_next_body[0])
-            fruit_distance_differences.append(old_fruit_distance - fruit_distance)
-        
+            fruit_distance = self.get_closest_fruit_distance(
+                snake_next_body[0])
+            fruit_distance_differences.append(
+                old_fruit_distance - fruit_distance)
+
         # Compute rewards and whether the episode ended (terminal)
         for idx, snake in enumerate(self.state.snakes):
             collided = self.check_collision(snake)
@@ -169,7 +164,8 @@ class BattlesnakeSimulator(Simulator):
                         reward = Reward.nothing
 
         # Compute next state
-        next_state = None if terminal else self.get_last_frames(self.state.observe())
+        next_state = None if terminal else self.get_last_frames(
+            self.state.observe())
 
         # Update statistics
         if self.steps >= self.num_frames:

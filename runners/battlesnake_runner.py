@@ -10,25 +10,41 @@ class SimpleRunner(Runner):
 
     episode_rewards = []
     episode_lengths = []
-    losses = []
     q_value_estimates = []
 
     steps = 0
 
-    def __init__(self, agent, simulator, training_interval=4):
+    def __init__(self, agent, simulator, training_interval, report_interval, tensorboard_callback):
         self.agent = agent
         self.simulator = simulator
         self.training_interval = training_interval
+        self.report_interval = report_interval
+        self.tensorboard_callback = tensorboard_callback
+
+    def get_metrics(self):
+        mean_episode_length = sum(self.episode_lengths[
+            -self.report_interval:]) * 1.0 / self.report_interval
+        mean_episode_rewards = sum(self.episode_rewards[
+            -self.report_interval:]) * 1.0 / self.report_interval
+        
+        return [{
+            'name': 'runner/mean rewards',
+            'value': mean_episode_rewards,
+            'type': 'value'
+        }, {
+            'name': 'runner/mean episode length',
+            'value': mean_episode_length,
+            'type': 'value'
+        }]
 
     def run(self):
         episode_reward = 0
         episode_length = 0
-        episode_q_value_estimates = []
-        episode_losses = []
         state = self.simulator.reset()
         terminal = False
         while not terminal:
             self.steps += 1
+            self.tensorboard_callback.global_step = self.steps
             action = self.agent.act(state)
             next_state, reward, terminal = self.simulator.step([action])
 
@@ -39,16 +55,10 @@ class SimpleRunner(Runner):
                 next_state = None
 
             self.agent.observe((state, action, reward, next_state))
-            if hasattr(self.agent, 'brain') and self.steps % self.training_interval == 0:
-                loss, mean_q_estimates = self.agent.replay()
-                episode_q_value_estimates.append(mean_q_estimates)
-                episode_losses.append(loss)
-            else:
-                episode_q_value_estimates.append(0)
-                episode_losses.append(0)
+            if hasattr(self.agent,
+                       'brain') and self.steps % self.training_interval == 0:
+                self.agent.replay()
             state = next_state
 
-        self.losses.append(np.mean(episode_losses))
-        self.q_value_estimates.append(np.mean(episode_q_value_estimates))
         self.episode_rewards.append(episode_reward)
         self.episode_lengths.append(episode_length)

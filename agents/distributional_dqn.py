@@ -9,7 +9,7 @@ from brains.huber_loss import create_np_quantile_huber_loss
 class DistributionalDQNAgent(DQNAgent):
 
     q_value_quantile_history = deque([], maxlen=10000)
-    kendall_tau_history = []
+    quantile_ordering_error_history = []
     episode_observations = []
     episode_observation_indices = []
 
@@ -21,11 +21,10 @@ class DistributionalDQNAgent(DQNAgent):
 
     def get_metrics(self):
         metrics = [
-            {'name': 'epsilon', 'value': self.epsilon, 'type': 'value'}, 
-            {'name': 'quantile_histogram', 'value': self.q_value_quantile_history, 'type': 'histogram'},
-            {'name': 'mean quantile ordering error', 'value': np.mean(self.kendall_tau_history), 'type': 'value'}
+            {'name': 'agent/quantile_histogram', 'value': self.q_value_quantile_history, 'type': 'histogram'},
+            {'name': 'agent/mean quantile ordering error', 'value': np.mean(self.quantile_ordering_error_history), 'type': 'value'}
         ]
-        self.kendall_tau_history = []
+        self.quantile_ordering_error_history = []
         return metrics
 
     def act(self, state):
@@ -101,8 +100,7 @@ class DistributionalDQNAgent(DQNAgent):
             y[i] = target
             errors[i] = self.quantile_huber_loss(np.expand_dims(target, 0), np.expand_dims(target_old, 0))
             self.q_value_quantile_history.append(np.squeeze(target[action]))
-            self.kendall_tau_history.append(np.linalg.norm(np.argsort(np.squeeze(target_old[action])) - self.optimal_quantile_ordering))
+            self.quantile_ordering_error_history.append(np.linalg.norm(np.argsort(np.squeeze(target_old[action])) - self.optimal_quantile_ordering))
             self.memory.update(indices[i], errors[i])
-        history = self.brain.train(x, y, batch_size, weights)
-        loss = history.history['loss'][0]
-        return loss, 0
+        self.brain.train(x, y, batch_size, weights)
+        

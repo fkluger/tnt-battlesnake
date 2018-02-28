@@ -21,8 +21,8 @@ class PrioritizedReplayMemory(Memory):
         priorities = [priority for priority in p if priority != 1]
         num_unseen_observations = len([priority for priority in p if priority == 1])
         return [
-            {'name': 'replay priorities', 'value': priorities, 'type': 'histogram'},
-            {'name': 'unseen observations', 'value': num_unseen_observations, 'type': 'value'}
+            {'name': 'memory/replay priorities', 'value': priorities, 'type': 'histogram'},
+            {'name': 'memory/unseen observations', 'value': num_unseen_observations, 'type': 'value'}
         ]
 
     def size(self):

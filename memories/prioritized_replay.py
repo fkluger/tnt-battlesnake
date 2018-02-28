@@ -15,6 +15,15 @@ class PrioritizedReplayMemory(Memory):
         self.epsilon = epsilon
         self.alpha = alpha
         self.max_priority = max_priority
+    
+    def get_metrics(self):
+        p = [priority for priority in self.tree.priorities if priority != 0]
+        priorities = [priority for priority in p if priority != 1]
+        num_unseen_observations = len([priority for priority in p if priority == 1])
+        return [
+            {'name': 'replay priorities', 'value': priorities, 'type': 'histogram'},
+            {'name': 'unseen observations', 'value': num_unseen_observations, 'type': 'value'}
+        ]
 
     def size(self):
         return self.tree.size

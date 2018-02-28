@@ -187,6 +187,7 @@ def main():
                 }]
 
                 metrics.extend(agent.get_metrics())
+                metrics.extend(memory.get_metrics())
 
                 write_summary(summary_writer, runner.steps, metrics)
 

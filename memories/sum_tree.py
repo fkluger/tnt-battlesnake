@@ -10,6 +10,7 @@ class SumTree:
         # Binary sum tree of priorities
         self.tree = numpy.zeros(2 * capacity - 1)
         self.observations = numpy.zeros(capacity, dtype=numpy.ndarray)
+        self.priorities = numpy.zeros(capacity)
 
     def total(self):
         return self.tree[0]
@@ -20,6 +21,7 @@ class SumTree:
         idx = self.write_pointer + self.capacity - 1
 
         self.observations[self.write_pointer] = observation
+        self.priorities[self.write_pointer] = priority
         self.update(idx, priority)
 
         observation_idx = self.write_pointer
@@ -32,6 +34,7 @@ class SumTree:
 
     def update(self, idx, priority):
         priority_difference = priority - self.tree[idx]
+        self.priorities[idx - self.capacity + 1] = priority
 
         self.tree[idx] = priority
         self._propagate(idx, priority_difference)

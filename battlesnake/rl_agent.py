@@ -17,10 +17,10 @@ class RLSnake:
         self.width = width + 2
         self.height = height + 2
         self.num_frames = int(num_frames)
-        num_quantiles = 20
+        num_quantiles = 50
         input_shape = (self.width + 1, self.height, self.num_frames)
         num_actions = 3
-        self.brain = DistributionalDuelingDoubleDQNBrain(num_quantiles=num_quantiles, input_shape=input_shape, num_actions=num_actions)
+        self.brain = DistributionalDuelingDoubleDQNBrain(num_quantiles=num_quantiles, input_shape=input_shape, num_actions=num_actions, learning_rate=0.001, report_interval=1000)
         self.brain.model.load_weights(dqn_weights_path)
         self.agent = DistributionalDQNAgent(num_quantiles=num_quantiles, brain=self.brain, memory=None, input_shape=input_shape, num_actions=num_actions)
         self.agent.epsilon = 0
@@ -63,9 +63,7 @@ class RLSnake:
         for i in range(3):
             if i not in actions:
                 actions.append(i)
-        print('Actions: {} with direction {}'.format(actions, self.snake_direction))
         self.snake_direction = self.find_best_action(actions, data)
-        print('Choosing direction {}'.format(self.snake_direction))
         return self.snake_direction
 
     def get_quantiles(self, state):
@@ -78,7 +76,6 @@ class RLSnake:
         directions = [getDirection(i, self.snake_direction) for i in actions]
         for direction in directions:
             next_coord = get_next_coord(head, direction)
-            print('Trying to go {}'.format(direction))
             if not self.check_no_collision(next_coord, data):
                 return direction
             else:

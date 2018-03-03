@@ -74,9 +74,9 @@ def start():
         snakes.append(RLSnake(board_width, board_height, sys.argv[2], sys.argv[3]))
     else:
         s = snakes[0]
-        if s.history:
-            save_episode(s.history)
-            s.history = []
+        # if s.history:
+        #     save_episode(s.history)
+        #     s.history = []
 
     return {
         'color': '#FF0000',

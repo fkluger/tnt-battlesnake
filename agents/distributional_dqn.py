@@ -36,8 +36,8 @@ class DistributionalDQNAgent(DQNAgent):
             return np.squeeze(best_action)
 
     def compute_best_action(self, quantiles):
-        quantiles_mean = np.mean(quantiles, axis=2)
-        return np.argmax(quantiles_mean, axis=1)
+        quantiles_mean = np.mean(quantiles, axis=-1)
+        return np.argmax(quantiles_mean, axis=-2)
     
     def update_episode_observations(self):
         for idx, observation in enumerate(self.episode_observations):

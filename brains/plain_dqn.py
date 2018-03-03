@@ -11,6 +11,8 @@ class PlainDQNBrain(Brain):
     Brain that encapsulates the DQN CNN.
     '''
 
+    losses = []
+
     def __init__(self, input_shape, num_actions, learning_rate,
                  report_interval):
         self.input_shape = input_shape
@@ -22,6 +24,13 @@ class PlainDQNBrain(Brain):
 
     def set_callbacks(self, callbacks):
         self.callbacks = callbacks
+
+    def get_metrics(self):
+        return [{
+            'name': 'brain/mean_loss',
+            'value': np.mean(self.losses[-self.report_interval:]),
+            'type': 'value'
+        }]
 
     def create_model(self):
         model = Sequential()
@@ -44,10 +53,12 @@ class PlainDQNBrain(Brain):
         return self.model.predict(state)
 
     def train(self, x, y, batch_size, weights):
-        self.model.fit(
+        history = self.model.fit(
             x=x,
             y=y,
             batch_size=batch_size,
             verbose=0,
             sample_weight=weights,
             callbacks=self.callbacks)
+
+        self.losses.append(history.history['loss'][0])

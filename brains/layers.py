@@ -6,6 +6,13 @@ from keras.engine import InputSpec
 
 
 class NoisyDense(Dense):
+
+    def get_metrics(self):
+        return [
+            tf.summary.scalar('noisy_layers/' + self.name + '_mean_w_sigma', self.mean_w_sigma),
+            tf.summary.scalar('noisy_layers/' + self.name + '_mean_b_sigma', self.mean_b_sigma)
+        ]
+
     def build(self, input_shape):
         assert len(input_shape) >= 2
         input_dim = input_shape[-1]
@@ -42,6 +49,9 @@ class NoisyDense(Dense):
             name=self.name + 'b_sigma',
             shape=[self.units],
             initializer=sigma_init)
+
+        self.mean_w_sigma = tf.reduce_mean(w_sigma, name=self.name + 'mean_w_sigma')
+        self.mean_b_sigma = tf.reduce_mean(b_sigma, name=self.name + 'mean_b_sigma')
 
         self.kernel = w_mu + tf.multiply(w_sigma, w_epsilon)
         if self.use_bias:

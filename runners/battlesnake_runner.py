@@ -10,7 +10,6 @@ class SimpleRunner(Runner):
 
     episode_rewards = []
     episode_lengths = []
-    q_value_estimates = []
 
     steps = 0
 
@@ -22,10 +21,8 @@ class SimpleRunner(Runner):
         self.tensorboard_callback = tensorboard_callback
 
     def get_metrics(self):
-        mean_episode_length = sum(self.episode_lengths[
-            -self.report_interval:]) * 1.0 / self.report_interval
-        mean_episode_rewards = sum(self.episode_rewards[
-            -self.report_interval:]) * 1.0 / self.report_interval
+        mean_episode_length = np.mean(self.episode_lengths[-self.report_interval:])
+        mean_episode_rewards = np.mean(self.episode_rewards[-self.report_interval:])
         
         return [{
             'name': 'runner/mean rewards',

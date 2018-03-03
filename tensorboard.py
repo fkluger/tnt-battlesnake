@@ -52,6 +52,7 @@ class CustomTensorboard(TensorBoard):
 
     callbacks = []
     global_step = 0
+    summaries = []
 
     def __init__(self, report_interval, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -63,6 +64,10 @@ class CustomTensorboard(TensorBoard):
     def set_model(self, model):
         if self.model is None:
             super().set_model(model)
+            for layer in self.model.layers:
+                if hasattr(layer, 'get_metrics') and callable(getattr(layer, 'get_metrics')):
+                    self.summaries.extend(layer.get_metrics())
+            self.merged = tf.summary.merge(self.summaries)
 
     def on_epoch_end(self, epoch, logs=None):
 
@@ -70,6 +75,10 @@ class CustomTensorboard(TensorBoard):
             metrics = []
             for cb in self.callbacks:
                 metrics.extend(cb())
+            
+            result = self.sess.run([self.merged])
+            summary_str = result[0]
+            self.writer.add_summary(summary_str, self.global_step)
 
             write_summaries(self.writer, metrics, self.global_step)
     

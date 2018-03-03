@@ -112,6 +112,7 @@ def main():
     tensorboard_cb.register_metrics_callback(memory.get_metrics)
     tensorboard_cb.register_metrics_callback(simulator.get_metrics)
     tensorboard_cb.register_metrics_callback(runner.get_metrics)
+    tensorboard_cb.register_metrics_callback(brain.get_metrics)
 
     brain.set_callbacks([tensorboard_cb])
 

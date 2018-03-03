@@ -56,8 +56,8 @@ class BattlesnakeSimulator(Simulator):
         return self.get_last_frames(self.state.observe())
 
     def get_metrics(self):
-        mean_fruits_eaten = sum(self.fruits_per_episode[
-            -self.report_interval:]) * 1.0 / self.report_interval
+        mean_fruits_eaten = np.mean(
+            self.fruits_per_episode[-self.report_interval:])
         return [{
             'name': 'simulator/mean fruits eaten',
             'value': mean_fruits_eaten,

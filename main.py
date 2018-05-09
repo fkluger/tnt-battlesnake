@@ -4,9 +4,7 @@ import signal
 import sys
 import os
 import json
-
-import tensorflow as tf
-import numpy as np
+import gym
 
 from agents.dqn import DQNAgent
 from agents.random import RandomAgent
@@ -14,8 +12,8 @@ from agents.distributional_dqn import DistributionalDQNAgent
 from memories.prioritized_replay import PrioritizedReplayMemory
 from brains.dueling_double_dqn import DuelingDoubleDQNBrain
 from brains.distributional_dueling_double_dqn import DistributionalDuelingDoubleDQNBrain
-from brains.double_dqn import DoubleDQNBrain
 from runners.battlesnake_runner import SimpleRunner
+from runners.gym_runner import GymRunner
 from simulator.simulator import BattlesnakeSimulator
 from simulator.utils import get_state_shape
 from cli_args import get_args
@@ -55,6 +53,10 @@ def main():
     simulator = BattlesnakeSimulator(args['width'], args['height'],
                                      args['snakes'], args['fruits'],
                                      args['frames'], args['report_interval'])
+
+    env = gym.make('LunarLander-v2')
+    num_actions = env.action_space.n
+    shape = env.observation_space.shape
 
     if args["distributional"]:
         brain = DistributionalDuelingDoubleDQNBrain(
@@ -104,8 +106,10 @@ def main():
             multi_step_n=args['multi_step_n'])
 
     tensorboard_cb = CustomTensorboard(log_dir=output_directory, report_interval=args['report_interval'], histogram_freq=1)
-    runner = SimpleRunner(random_agent, simulator, args['training_interval'],
+    runner = GymRunner(random_agent, env, args['training_interval'],
                           args['report_interval'], tensorboard_cb)
+    # runner = SimpleRunner(random_agent, simulator, args['training_interval'],
+    #                       args['report_interval'], tensorboard_cb)
 
 
     tensorboard_cb.register_metrics_callback(agent.get_metrics)

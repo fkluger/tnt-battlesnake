@@ -19,5 +19,4 @@ class DoubleDQNBrain(PlainDQNBrain):
             return self.model.predict(state)
 
     def update_target(self):
-        print('Updating target network.')
         self.target_model.set_weights(self.model.get_weights())

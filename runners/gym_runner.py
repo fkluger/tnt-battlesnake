@@ -1,6 +1,3 @@
-import numpy as np
-
-from . import Runner
 from .battlesnake_runner import SimpleRunner
 
 
@@ -11,8 +8,8 @@ class GymRunner(SimpleRunner):
 
     def run(self):
         episodes = len(self.episode_rewards)
-        if episodes % 50 == 0:
-            print(f'Episode: {episodes}')
+        if episodes % 50 == 0 and episodes > 0:
+            print(f'Episode: {episodes}, Rewards: {self.episode_rewards[-1]}')
         episode_reward = 0
         episode_length = 0
         state = self.simulator.reset()

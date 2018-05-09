@@ -33,9 +33,6 @@ def main():
 
     args = vars(args)
 
-    shape = get_state_shape(args['width'], args['height'], args['frames'])
-    num_actions = 3
-
     if args['continue_experiment'] is not None:
         print('Continuing experiment {}'.format(args['continue_experiment']))
         output_directory = args['continue_experiment']
@@ -54,9 +51,13 @@ def main():
                                      args['snakes'], args['fruits'],
                                      args['frames'], args['report_interval'])
 
-    env = gym.make('LunarLander-v2')
-    num_actions = env.action_space.n
-    shape = env.observation_space.shape
+    if args['gym_env']:
+        env = gym.make(args['gym_env'])
+        num_actions = env.action_space.n
+        shape = env.observation_space.shape
+    else:
+        shape = get_state_shape(args['width'], args['height'], args['frames'])
+        num_actions = 3
 
     if args["distributional"]:
         brain = DistributionalDuelingDoubleDQNBrain(
@@ -105,12 +106,17 @@ def main():
             replay_beta_min=args['replay_beta_min'],
             multi_step_n=args['multi_step_n'])
 
-    tensorboard_cb = CustomTensorboard(log_dir=output_directory, report_interval=args['report_interval'], histogram_freq=1)
-    runner = GymRunner(random_agent, env, args['training_interval'],
-                          args['report_interval'], tensorboard_cb)
-    # runner = SimpleRunner(random_agent, simulator, args['training_interval'],
-    #                       args['report_interval'], tensorboard_cb)
-
+    tensorboard_cb = CustomTensorboard(
+        log_dir=output_directory,
+        report_interval=args['report_interval'],
+        histogram_freq=1)
+    if args['gym_env']:
+        runner = GymRunner(random_agent, env, args['training_interval'],
+                           args['report_interval'], tensorboard_cb)
+    else:
+        runner = SimpleRunner(random_agent, simulator,
+                              args['training_interval'],
+                              args['report_interval'], tensorboard_cb)
 
     tensorboard_cb.register_metrics_callback(agent.get_metrics)
     tensorboard_cb.register_metrics_callback(memory.get_metrics)

@@ -23,16 +23,21 @@ class DistributionalDuelingDoubleDQNBrain(DuelingDoubleDQNBrain):
         Returns a tensor with shape (batch_size, num_actions, num_quantiles).
         '''
         inputs = Input(shape=self.input_shape)
-        # cnn_features = Conv2D(32, 3, activation='relu', strides=(1, 1))(inputs)
-        # cnn_features = Conv2D(64, 5, activation='relu', strides=(2, 2))(cnn_features)
-        # cnn_features = Conv2D(64, 3, activation='relu', strides=(1, 1))(cnn_features)
-        # cnn_features = Flatten()(cnn_features)
-        # advt = NoisyDense(256, activation='relu')(cnn_features)
-        advt = NoisyDense(256, activation='relu')(inputs)
+        is_image_input = len(self.input_shape) > 1
+        if is_image_input:
+            cnn_features = Conv2D(32, 3, activation='relu', strides=(1, 1))(inputs)
+            cnn_features = Conv2D(64, 5, activation='relu', strides=(2, 2))(cnn_features)
+            cnn_features = Conv2D(64, 3, activation='relu', strides=(1, 1))(cnn_features)
+            cnn_features = Flatten()(cnn_features)
+            advt = NoisyDense(256, activation='relu')(cnn_features)
+        else:
+            advt = NoisyDense(256, activation='relu')(inputs)
         advt = NoisyDense(self.num_quantiles * self.num_actions)(advt)
         advt = Reshape((self.num_actions, self.num_quantiles))(advt)
-        # value = NoisyDense(256, activation='relu')(cnn_features)
-        value = NoisyDense(256, activation='relu')(inputs)
+        if is_image_input:
+            value = NoisyDense(256, activation='relu')(cnn_features)
+        else:
+            value = NoisyDense(256, activation='relu')(inputs)
         value = NoisyDense(self.num_quantiles)(value)
         # now to combine the two streams
         advt = Lambda(lambda advt: advt - tf.reduce_mean(advt, axis=-2, keepdims=True))(advt)

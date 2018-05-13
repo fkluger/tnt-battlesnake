@@ -1,3 +1,4 @@
+import time
 from .battlesnake_runner import SimpleRunner
 
 
@@ -6,10 +7,15 @@ class GymRunner(SimpleRunner):
     Runner that runs the episodes and collects some statistics.
     '''
 
+    last_run = 0
+
     def run(self):
-        episodes = len(self.episode_rewards)
-        if episodes % 50 == 0 and episodes > 0:
-            print(f'Episode: {episodes}, Rewards: {self.episode_rewards[-1]}')
+        t = time.time()
+        if t - self.last_run > 30:
+            self.last_run = t
+            render = True
+        else:
+            render = False
         episode_reward = 0
         episode_length = 0
         state = self.simulator.reset()
@@ -18,10 +24,9 @@ class GymRunner(SimpleRunner):
             self.steps += 1
             self.tensorboard_callback.global_step = self.steps
             action = self.agent.act(state)
-            if episodes % 50 == 0:
+            if render:
                 self.simulator.render()
             next_state, reward, terminal, _ = self.simulator.step(action)
-
             episode_reward += reward
             episode_length += 1
 

@@ -1,5 +1,4 @@
 import random
-import numpy as np
 from . import Memory
 from .sum_tree import SumTree
 

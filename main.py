@@ -6,11 +6,9 @@ import os
 import json
 import gym
 
-from agents.dqn import DQNAgent
 from agents.random import RandomAgent
 from agents.distributional_dqn import DistributionalDQNAgent
 from memories.prioritized_replay import PrioritizedReplayMemory
-from brains.dueling_double_dqn import DuelingDoubleDQNBrain
 from brains.distributional_dueling_double_dqn import DistributionalDuelingDoubleDQNBrain
 from runners.battlesnake_runner import SimpleRunner
 from runners.gym_runner import GymRunner
@@ -59,52 +57,29 @@ def main():
         shape = get_state_shape(args['width'], args['height'], args['frames'])
         num_actions = 3
 
-    if args["distributional"]:
-        brain = DistributionalDuelingDoubleDQNBrain(
-            num_quantiles=args['num_quantiles'],
-            input_shape=shape,
-            num_actions=num_actions,
-            learning_rate=args['learning_rate'],
-            report_interval=args['report_interval'])
-    else:
-        brain = DuelingDoubleDQNBrain(
-            input_shape=shape,
-            num_actions=num_actions,
-            learning_rate=args['learning_rate'])
+    brain = DistributionalDuelingDoubleDQNBrain(
+        num_quantiles=args['num_quantiles'],
+        input_shape=shape,
+        num_actions=num_actions,
+        learning_rate=args['learning_rate'],
+        report_interval=args['report_interval'])
 
     memory = PrioritizedReplayMemory(
         args['replay_capacity'], args['replay_min_prio'],
         args['replay_alpha_prio'], args['replay_max_prio'])
     random_agent = RandomAgent(memory, num_actions)
-    if args["distributional"]:
-        agent = DistributionalDQNAgent(
-            num_quantiles=args['num_quantiles'],
-            brain=brain,
-            memory=memory,
-            input_shape=shape,
-            num_actions=num_actions,
-            GAMMA=args['gamma'],
-            EPSILON_MAX=args['epsilon_max'],
-            EPSILON_MIN=args['epsilon_min'],
-            LAMBDA=args['epsilon_lambda'],
-            batch_size=args['batch_size'],
-            update_target_freq=args['target_update_freq'],
-            replay_beta_min=args['replay_beta_min'],
-            multi_step_n=args['multi_step_n'])
-    else:
-        agent = DQNAgent(
-            brain=brain,
-            memory=memory,
-            input_shape=shape,
-            num_actions=num_actions,
-            GAMMA=args['gamma'],
-            EPSILON_MAX=args['epsilon_max'],
-            EPSILON_MIN=args['epsilon_min'],
-            LAMBDA=args['epsilon_lambda'],
-            batch_size=args['batch_size'],
-            update_target_freq=args['target_update_freq'],
-            replay_beta_min=args['replay_beta_min'],
-            multi_step_n=args['multi_step_n'])
+    agent = DistributionalDQNAgent(
+        num_quantiles=args['num_quantiles'],
+        brain=brain,
+        memory=memory,
+        input_shape=shape,
+        num_actions=num_actions,
+        GAMMA=args['gamma'],
+        LAMBDA=args['lambda'],
+        batch_size=args['batch_size'],
+        update_target_freq=args['target_update_freq'],
+        replay_beta_min=args['replay_beta_min'],
+        multi_step_n=args['multi_step_n'])
 
     tensorboard_cb = CustomTensorboard(
         log_dir=output_directory,
@@ -159,11 +134,12 @@ def main():
                 memory.max_priority = checkpoint['replay_max_prio']
 
     training = False
-    print('Running {} random steps.'.format(80000))
+    random_steps = args['random_steps']
+    print('Running {} random steps.'.format(random_steps))
 
     while training is False or episodes < args['max_episodes']:
 
-        if training is False and memory.size() > 80000:
+        if training is False and memory.size() > random_steps:
             print(
                 'Collecting random observations finished. Beginning training...'
             )
@@ -174,12 +150,12 @@ def main():
         runner.run()
 
         if training is False and episodes % 1000 == 0:
-            print(f'Random runs {memory.size() * 100 / 80000}% complete.')
+            print(f'Random runs {memory.size() * 100 / random_steps}% complete.')
 
         if training is True and episodes % (args['report_interval'] * 50) == 0:
             simulator.save_longest_episode(output_directory)
         if training is True and episodes % (
-                args['report_interval'] * 100) == 0:
+                args['report_interval'] * 50) == 0:
             brain.model.save_weights('{}/{}-model.h5'.format(
                 output_directory, episodes))
             with open('{}/{}-checkpoint.json'.format(output_directory,
@@ -187,7 +163,6 @@ def main():
                 checkpoint = {
                     'episodes': episodes,
                     'steps': runner.steps,
-                    'epsilon': agent.epsilon,
                     'beta': agent.beta,
                     'replay_max_prio': memory.max_priority
                 }

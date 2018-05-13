@@ -1,20 +1,18 @@
-import math
 from keras import Model, Input
-from keras.layers import Conv2D, Flatten, Dense, Lambda, Add, Dropout, Reshape
+from keras.layers import Conv2D, Flatten, Lambda, Add, Reshape
 from keras.optimizers import Adam
-import keras.backend as K
 import tensorflow as tf
-import numpy as np
 
-from .dueling_double_dqn import DuelingDoubleDQNBrain
+from brains.double_dqn import DoubleDQNBrain
 from .huber_loss import create_quantile_huber_loss
-from .layers import NoisyDense
+from .noisy_dense_layer import NoisyDense
 
 
-class DistributionalDuelingDoubleDQNBrain(DuelingDoubleDQNBrain):
+class DistributionalDuelingDoubleDQNBrain(DoubleDQNBrain):
 
     def __init__(self, num_quantiles, **kwargs):
         self.num_quantiles = num_quantiles
+        self.hidden_size = 256
         self.loss_function = create_quantile_huber_loss(self.num_quantiles)
         super().__init__(**kwargs)
 
@@ -29,15 +27,15 @@ class DistributionalDuelingDoubleDQNBrain(DuelingDoubleDQNBrain):
             cnn_features = Conv2D(64, 5, activation='relu', strides=(2, 2))(cnn_features)
             cnn_features = Conv2D(64, 3, activation='relu', strides=(1, 1))(cnn_features)
             cnn_features = Flatten()(cnn_features)
-            advt = NoisyDense(256, activation='relu')(cnn_features)
+            advt = NoisyDense(self.hidden_size, activation='relu')(cnn_features)
         else:
-            advt = NoisyDense(256, activation='relu')(inputs)
+            advt = NoisyDense(self.hidden_size, activation='relu')(inputs)
         advt = NoisyDense(self.num_quantiles * self.num_actions)(advt)
         advt = Reshape((self.num_actions, self.num_quantiles))(advt)
         if is_image_input:
-            value = NoisyDense(256, activation='relu')(cnn_features)
+            value = NoisyDense(self.hidden_size, activation='relu')(cnn_features)
         else:
-            value = NoisyDense(256, activation='relu')(inputs)
+            value = NoisyDense(self.hidden_size, activation='relu')(inputs)
         value = NoisyDense(self.num_quantiles)(value)
         # now to combine the two streams
         advt = Lambda(lambda advt: advt - tf.reduce_mean(advt, axis=-2, keepdims=True))(advt)

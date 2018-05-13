@@ -6,16 +6,16 @@
 # install requirements
 pip install -r requirements.txt
 
-# train agent
+# train agent on battlesnake
 python main.py
 
-# start battlesnake server at port 8080
-python snake_server.py 8080 2 ./experiment - */*.h5
+# train agent on gym
+python main.py --gym_env CartPole-v1 --random_steps 1000
 ```
 
 ## Implemented Agents
 
-- DQN with epsilon-greedy exploration strategy
+- DQN with NoisyNets for exploration
 
 ## Implemented Extensions
 

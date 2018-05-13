@@ -150,14 +150,15 @@ def main():
         runner.run()
 
         if training is False and episodes % 1000 == 0:
-            print(f'Random runs {memory.size() * 100 / random_steps}% complete.')
-
-        if training is True and episodes % (args['report_interval'] * 50) == 0:
+            print(
+                f'Random runs {memory.size() * 100 / random_steps}% complete.')
+        if training is True and episodes % 100 == 0:
+            print(
+                f'Episode: {episodes}, Steps: {runner.steps}, Runner metrics: {runner.get_metrics()}')
+        if training is True and episodes % (args['report_interval'] * 10) == 0:
             simulator.save_longest_episode(output_directory)
-        if training is True and episodes % (
-                args['report_interval'] * 50) == 0:
-            brain.model.save_weights('{}/{}-model.h5'.format(
-                output_directory, episodes))
+        if training is True and episodes % args['report_interval'] == 0:
+            brain.model.save_weights('checkpoint-model.h5')
             with open('{}/{}-checkpoint.json'.format(output_directory,
                                                      episodes), 'w') as f:
                 checkpoint = {

@@ -120,12 +120,14 @@ class BattlesnakeSimulator(Simulator):
         terminal = False
         reward = None
 
-        fruit_distance_differences = []
+        fruit_distance_differences = np.zeros([self.num_snakes])
 
         # Compute next snake positions and health
         for idx, action in enumerate(actions):
+            if idx not in [snake.id for snake in self.state.snakes]:
+                continue
             snake = self.state.snakes[idx]
-            old_fruit_distance = self.get_closest_fruit_distance(snake.body[0])
+            old_fruit_distance  = self.get_closest_fruit_distance(snake.body[0])
             direction = getDirection(action, snake.direction)
             snake_next_body = get_next_snake_coords(snake.body, direction,
                                                     self.state.fruits)
@@ -134,8 +136,7 @@ class BattlesnakeSimulator(Simulator):
             self.state.snakes[idx].health -= 1
             fruit_distance = self.get_closest_fruit_distance(
                 snake_next_body[0])
-            fruit_distance_differences.append(
-                old_fruit_distance - fruit_distance)
+            fruit_distance_differences[idx] = old_fruit_distance - fruit_distance
 
         # Compute rewards and whether the episode ended (terminal)
         for idx, snake in enumerate(self.state.snakes):
@@ -143,7 +144,7 @@ class BattlesnakeSimulator(Simulator):
             ate_fruit = self.check_fruit(snake)
             starved = False if ate_fruit else self.check_starved(snake)
 
-            if idx == 0:
+            if snake.id == 0:
                 if collided:
                     terminal = True
                     reward = Reward.collision
@@ -162,6 +163,15 @@ class BattlesnakeSimulator(Simulator):
                         reward = Reward.moved_to_fruit
                     else:
                         reward = Reward.nothing
+            else:
+                if collided or starved:
+                    self.state.snakes.remove(snake)
+                    if len(self.state.snakes) == 1:
+                        terminal = True
+                        reward = 0
+                elif ate_fruit:
+                    snake.health = 100
+                    self.state.eat_fruit(snake.body[0])
 
         # Compute next state
         next_state = None if terminal else self.get_last_frames(

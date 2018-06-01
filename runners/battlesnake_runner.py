@@ -1,6 +1,7 @@
 import numpy as np
 
 from . import Runner
+from simulator.utils import is_coord_on_board, get_next_snake_coords, getDirection
 
 
 class SimpleRunner(Runner):
@@ -43,7 +44,21 @@ class SimpleRunner(Runner):
             self.steps += 1
             self.tensorboard_callback.global_step = self.steps
             action = self.agent.act(state)
-            next_state, reward, terminal = self.simulator.step([action])
+            actions = [action]
+            for snake in self.simulator.state.snakes:
+                if snake.id == 0:
+                    continue
+                enemy_state = self.simulator.state.observe(snake.id)
+                action = self.agent.act(np.expand_dims(enemy_state, -1))
+                direction = getDirection(action, snake.direction)
+                snake_next_body = get_next_snake_coords(snake.body, direction,
+                                                        self.simulator.state.fruits)
+                if is_coord_on_board(snake_next_body[0], self.simulator.width, self.simulator.height):
+                    actions.append(action)
+                else:
+                    actions.append(np.random.choice(3))
+                
+            next_state, reward, terminal = self.simulator.step(actions)
 
             episode_reward += reward
             episode_length += 1

@@ -155,10 +155,10 @@ def main():
         if training is True and episodes % 100 == 0:
             print(
                 f'Episode: {episodes}, Steps: {runner.steps}, Runner metrics: {runner.get_metrics()}')
-        if training is True and episodes % (args['report_interval'] * 10) == 0:
+        if training is True and episodes % (args['report_interval'] * 100) == 0:
             simulator.save_longest_episode(output_directory)
         if training is True and episodes % args['report_interval'] == 0:
-            brain.model.save_weights('checkpoint-model.h5')
+            brain.model.save_weights(f'{output_directory}/checkpoint-model.h5')
             with open('{}/{}-checkpoint.json'.format(output_directory,
                                                      episodes), 'w') as f:
                 checkpoint = {

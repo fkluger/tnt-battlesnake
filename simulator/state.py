@@ -62,20 +62,20 @@ class State:
             occupied_coords.extend(snake.body)
             self.snakes.append(snake)
 
-    def observe(self):
+    def observe(self, identifier=0):
         '''
-        Create a tensor with shape (width+1, height) describing the current state.
+        Create a tensor with shape (width, height) describing the current state.
         '''
 
-        observation = np.zeros([self.width + 1, self.height], dtype=int)
+        observation = np.zeros([self.width, self.height], dtype=int)
         for x in range(0, self.width):
             for y in range(0, self.height):
                 if x == 0 or y == 0 or x == self.width - 1 or y == self.height - 1:
                     observation[x, y] = Field.body
-        for snake_idx, snake in enumerate(self.snakes):
+        for snake in self.snakes:
             for idx, [x, y] in enumerate(snake.body):
                 # Snake at position 0 is the agent
-                if snake_idx == 0:
+                if snake.id == identifier:
                     if idx == 0:
                         if snake.direction == 'up':
                             observation[x][y] = Field.own_head_up
@@ -90,8 +90,6 @@ class State:
                 else:
                     observation[x][y] = Field.head if idx == 0 else Field.tail if idx == len(
                         snake.body) - 1 else Field.body
-                if snake_idx == 0:
-                    observation[self.width][0] = snake.health
         for [x, y] in self.fruits:
             observation[x][y] = Field.fruit
         return observation

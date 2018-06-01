@@ -7,7 +7,7 @@ def data_to_state(data, snake_direction):
     width = data['width']
     height = data['height']
 
-    state = np.zeros([width + 3, height + 2], dtype=int)
+    state = np.zeros([width + 2, height + 2], dtype=int)
 
     for x in range(width + 2):
         for y in range(height + 2):
@@ -33,8 +33,6 @@ def data_to_state(data, snake_direction):
             else:
                 state[x][y] = Field.head if idx == 0 else Field.tail if idx == len(
                     snake['coords']) - 1 else Field.body
-            if snake['id'] == data['you']:
-                state[width + 2][0] = snake['health_points']
     for [x, y] in data['food']:
         x += 1
         y += 1

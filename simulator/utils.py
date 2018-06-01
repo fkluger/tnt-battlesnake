@@ -6,7 +6,7 @@ def get_state_shape(width, height, num_frames):
     Get the shape of the state tensor. The health of the snake is encoded
     next to the board with the given width.
     '''
-    return width + 1, height, num_frames
+    return width, height, num_frames
 
 
 def get_next_coord(coord, direction):

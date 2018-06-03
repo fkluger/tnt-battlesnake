@@ -27,8 +27,10 @@ class State:
             fruit = None
             # Find free field for the fruit
             while fruit is None:
-                fruit = [np.random.randint(1, self.width - 2),
-                         np.random.randint(1, self.height - 2)]
+                fruit = [
+                    np.random.randint(1, self.width - 2),
+                    np.random.randint(1, self.height - 2)
+                ]
                 for coord in occupied_coords:
                     if np.array_equal(fruit, coord):
                         fruit = None
@@ -40,7 +42,8 @@ class State:
         '''
 
         self.fruits.remove(fruit)
-        occupied_coords = list([coord for snake in self.snakes for coord in snake.body])
+        occupied_coords = list(
+            [coord for snake in self.snakes for coord in snake.body])
         occupied_coords.append(fruit)
         occupied_coords.extend(self.fruits)
         self.generate_fruits(1, occupied_coords)
@@ -54,8 +57,10 @@ class State:
             head = None
             # Find free field for snake head
             while head is None:
-                head = [np.random.randint(1, self.width - 2),
-                        np.random.randint(1, self.height - 2)]
+                head = [
+                    np.random.randint(1, self.width - 2),
+                    np.random.randint(1, self.height - 2)
+                ]
                 if head in occupied_coords:
                     head = None
             snake = Snake(head, 3, self.width, self.height, occupied_coords, i)
@@ -64,10 +69,10 @@ class State:
 
     def observe(self, identifier=0):
         '''
-        Create a tensor with shape (width, height) describing the current state.
+        Create a tensor with shape (width+1, height) describing the current state.
         '''
 
-        observation = np.zeros([self.width, self.height], dtype=int)
+        observation = np.zeros([self.width + 1, self.height], dtype=int)
         for x in range(0, self.width):
             for y in range(0, self.height):
                 if x == 0 or y == 0 or x == self.width - 1 or y == self.height - 1:
@@ -86,10 +91,14 @@ class State:
                         else:
                             observation[x][y] = Field.own_head_left
                     else:
-                        observation[x][y] = Field.own_tail if idx == len(snake.body) - 1 else Field.own_body
+                        observation[x][y] = Field.own_tail if idx == len(
+                            snake.body) - 1 else Field.own_body
                 else:
-                    observation[x][y] = Field.head if idx == 0 else Field.tail if idx == len(
-                        snake.body) - 1 else Field.body
+                    observation[x][
+                        y] = Field.head if idx == 0 else Field.tail if idx == len(
+                            snake.body) - 1 else Field.body
+                if snake.id == identifier:
+                    observation[self.width][0] = snake.health
         for [x, y] in self.fruits:
             observation[x][y] = Field.fruit
         return observation

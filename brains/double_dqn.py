@@ -10,6 +10,7 @@ class DoubleDQNBrain(PlainDQNBrain):
         super().__init__(**kwargs)
 
         self.model = self.create_model()
+        print(self.model.summary())
         self.target_model = self.create_model()
 
     def predict(self, state, target=False):

@@ -24,8 +24,8 @@ class DistributionalDuelingDoubleDQNBrain(DoubleDQNBrain):
         is_image_input = len(self.input_shape) > 1
         if is_image_input:
             cnn_features = Conv2D(32, 3, activation='relu', strides=(1, 1))(inputs)
-            cnn_features = Conv2D(64, 5, activation='relu', strides=(2, 2))(cnn_features)
-            cnn_features = Conv2D(64, 3, activation='relu', strides=(1, 1))(cnn_features)
+            cnn_features = Conv2D(64, 2, activation='relu', strides=(2, 2))(cnn_features)
+            cnn_features = Conv2D(64, 2, activation='relu', strides=(1, 1))(cnn_features)
             cnn_features = Flatten()(cnn_features)
             advt = NoisyDense(self.hidden_size, activation='relu')(cnn_features)
         else:

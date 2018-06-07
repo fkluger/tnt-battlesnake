@@ -70,6 +70,7 @@ class Actor:
         self.buffer.append(experience)
         if len(self.buffer) >= self.max_buffer_size:
             self.send_experiences()
+            self.buffer.clear()
 
     def update_parameters(self):
         try:
@@ -93,13 +94,12 @@ class Actor:
             q_values=q_values,
             q_values_next=q_values_next)
         experiences = list()
-        for idx, observation in enumerate(self.buffer):
+        for idx, observation in enumerate(np.copy(self.buffer)):
             experiences.append(Experience(observation, errors[idx]))
         experiences_pickled = pickle.dumps(experiences, -1)
         experiences_compressed = zlib.compress(experiences_pickled)
         self.experience_socket.send_multipart(
             [b'experiences', experiences_compressed])
-        self.buffer.clear()
 
 
 def compute_enemy_actions(env, actor):

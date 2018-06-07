@@ -65,8 +65,6 @@ def create_targets(input_shape, num_actions, gamma, multi_step_n, observations,
             best_action = np.argmax(q_values[idx])
             target[o.action] = o.reward + (
                 gamma**multi_step_n) * q_values_next[idx, best_action]
-        if o.state is None:
-            print(o)
         x[idx] = o.state
         y[idx] = target
         errors[idx] = np.abs(target[o.action] - target_old[o.action])

@@ -10,7 +10,6 @@ from memories.prioritized_replay import PrioritizedReplayMemory
 from simulator.utils import get_state_shape
 from dqn import DQN
 from utils import get_logger, create_targets
-from tensorboard import CustomTensorboard
 
 logger = get_logger('Learner')
 
@@ -36,14 +35,6 @@ class Learner:
             epsilon=config['min_priority'],
             alpha=config['alpha'],
             max_priority=config['max_priority'])
-
-        self.tensorboard_cb = CustomTensorboard(
-            log_dir=config['output_directory'],
-            report_interval=config['report_interval'],
-            histogram_freq=1)
-        self.dqn.callbacks = [self.tensorboard_cb]
-        self.tensorboard_cb.register_metrics_callback(self.dqn.get_metrics)
-        self.tensorboard_cb.register_metrics_callback(self.buffer.get_metrics)
 
         self.beta = config['beta_min']
         learner_address = config['learner_ip'] + ':' + config['starting_port']
@@ -86,8 +77,7 @@ class Learner:
             self.received_experiences += num_experiences
             if self.received_experiences % 100000 == 0:
                 logger.info(
-                    f'Received experiences total: {self.received_experiences}'
-                )
+                    f'Received experiences total: {self.received_experiences}')
             return True
         except zmq.Again:
             return False
@@ -95,7 +85,6 @@ class Learner:
     def evaluate_experiences(self):
         if not (self.buffer.size() > self.config['batch_size'] * 10):
             return
-        self.tensorboard_cb.global_step += 1
         batch, indices, weights = self.buffer.sample(self.config['batch_size'],
                                                      self.beta)
         # Actual batch size can differ from self.batch_size if the memory is not filled yet
@@ -112,7 +101,9 @@ class Learner:
         time_difference = time.time() - self.last_batch_timestamp
         if time_difference > 15:
             self.last_batch_timestamp = time.time()
-            logger.info(f'Learning on {self.training_counter / time_difference} samples/second.')
+            logger.info(
+                f'Learning on {self.training_counter / time_difference} samples/second.'
+            )
             self.training_counter = 0
 
     def send_parameters(self):

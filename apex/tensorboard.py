@@ -60,6 +60,10 @@ class CustomTensorboard(TensorBoard):
 
     def register_metrics_callback(self, cb):
         self.callbacks.append(cb)
+    
+    def set_model(self, model):
+        if self.model is None:
+            super().set_model(model)
 
     def on_epoch_end(self, epoch, logs=None):
 

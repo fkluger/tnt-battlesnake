@@ -1,0 +1,25 @@
+{
+    "learner_ip": "192.168.1.30",
+    "starting_port": "7680",
+    "actors": {
+        "paris2": 2
+    },
+    "batch_size": 64,
+    "width": 11,
+    "height": 11,
+    "num_frames": 1,
+    "multi_step_n": 1,
+    "epsilon": 0,
+    "report_interval": 1000,
+    "num_snakes": 1,
+    "num_fruits": 2,
+    "learning_rate": 0.001,
+    "beta_min": 0.4,
+    "beta_step_size": 5e-6,
+    "min_priority": 0.01,
+    "max_priority": 1.0,
+    "alpha": 0.7,
+    "gamma": 0.9,
+    "capacity": 1000000,
+    "output_directory": "tmp"
+}

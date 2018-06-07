@@ -144,7 +144,6 @@ def main():
             episode_rewards += reward
             if terminal:
                 next_state = None
-
             actor.observe(Observation(state, action, reward, next_state))
             state = next_state
         episodes += 1
@@ -155,6 +154,7 @@ def main():
             mean_rewards = np.mean(rewards[:-config['report_interval']])
             mean_fruits = np.mean(env.fruits_per_episode[:-config['report_interval']])
             logger.info(f'Episodes: {episodes}, Mean rewards: {mean_rewards}, Mean fruits eaten: {mean_fruits}')
+            env.save_longest_episode(config['output_directory'])
 
 
 if __name__ == '__main__':

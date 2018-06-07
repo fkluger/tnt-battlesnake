@@ -16,6 +16,11 @@ logger = get_logger('Learner')
 
 
 class Learner:
+
+    received_experiences = 0
+    last_batch_timestamp = time.time()
+    training_counter = 0
+
     def __init__(self, config):
         self.config = config
         self.input_shape = get_state_shape(config['width'], config['height'],
@@ -75,11 +80,14 @@ class Learner:
             experiences = pickle.loads(experiences_pickled)
             for experience in experiences:
                 self.buffer.add(experience.observation, experience.error)
+            num_experiences = len(experiences)
             self.beta += (1. - self.beta
-                          ) * self.config['beta_step_size'] * len(experiences)
-            logger.info(
-                f'Received {len(experiences)} experiences from actor. Buffer size: {self.buffer.size()}'
-            )
+                          ) * self.config['beta_step_size'] * num_experiences
+            self.received_experiences += num_experiences
+            if self.received_experiences % 100000 == 0:
+                logger.info(
+                    f'Received experiences total: {self.received_experiences}'
+                )
             return True
         except zmq.Again:
             return False
@@ -100,9 +108,15 @@ class Learner:
         for idx in range(batch_size):
             self.buffer.update(indices[idx], errors[idx])
         self.dqn.train(x, y, batch_size, weights)
+        self.training_counter += batch_size
+        time_difference = time.time() - self.last_batch_timestamp
+        if time_difference > 15:
+            self.last_batch_timestamp = time.time()
+            logger.info(f'Learning on {self.training_counter / time_difference} samples/second.')
+            self.training_counter = 0
 
     def send_parameters(self):
-        logger.info('Sending parameters...')
+        logger.debug('Sending parameters...')
         weights = self.dqn.model.get_weights()
         p = pickle.dumps(weights, -1)
         z = zlib.compress(p)

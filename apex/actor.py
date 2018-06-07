@@ -152,8 +152,9 @@ def main():
         if episodes % 100 == 0:
             actor.update_parameters()
         if episodes % config['report_interval'] == 0:
-            logger.info(
-                f'Episodes: {episodes}, Mean rewards: {np.mean(rewards)}')
+            mean_rewards = np.mean(rewards[:-config['report_interval']])
+            mean_fruits = np.mean(env.fruits_per_episode[:-config['report_interval']])
+            logger.info(f'Episodes: {episodes}, Mean rewards: {mean_rewards}, Mean fruits eaten: {mean_fruits}')
 
 
 if __name__ == '__main__':

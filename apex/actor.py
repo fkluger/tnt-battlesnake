@@ -29,7 +29,8 @@ class Actor:
             hidden_size=256,
             learning_rate=config['learning_rate'],
             report_interval=config['report_interval'])
-        self.epsilon = config['epsilon']
+        self.epsilon = np.random.uniform(0, 0.3)
+        logger.info(f'Epsilon: {self.epsilon}')
         learner_address = config['learner_ip'] + ':' + config['starting_port']
         self._connect_sockets(learner_address)
 

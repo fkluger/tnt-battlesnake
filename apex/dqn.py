@@ -1,9 +1,8 @@
 from keras import Model, Input
-from keras.layers import Conv2D, Flatten, Lambda, Add
+from keras.layers import Conv2D, Flatten, Lambda, Add, Dense
 from keras.optimizers import Adam
 from tensorflow import reduce_mean, tile
 import numpy as np
-from noisy_dense_layer import NoisyDense
 
 class DQN:
 
@@ -25,12 +24,12 @@ class DQN:
         cnn_features = Conv2D(64, 2, activation='relu', strides=(1, 1))(cnn_features)
         cnn_features = Flatten()(cnn_features)
         
-        advantage = NoisyDense(self.hidden_size, activation='relu')(cnn_features)
-        advantage = NoisyDense(self.num_actions, activation='relu')(advantage)
+        advantage = Dense(self.hidden_size, activation='relu')(cnn_features)
+        advantage = Dense(self.num_actions, activation='relu')(advantage)
         advantage = Lambda(lambda advt: advt - reduce_mean(advt, axis=-1, keepdims=True))(advantage)
 
-        value = NoisyDense(self.hidden_size, activation='relu')(cnn_features)
-        value = NoisyDense(1, activation='relu')(cnn_features)
+        value = Dense(self.hidden_size, activation='relu')(cnn_features)
+        value = Dense(1, activation='relu')(cnn_features)
         value = Lambda(lambda value: tile(value, [1, self.num_actions]))(value)
 
         outputs = Add()([value, advantage])

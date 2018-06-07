@@ -29,10 +29,10 @@ class Actor:
             hidden_size=256,
             learning_rate=config['learning_rate'],
             report_interval=config['report_interval'])
-        self.epsilon = np.random.uniform(0, 0.3)
-        logger.info(f'Epsilon: {self.epsilon}')
         learner_address = config['learner_ip'] + ':' + config['starting_port']
-        self._connect_sockets(learner_address)
+        idx = self._connect_sockets(learner_address)
+        self.epsilon = 0.4**(1 + (idx / 6.0) * 7)
+        logger.info(f'Epsilon: {self.epsilon}')
 
     def _connect_sockets(self, learner_address):
         self.context = zmq.Context()
@@ -50,6 +50,7 @@ class Actor:
         logger.info(f'Created socket at {ip_address}:{port}')
 
         atexit.register(self._disconnect_sockets)
+        return port - int(self.config['starting_port'])
 
     def _disconnect_sockets(self):
         self.experience_socket.close()
@@ -153,8 +154,11 @@ def main():
             actor.update_parameters()
         if episodes % config['report_interval'] == 0:
             mean_rewards = np.mean(rewards[:-config['report_interval']])
-            mean_fruits = np.mean(env.fruits_per_episode[:-config['report_interval']])
-            logger.info(f'Episodes: {episodes}, Mean rewards: {mean_rewards}, Mean fruits eaten: {mean_fruits}')
+            mean_fruits = np.mean(
+                env.fruits_per_episode[:-config['report_interval']])
+            logger.info(
+                f'Episodes: {episodes}, Mean rewards: {mean_rewards}, Mean fruits eaten: {mean_fruits}'
+            )
             env.save_longest_episode(config['output_directory'])
 
 

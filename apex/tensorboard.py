@@ -60,14 +60,6 @@ class CustomTensorboard(TensorBoard):
 
     def register_metrics_callback(self, cb):
         self.callbacks.append(cb)
-    
-    def set_model(self, model):
-        if self.model is None:
-            super().set_model(model)
-            for layer in self.model.layers:
-                if hasattr(layer, 'get_metrics') and callable(getattr(layer, 'get_metrics')):
-                    self.summaries.extend(layer.get_metrics())
-            self.merged = tf.summary.merge(self.summaries)
 
     def on_epoch_end(self, epoch, logs=None):
 

@@ -134,13 +134,18 @@ def main():
     while not received_initial_parameters:
         received_initial_parameters = actor.update_parameters()
     episodes = 0
+    steps = 0
     rewards = list()
     while True:
         episode_rewards = 0
         state = env.reset()
         terminal = False
         while not terminal:
-            action = actor.act(state)
+            steps += 1
+            if steps > config['random_steps']:
+                action = actor.act(state)
+            else:
+                action = np.random.choice(3)
             actions = [action] + compute_enemy_actions(env, actor)
             next_state, reward, terminal = env.step(actions)
             episode_rewards += reward
@@ -152,7 +157,7 @@ def main():
         rewards.append(episode_rewards)
         if episodes % 100 == 0:
             actor.update_parameters()
-        if episodes % config['report_interval'] == 0:
+        if episodes % (config['report_interval'] * 2) == 0:
             mean_rewards = np.mean(rewards[:-config['report_interval']])
             mean_fruits = np.mean(
                 env.fruits_per_episode[:-config['report_interval']])

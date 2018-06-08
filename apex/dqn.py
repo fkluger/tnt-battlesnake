@@ -18,8 +18,6 @@ def huber_loss(y_true, y_pred):
 
 class DQN:
 
-    losses = []
-
     def __init__(self, input_shape, num_actions, hidden_size, learning_rate, report_interval):
         self.input_shape = input_shape
         self.num_actions = num_actions
@@ -31,13 +29,13 @@ class DQN:
 
     def _create_model(self):
         inputs = Input(shape=self.input_shape)
-        net = Conv2D(32, 8, activation='relu', padding='same')(inputs)
+        net = Conv2D(32, 6, activation='relu', padding='same')(inputs)
         net = Conv2D(64, 4, activation='relu')(net)
         net = Conv2D(64, 3, activation='relu')(net)
         net = Flatten()(net)
-        advt = Dense(256, activation='relu')(net)
+        advt = Dense(512, activation='relu')(net)
         advt = Dense(self.num_actions)(advt)
-        value = Dense(256, activation='relu')(net)
+        value = Dense(512, activation='relu')(net)
         value = Dense(1)(value)
         # now to combine the two streams
         advt = Lambda(lambda advt: advt - tf.reduce_mean(advt, axis=-1, keepdims=True))(advt)
@@ -73,11 +71,4 @@ class DQN:
             verbose=0,
             sample_weight=weights,
             callbacks=self.callbacks)
-        self.losses.append(history.history['loss'][0])
-    
-    def get_metrics(self):
-        return [{
-            'name': 'mean_loss',
-            'value': np.mean(self.losses[-self.report_interval:]),
-            'type': 'value'
-        }]
+        return history.history['loss'][0]

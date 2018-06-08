@@ -1,9 +1,9 @@
 class Reward:
     collision = -1
-    starve = -1
+    starve = 0
     nothing = 0
     fruit = 1
-    moved_to_fruit = 0
+    moved_to_fruit = 0.01
 
 
 class Field:

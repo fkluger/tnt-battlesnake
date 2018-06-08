@@ -102,13 +102,15 @@ class Learner:
         if time_difference > 15:
             self.last_batch_timestamp = time.time()
             logger.info(
-                f'Learning on {self.training_counter / time_difference} samples/second.'
+                f'Learning on {self.training_counter / time_difference} samples/second. Mean loss: {np.mean(self.dqn.losses)}'
             )
             self.training_counter = 0
 
     def send_parameters(self):
         logger.debug('Sending parameters...')
         weights = self.dqn.model.get_weights()
+        output_directory = config['output_directory']
+        self.dqn.model.save_weights(f'{output_directory}/checkpoint-model.h5')
         p = pickle.dumps(weights, -1)
         z = zlib.compress(p)
         self.parameter_socket.send_multipart([b'parameters', z])

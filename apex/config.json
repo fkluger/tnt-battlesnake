@@ -2,9 +2,9 @@
     "learner_ip": "130.75.31.52",
     "starting_port": "7680",
     "actors": {
-        "paris2": 5
+        "paris2": 10
     },
-    "batch_size": 64,
+    "batch_size": 128,
     "width": 11,
     "height": 11,
     "num_frames": 1,
@@ -13,7 +13,7 @@
     "report_interval": 1000,
     "num_snakes": 1,
     "num_fruits": 2,
-    "learning_rate": 0.00005,
+    "learning_rate": 0.0000625,
     "beta_min": 0.4,
     "beta_step_size": 5e-6,
     "min_priority": 0.01,

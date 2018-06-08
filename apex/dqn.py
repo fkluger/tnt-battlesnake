@@ -1,8 +1,20 @@
 from keras import Model, Input
 from keras.layers import Conv2D, Flatten, Lambda, Add, Dense
-from keras.optimizers import Adam
-from tensorflow import reduce_mean, tile
+from keras.optimizers import RMSprop
+import tensorflow as tf
 import numpy as np
+
+
+def huber_loss(y_true, y_pred):
+    time_difference_error = y_true - y_pred
+
+    cond = tf.abs(time_difference_error) < 1.0
+    L2 = 0.5 * tf.square(time_difference_error)
+    L1 = 1.0 * (tf.abs(time_difference_error) - 0.5 * 1.0)
+
+    loss = tf.where(cond, L2, L1)
+
+    return tf.reduce_mean(loss)
 
 class DQN:
 
@@ -19,24 +31,22 @@ class DQN:
 
     def _create_model(self):
         inputs = Input(shape=self.input_shape)
-        cnn_features = Conv2D(32, 3, activation='relu', strides=(1, 1))(inputs)
-        cnn_features = Conv2D(64, 2, activation='relu', strides=(2, 2))(cnn_features)
-        cnn_features = Conv2D(64, 2, activation='relu', strides=(1, 1))(cnn_features)
-        cnn_features = Flatten()(cnn_features)
-        
-        advantage = Dense(self.hidden_size, activation='relu')(cnn_features)
-        advantage = Dense(self.num_actions, activation='relu')(advantage)
-        advantage = Lambda(lambda advt: advt - reduce_mean(advt, axis=-1, keepdims=True))(advantage)
+        net = Conv2D(32, 8, activation='relu', padding='same')(inputs)
+        net = Conv2D(64, 4, activation='relu')(net)
+        net = Conv2D(64, 3, activation='relu')(net)
+        net = Flatten()(net)
+        advt = Dense(256, activation='relu')(net)
+        advt = Dense(self.num_actions)(advt)
+        value = Dense(256, activation='relu')(net)
+        value = Dense(1)(value)
+        # now to combine the two streams
+        advt = Lambda(lambda advt: advt - tf.reduce_mean(advt, axis=-1, keepdims=True))(advt)
+        value = Lambda(lambda value: tf.tile(value, [1, self.num_actions]))(value)
+        final = Add()([value, advt])
+        model = Model(inputs=inputs, outputs=final)
 
-        value = Dense(self.hidden_size, activation='relu')(cnn_features)
-        value = Dense(1, activation='relu')(cnn_features)
-        value = Lambda(lambda value: tile(value, [1, self.num_actions]))(value)
-
-        outputs = Add()([value, advantage])
-        model = Model(inputs, outputs)
-
-        model.compile(loss='mse', optimizer=Adam(lr=self.learning_rate))
-
+        opt = RMSprop(lr=self.learning_rate, decay=0.95, epsilon=1.5e-7)
+        model.compile(loss=huber_loss, optimizer=opt)
         return model
 
     def predict(self, state):

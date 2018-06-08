@@ -49,6 +49,17 @@ def get_free_port(starting_port):
 def get_ip_address():
     return socket.gethostbyname(socket.gethostname())
 
+def np_huber_loss(y_true, y_pred):
+    time_difference_error = y_true - y_pred
+
+    cond = np.abs(time_difference_error) < 1.0
+    L2 = 0.5 * np.square(time_difference_error)
+    L1 = 1.0 * (np.abs(time_difference_error) - 0.5 * 1.0)
+
+    loss = np.where(cond, L2, L1)
+
+    return np.mean(loss)
+
 
 def create_targets(input_shape, num_actions, gamma, multi_step_n, observations,
                    q_values, q_values_next):
@@ -62,9 +73,8 @@ def create_targets(input_shape, num_actions, gamma, multi_step_n, observations,
         if o.next_state is None:
             target[o.action] = o.reward
         else:
-            best_action = np.argmax(q_values[idx])
             target[o.action] = o.reward + (
-                gamma**multi_step_n) * q_values_next[idx, best_action]
+                gamma**multi_step_n) * np.amax(q_values_next[idx])
         x[idx] = o.state
         y[idx] = target
         errors[idx] = np.abs(target[o.action] - target_old[o.action])

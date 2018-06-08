@@ -96,20 +96,20 @@ class Learner:
                                       q_values_next)
         for idx in range(batch_size):
             self.buffer.update(indices[idx], errors[idx])
-        self.dqn.train(x, y, batch_size, weights)
+        loss = self.dqn.train(x, y, batch_size, weights)
         self.training_counter += batch_size
         time_difference = time.time() - self.last_batch_timestamp
         if time_difference > 15:
             self.last_batch_timestamp = time.time()
             logger.info(
-                f'Learning on {self.training_counter / time_difference} samples/second. Mean loss: {np.mean(self.dqn.losses)}'
+                f'Learning on {self.training_counter / time_difference} samples/second. Current loss: {loss}'
             )
             self.training_counter = 0
 
     def send_parameters(self):
         logger.debug('Sending parameters...')
         weights = self.dqn.model.get_weights()
-        output_directory = config['output_directory']
+        output_directory = self.config['output_directory']
         self.dqn.model.save_weights(f'{output_directory}/checkpoint-model.h5')
         p = pickle.dumps(weights, -1)
         z = zlib.compress(p)

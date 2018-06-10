@@ -5,9 +5,8 @@ from .constants import DIRECTIONS
 
 class Snake:
 
-    health = 100
-
     def __init__(self, head):
+        self.health = 100
         self.head_direction = np.random.choice(DIRECTIONS)
         self.body = [head]
 

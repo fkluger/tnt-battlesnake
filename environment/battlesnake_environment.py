@@ -39,7 +39,7 @@ class BattlesnakeEnvironment(Env):
         for idx, enemy in enumerate(self.enemy_agents):
             # Index 0 is the agent snake
             state = self.state.observe(idx + 1)
-            enemy_action = enemy.act(state)
+            enemy_action = enemy.act(state, self.snakes[idx + 1], self.snakes, self.fruits, self.width, self.height)
             actions.append(enemy_action)
 
         fruit_eaten, collided, starved, won = self.state.move_snakes(actions)

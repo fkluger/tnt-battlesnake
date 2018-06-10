@@ -40,9 +40,11 @@ class State:
             else:
                 snake.health = 0
 
-        snakes_alive = [s for s in self.snakes if s.is_dead() is False]
-
-        snake_won = self.snakes[0].is_dead() is False and len(snakes_alive) == 1
+        if len(self.snakes) == 1:
+            snake_won = False
+        else:
+            snakes_alive = [s for s in self.snakes if s.is_dead() is False]
+            snake_won = self.snakes[0].is_dead() is False and len(snakes_alive) == 1
 
         return snake_ate_fruit, snake_collided, snake_starved, snake_won
 

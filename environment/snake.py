@@ -18,6 +18,7 @@ class Snake:
         next_head = self._get_next_head(move_direction)
 
         self.body.insert(0, next_head)
+        self.head_direction = move_direction
 
     def move_tail(self, ate_fruit):
         if ate_fruit:

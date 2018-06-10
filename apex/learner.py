@@ -1,17 +1,15 @@
 import atexit
-import json
+import logging
 import pickle
+import os
 import time
 import zlib
 import zmq
-import numpy as np
 
-from memories.prioritized_replay import PrioritizedReplayMemory
-from simulator.utils import get_state_shape
-from dqn import DQN
-from utils import get_logger, create_targets
+from dqn.network import DQN
+from replay_buffer.prioritized_buffer import PrioritizedBuffer
 
-logger = get_logger('Learner')
+LOGGER = logging.getLogger('Learner')
 
 
 class Learner:
@@ -22,22 +20,16 @@ class Learner:
 
     def __init__(self, config):
         self.config = config
-        self.input_shape = get_state_shape(config['width'], config['height'],
-                                           config['num_frames'])
+        self.input_shape = (config.width, config.height, 1)
         self.dqn = DQN(
             input_shape=self.input_shape,
             num_actions=3,
-            hidden_size=256,
-            learning_rate=config['learning_rate'],
-            report_interval=config['report_interval'])
-        self.buffer = PrioritizedReplayMemory(
-            capacity=config['capacity'],
-            epsilon=config['min_priority'],
-            alpha=config['alpha'],
-            max_priority=config['max_priority'])
+            learning_rate=config.learning_rate)
+        self.buffer = PrioritizedBuffer(
+            capacity=config.replay_capacity, epsilon=config.replay_min_priority, alpha=config.replay_prioritization_factor, max_priority=config.replay_max_priority)
 
-        self.beta = config['beta_min']
-        learner_address = config['learner_ip'] + ':' + config['starting_port']
+        self.beta = config.replay_importance_weight
+        learner_address = config.learner_ip_address + ':' + config.starting_port
         self._connect_sockets(learner_address)
 
     def _connect_sockets(self, learner_address):
@@ -45,17 +37,17 @@ class Learner:
         self.parameter_socket = self.context.socket(zmq.PUB)
         self.parameter_socket.setsockopt(zmq.LINGER, 0)
         self.parameter_socket.bind(f'tcp://{learner_address}')
-        logger.info(f'Created socket at {learner_address}')
+        LOGGER.info(f'Created socket at {learner_address}')
 
         self.experiences_socket = self.context.socket(zmq.SUB)
         self.experiences_socket.setsockopt(zmq.LINGER, 0)
         self.experiences_socket.setsockopt(zmq.SUBSCRIBE, b'experiences')
-        for ip in self.config['actors'].keys():
-            for idx in range(self.config['actors'][ip]):
-                port = str(int(self.config['starting_port']) + idx + 1)
+        for ip in self.config.actors.keys():
+            for idx in range(self.config.actors[ip]):
+                port = str(int(self.config.starting_port) + idx + 1)
                 address = ip + ':' + port
                 self.experiences_socket.connect(f'tcp://{address}')
-                logger.info(f'Connected socket to actor at {address}')
+                LOGGER.info(f'Connected socket to actor at {address}')
         atexit.register(self._disconnect_sockets)
 
     def _disconnect_sockets(self):
@@ -72,28 +64,22 @@ class Learner:
             for experience in experiences:
                 self.buffer.add(experience.observation, experience.error)
             num_experiences = len(experiences)
-            self.beta += (1. - self.beta
-                          ) * self.config['beta_step_size'] * num_experiences
+            self.beta += (1. - self.beta) * self.config.replay_importance_weight_annealing_step_size * num_experiences
             self.received_experiences += num_experiences
             if self.received_experiences % 100000 == 0:
-                logger.info(
-                    f'Received experiences total: {self.received_experiences}')
+                LOGGER.info(f'Received experiences total: {self.received_experiences}')
             return True
         except zmq.Again:
             return False
 
     def evaluate_experiences(self):
-        if not (self.buffer.size() > self.config['batch_size'] * 10):
+        if not (self.buffer.size() > self.config.batch_size * 10):
             return
-        batch, indices, weights = self.buffer.sample(self.config['batch_size'],
-                                                     self.beta)
+        batch, indices, weights = self.buffer.sample(self.config.batch_size, self.beta)
         # Actual batch size can differ from self.batch_size if the memory is not filled yet
         batch_size = len(batch)
 
-        q_values, q_values_next = self.dqn.compute_q_values(batch)
-        x, y, errors = create_targets(self.input_shape, 3,
-                                      self.config['gamma'], 1, batch, q_values,
-                                      q_values_next)
+        x, y, errors = self.dqn.create_targets(batch, self.config.discount_factor, batch_size)
         for idx in range(batch_size):
             self.buffer.update(indices[idx], errors[idx])
         loss = self.dqn.train(x, y, batch_size, weights)
@@ -101,33 +87,17 @@ class Learner:
         time_difference = time.time() - self.last_batch_timestamp
         if time_difference > 15:
             self.last_batch_timestamp = time.time()
-            logger.info(
-                f'Learning on {self.training_counter / time_difference} samples/second. Current loss: {loss}'
-            )
+            LOGGER.info(f'Learning on {self.training_counter / time_difference} samples/second. Current loss: {loss}')
             self.training_counter = 0
 
     def send_parameters(self):
-        logger.debug('Sending parameters...')
-        weights = self.dqn.model.get_weights()
-        output_directory = self.config['output_directory']
-        self.dqn.model.save_weights(f'{output_directory}/checkpoint-model.h5')
+        LOGGER.debug('Sending parameters...')
+        weights = self.dqn.online_model.get_weights()
+        output_directory = self.config.output_directory
+        if not os.path.exists(output_directory):
+            os.makedirs(output_directory)
+            LOGGER.info('Created output directory.')
+        self.dqn.online_model.save_weights(f'{output_directory}/checkpoint-model.h5')
         p = pickle.dumps(weights, -1)
         z = zlib.compress(p)
         self.parameter_socket.send_multipart([b'parameters', z])
-
-
-def main():
-    with open('./config.json') as f:
-        config = json.load(f)
-    learner = Learner(config)
-    last_parameter_update = time.time()
-    while True:
-        learner.update_experiences()
-        learner.evaluate_experiences()
-        if time.time() - last_parameter_update > 5:
-            last_parameter_update = time.time()
-            learner.send_parameters()
-
-
-if __name__ == '__main__':
-    main()

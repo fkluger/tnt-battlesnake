@@ -1,26 +1,30 @@
 {
-    "learner_ip": "130.75.31.52",
+    "report_interval": 1000,
+    "output_directory": "tmp",
+
+    "width": 11,
+    "height": 11,
+    "snakes": 2,
+    "fruits": 3,
+
+    "random_initial_steps": 80000,
+    "batch_size": 256,
+    "learning_rate": 0.0000625,
+    "discount_factor": 0.9,
+    "target_update_interval": 10000,
+    "parameter_update_interval": 200,
+
+    "replay_capacity": 2000000,
+    "replay_min_priority": 0.01,
+    "replay_max_priority": 1.0,
+    "replay_prioritization_factor": 0.7,
+    "replay_importance_weight": 0.4,
+    "replay_importance_weight_annealing_step_size": 5e-7,
+
+    "learner_ip_address": "192.168.1.30",
     "starting_port": "7680",
     "actors": {
-        "paris2": 10
+        "192.168.1.30": 1
     },
-    "batch_size": 512,
-    "width": 15,
-    "height": 15,
-    "num_frames": 1,
-    "multi_step_n": 1,
-    "epsilon": 0,
-    "report_interval": 1000,
-    "num_snakes": 3,
-    "num_fruits": 5,
-    "learning_rate": 0.0000625,
-    "beta_min": 0.4,
-    "beta_step_size": 5e-6,
-    "min_priority": 0.01,
-    "max_priority": 1.0,
-    "alpha": 0.5,
-    "gamma": 0.9,
-    "capacity": 2000000,
-    "output_directory": "tmp",
-    "random_steps": 80000
+    "actor_buffer_size": 200
 }

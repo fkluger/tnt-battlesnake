@@ -21,10 +21,10 @@
     "replay_importance_weight": 0.4,
     "replay_importance_weight_annealing_step_size": 5e-7,
 
-    "learner_ip_address": "192.168.1.30",
+    "learner_ip_address": "130.75.31.52",
     "starting_port": "7680",
     "actors": {
-        "192.168.1.30": 1
+        "paris2": 10
     },
     "actor_buffer_size": 200
 }

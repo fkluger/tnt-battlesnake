@@ -16,7 +16,7 @@ def main():
     config = Configuration('./apex/config.json')
     actor = Actor(config)
     enemy_agents = []
-    for _ in range(config.get_num_actors()):
+    for _ in range(config.snakes - 1):
         enemy_agents.append(EnemyActor(actor))
     env = BattlesnakeEnvironment(width=config.width, height=config.height,
                                  snakes=config.snakes, fruits=config.fruits, enemy_agents=enemy_agents, output_directory=config.output_directory)

@@ -25,7 +25,7 @@ class Actor:
         learner_address = config.learner_ip_address + ':' + config.starting_port
         idx = self._connect_sockets(learner_address)
 
-        self.epsilon = np.power(0.4, 1 + (idx / self.config.get_num_actors()) * 7)
+        self.epsilon = np.power(0.4, 1 + (idx / (self.config.get_num_actors() - 1)) * 7)
 
         LOGGER.info(f'Epsilon: {self.epsilon}')
 

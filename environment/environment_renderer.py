@@ -14,8 +14,8 @@ except KeyError:
     matplotlib.use('Agg')
 
 
-import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import matplotlib.pyplot as plt
 
 
 class EnvironmentRenderer:
@@ -39,6 +39,7 @@ class EnvironmentRenderer:
     def render(self, filename):
         ims = []
         fig = plt.figure()
+        plt.axis('off')
         for frame in self.episodes[-1]:
             if frame is not None:
                 im = plt.imshow(frame, animated=True)

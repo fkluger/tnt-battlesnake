@@ -28,7 +28,7 @@ class State:
         fruits_eaten = 0
 
         for snake_idx, snake in enumerate(self.snakes):
-            collided = self._collided(snake)
+            collided = self._collided(snake, snake.get_head())
             ate_fruit = self._ate_fruit(snake)
             starved = snake.is_dead()
 
@@ -58,8 +58,7 @@ class State:
     def observe(self, snake_perspective=0):
         return self.serializer.serialize(snake_perspective, self)
 
-    def _collided(self, snake):
-        snake_head = snake.get_head()
+    def _collided(self, snake, snake_head):
         snake_head_x, snake_head_y = snake_head[0], snake_head[1]
         hit_wall = snake_head_x < 0 or snake_head_y < 0 or snake_head_x >= self.width or snake_head_y >= self.height
         hit_snake = False

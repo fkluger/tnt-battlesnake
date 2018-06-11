@@ -7,10 +7,6 @@ class StateSerializer:
 
     def serialize(self, snake_perspective, state):
         current_state = np.zeros([state.width, state.height], dtype=int)
-        for x in range(0, state.width):
-            for y in range(0, state.height):
-                if x == 0 or y == 0 or x == state.width - 1 or y == state.height - 1:
-                    current_state[x, y] = Field.body
         for snake_index, snake in enumerate(state.snakes):
             if snake.is_dead():
                 continue

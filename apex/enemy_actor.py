@@ -26,7 +26,6 @@ class EnemyActor:
         if not hit_snake and not hit_wall:
             return action
         else:
-            possible_actions = np.arange(3)
-            possible_actions.remove(action)
+            possible_actions = [i for i in range(3) if i != action]
             return np.random.choice(possible_actions)
 

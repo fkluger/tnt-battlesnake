@@ -32,6 +32,10 @@ class Snake:
     def get_head(self):
         return self.body[0]
 
+    def die(self):
+        self.health = 0
+        self.body = []
+
     def _get_direction(self, action):
         if self.head_direction == 'up':
             if action == 0:

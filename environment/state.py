@@ -25,10 +25,15 @@ class State:
         snake_starved = False
         snake_won = False
 
+        fruits_eaten = 0
+
         for snake_idx, snake in enumerate(self.snakes):
             collided = self._collided(snake)
             ate_fruit = self._ate_fruit(snake)
             starved = snake.is_dead()
+
+            if ate_fruit:
+                fruits_eaten += 1
 
             if snake_idx == 0:
                 snake_collided = collided
@@ -38,7 +43,9 @@ class State:
             if not collided and not starved:
                 snake.move_tail(ate_fruit)
             else:
-                snake.health = 0
+                snake.die()
+
+        self._place_fruits_or_snakes(fruits_eaten, True)
 
         if len(self.snakes) == 1:
             snake_won = False

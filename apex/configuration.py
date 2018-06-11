@@ -20,6 +20,7 @@ class Configuration:
             self.learning_rate = config['learning_rate']
             self.discount_factor = config['discount_factor']
             self.target_update_interval = config['target_update_interval']
+            self.training_interval = config['training_interval']
             self.parameter_update_interval = config['parameter_update_interval']
             self.multi_step_n = config['multi_step_n']
 

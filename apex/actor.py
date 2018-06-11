@@ -38,8 +38,17 @@ class Actor:
             LOGGER.debug(f'Q-Values: {q_values}, Action: {best_action}')
             return best_action
 
-    def observe(self, experience):
-        self.buffer.append(experience)
+    def observe(self, observation):
+        self.buffer.append(observation)
+
+        if observation.next_state is None:
+            episode = list()
+            episode.append(observation)
+            obs = self.buffer[-2]
+            while obs.next_state is not None:
+                episode.insert(0, obs)
+            self._compute_multistep_bootstrap(episode)
+
         if len(self.buffer) >= self.config.actor_buffer_size:
             self.send_experiences()
             self.buffer.clear()
@@ -48,7 +57,8 @@ class Actor:
         try:
             message = self.parameter_socket.recv_multipart(flags=zmq.NOBLOCK)
             online_weights_compressed, target_weights_compressed = message[1], message[2]
-            online_weights_pickled, target_weights_pickled = zlib.decompress(online_weights_compressed), zlib.decompress(target_weights_compressed)
+            online_weights_pickled, target_weights_pickled = zlib.decompress(
+                online_weights_compressed), zlib.decompress(target_weights_compressed)
             online_weights, target_weights = pickle.loads(online_weights_pickled), pickle.loads(target_weights_pickled)
             self.received_parameter_updates += 1
             self.dqn.online_model.set_weights(online_weights)
@@ -66,6 +76,23 @@ class Actor:
         experiences_pickled = pickle.dumps(experiences, -1)
         experiences_compressed = zlib.compress(experiences_pickled)
         self.experience_socket.send_multipart([b'experiences', experiences_compressed])
+
+    def _compute_multistep_bootstrap(self, episode_observations):
+        episode_length = len(episode_observations)
+        for idx, obs in enumerate(episode_observations):
+            multi_step_reward = obs.reward
+            nth_observation = obs
+            n = 0
+            for i in range(1, self.config.multi_step_n):
+                if idx + i < episode_length:
+                    multi_step_reward += np.power(self.config.discount_factor, i) * episode_observations[idx + i].reward
+                    nth_observation = episode_observations[idx + i]
+                    n = i
+                else:
+                    break
+            obs.reward = multi_step_reward
+            obs.discount_factor = np.power(self.config.discount_factor, np.amin([self.config.multi_step_n, n + 1]))
+            obs.next_state = nth_observation.next_state
 
     def _connect_sockets(self, learner_address):
         self.context = zmq.Context()

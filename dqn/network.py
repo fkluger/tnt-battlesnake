@@ -42,7 +42,7 @@ class DQN:
             if o.next_state is None:
                 target[o.action] = o.reward
             else:
-                target[o.action] = o.reward + gamma * q_values_next_target[idx, np.argmax(q_values_next[idx])]
+                target[o.action] = o.reward + o.discount_factor * q_values_next_target[idx, np.argmax(q_values_next[idx])]
             x[idx] = o.state
             y[idx] = target
             errors[idx] = np.abs(target[o.action] - target_old[o.action])

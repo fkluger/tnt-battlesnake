@@ -34,7 +34,7 @@ def main():
             else:
                 action = np.random.choice(3)
             next_state, reward, terminal = env.step(action)
-            actor.observe(Observation(state, action, reward, next_state))
+            actor.observe(Observation(state, action, reward, next_state, config.discount_factor))
             state = next_state
         if env.stats.episodes % config.parameter_update_interval == 0:
             actor.update_parameters()

@@ -21,6 +21,7 @@ class Configuration:
             self.discount_factor = config['discount_factor']
             self.target_update_interval = config['target_update_interval']
             self.parameter_update_interval = config['parameter_update_interval']
+            self.multi_step_n = config['multi_step_n']
 
             self.replay_capacity = config['replay_capacity']
             self.replay_min_priority = config['replay_min_priority']

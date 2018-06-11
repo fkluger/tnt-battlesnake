@@ -16,9 +16,9 @@ LOGGER = logging.getLogger('Actor')
 
 class Actor:
 
-    buffer = list()
-
     def __init__(self, config):
+        self.received_parameter_updates = 0
+        self.buffer = list()
         self.config = config
         self.input_shape = (config.width, config.height, 1)
         self.dqn = DQN(input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate)
@@ -33,7 +33,7 @@ class Actor:
         if random.random() < self.epsilon:
             return np.random.choice(3)
         else:
-            q_values = self.dqn.predict(state, target=True)
+            q_values = self.dqn.predict(state)
             best_action = np.argmax(q_values)
             LOGGER.debug(f'Q-Values: {q_values}, Action: {best_action}')
             return best_action
@@ -49,8 +49,11 @@ class Actor:
             message = self.parameter_socket.recv_multipart(flags=zmq.NOBLOCK)
             p = zlib.decompress(message[1])
             weights = pickle.loads(p)
-            self.dqn.target_model.set_weights(weights)
-            LOGGER.info('Received parameter update from learner')
+            self.received_parameter_updates += 1
+            self.dqn.online_model.set_weights(weights)
+            LOGGER.info('Received parameter update from learner.')
+            if self.received_parameter_updates % (self.config.target_update_interval / 4) == 0:
+                self.dqn.update_target_model()
             return True
         except zmq.Again:
             return False

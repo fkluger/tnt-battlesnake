@@ -66,14 +66,18 @@ class Learner:
             num_experiences = len(experiences)
             self.beta += (1. - self.beta) * self.config.replay_importance_weight_annealing_step_size * num_experiences
             self.received_experiences += num_experiences
+            if self.received_experiences % 10000 == 0:
+                self.evaluate_experiences()
             if self.received_experiences % 100000 == 0:
                 LOGGER.info(f'Received experiences total: {self.received_experiences}')
+            if self.received_experiences % self.config.target_update_interval == 0:
+                self.dqn.update_target_model()
             return True
         except zmq.Again:
             return False
 
     def evaluate_experiences(self):
-        if not (self.buffer.size() > self.config.batch_size * 10):
+        if self.buffer.size() <= self.config.batch_size:
             return
         batch, indices, weights = self.buffer.sample(self.config.batch_size, self.beta)
         # Actual batch size can differ from self.batch_size if the memory is not filled yet

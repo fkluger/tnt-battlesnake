@@ -1,8 +1,12 @@
+import logging
+
 from keras import Model, Input
 from keras.layers import Conv2D, Flatten, Lambda, Add, Dense
 from keras.optimizers import RMSprop
 import tensorflow as tf
 import numpy as np
+
+LOGGER = logging.getLogger('DQN')
 
 
 class DQN:
@@ -26,7 +30,7 @@ class DQN:
 
     def create_targets(self, observations, gamma, batch_size):
 
-        q_values, q_values_next = self._compute_q_values(observations)
+        q_values, q_values_next, q_values_next_target = self._compute_q_values(observations)
 
         x = np.zeros((batch_size, ) + self.input_shape)
         y = np.zeros((batch_size, self.num_actions))
@@ -38,7 +42,7 @@ class DQN:
             if o.next_state is None:
                 target[o.action] = o.reward
             else:
-                target[o.action] = o.reward + gamma * np.amax(q_values_next[idx])
+                target[o.action] = o.reward + gamma * q_values_next_target[idx, np.argmax(q_values_next[idx])]
             x[idx] = o.state
             y[idx] = target
             errors[idx] = np.abs(target[o.action] - target_old[o.action])
@@ -56,16 +60,18 @@ class DQN:
 
     def update_target_model(self):
         self.target_model.set_weights(self.online_model.get_weights())
+        LOGGER.info('Updated target model.')
 
     def _compute_q_values(self, observations):
         no_state = np.zeros(self.input_shape)
         next_states = np.array([(no_state if o.next_state is None else o.next_state) for o in observations])
         states = np.array([o.state for o in observations])
 
-        q_values = np.array(self.target_model.predict(states))
-        q_values_next = np.array(self.target_model.predict(next_states))
+        q_values = np.array(self.online_model.predict(states))
+        q_values_next = np.array(self.online_model.predict(next_states))
+        q_values_next_target = np.array(self.target_model.predict(next_states))
 
-        return q_values, q_values_next
+        return q_values, q_values_next, q_values_next_target
 
     def _create_model(self):
         inputs = Input(shape=self.input_shape)

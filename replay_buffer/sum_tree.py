@@ -1,4 +1,8 @@
+import logging
+
 import numpy as np
+
+LOGGER = logging.getLogger('PrioritizedBuffer')
 
 
 class SumTree:
@@ -34,6 +38,7 @@ class SumTree:
         self.write_pointer += 1
         # If capacity is reached, reset write pointer
         if self.write_pointer >= self.capacity:
+            LOGGER.info(f'Reached buffer maximum capacity.')
             self.write_pointer = 0
         return observation_idx
 

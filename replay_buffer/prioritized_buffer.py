@@ -1,6 +1,10 @@
+import logging
+
 import numpy as np
 
 from .sum_tree import SumTree
+
+LOGGER = logging.getLogger('PrioritizedBuffer')
 
 
 class PrioritizedBuffer:

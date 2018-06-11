@@ -16,7 +16,7 @@ class EnemyActor:
         for s in snakes:
             if s == snake:
                 continue
-            for s_body_idx, s_body = enumerate(s.body):
+            for s_body_idx, s_body in enumerate(s.body):
                 if np.array_equal(next_head, s_body):
                     if s_body_idx != 0:
                         hit_snake = True

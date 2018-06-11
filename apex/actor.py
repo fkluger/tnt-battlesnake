@@ -19,6 +19,7 @@ class Actor:
     def __init__(self, config):
         self.received_parameter_updates = 0
         self.buffer = list()
+        self.episode_buffer = list()
         self.config = config
         self.input_shape = (config.width, config.height, 1)
         self.dqn = DQN(input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate)
@@ -39,15 +40,11 @@ class Actor:
             return best_action
 
     def observe(self, observation):
-        self.buffer.append(observation)
+        self.episode_buffer.append(observation)
 
         if observation.next_state is None:
-            episode = list()
-            episode.append(observation)
-            obs = self.buffer[-2]
-            while obs.next_state is not None:
-                episode.insert(0, obs)
-            self._compute_multistep_bootstrap(episode)
+            self.buffer += self._compute_multistep_bootstrap(self.episode_buffer)
+            self.episode_buffer.clear()
 
         if len(self.buffer) >= self.config.actor_buffer_size:
             self.send_experiences()
@@ -93,6 +90,7 @@ class Actor:
             obs.reward = multi_step_reward
             obs.discount_factor = np.power(self.config.discount_factor, np.amin([self.config.multi_step_n, n + 1]))
             obs.next_state = nth_observation.next_state
+        return episode_observations
 
     def _connect_sockets(self, learner_address):
         self.context = zmq.Context()

@@ -96,12 +96,15 @@ class Learner:
 
     def send_parameters(self):
         LOGGER.debug('Sending parameters...')
-        weights = self.dqn.online_model.get_weights()
+        online_weights = self.dqn.online_model.get_weights()
+        target_weights = self.dqn.target_model.get_weights()
         output_directory = self.config.output_directory
         if not os.path.exists(output_directory):
             os.makedirs(output_directory)
             LOGGER.info('Created output directory.')
         self.dqn.online_model.save_weights(f'{output_directory}/checkpoint-model.h5')
-        p = pickle.dumps(weights, -1)
-        z = zlib.compress(p)
-        self.parameter_socket.send_multipart([b'parameters', z])
+        online_weights_pickled = pickle.dumps(online_weights, -1)
+        online_weights_compressed = zlib.compress(online_weights_pickled)
+        target_weights_pickled = pickle.dumps(target_weights, -1)
+        target_weights_compressed = zlib.compress(target_weights_pickled)
+        self.parameter_socket.send_multipart([b'parameters', online_weights_compressed, target_weights_compressed])

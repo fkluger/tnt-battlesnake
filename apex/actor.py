@@ -47,13 +47,13 @@ class Actor:
     def update_parameters(self):
         try:
             message = self.parameter_socket.recv_multipart(flags=zmq.NOBLOCK)
-            p = zlib.decompress(message[1])
-            weights = pickle.loads(p)
+            online_weights_compressed, target_weights_compressed = message[1], message[2]
+            online_weights_pickled, target_weights_pickled = zlib.decompress(online_weights_compressed), zlib.decompress(target_weights_compressed)
+            online_weights, target_weights = pickle.loads(online_weights_pickled), pickle.loads(target_weights_pickled)
             self.received_parameter_updates += 1
-            self.dqn.online_model.set_weights(weights)
+            self.dqn.online_model.set_weights(online_weights)
+            self.dqn.target_model.set_weights(target_weights)
             LOGGER.info('Received parameter update from learner.')
-            if self.received_parameter_updates % (self.config.target_update_interval / 4) == 0:
-                self.dqn.update_target_model()
             return True
         except zmq.Again:
             return False

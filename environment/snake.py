@@ -9,6 +9,7 @@ class Snake:
         self.health = 100
         self.head_direction = np.random.choice(DIRECTIONS)
         self.body = [head]
+        self.max_length = 3
 
     def move_head(self, action):
         self.health -= 1
@@ -22,8 +23,9 @@ class Snake:
 
     def move_tail(self, ate_fruit):
         if ate_fruit:
+            self.max_length += 1
             self.health = 100
-        if not ate_fruit and len(self.body) > 3:
+        if len(self.body) > self.max_length:
             self.body.pop()
 
     def is_dead(self):

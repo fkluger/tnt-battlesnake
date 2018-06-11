@@ -11,7 +11,8 @@
     "batch_size": 256,
     "learning_rate": 0.0000625,
     "discount_factor": 0.9,
-    "target_update_interval": 32000,
+    "target_update_interval": 1600,
+    "training_interval": 16,
     "parameter_update_interval": 200,
     "multi_step_n": 3,
 

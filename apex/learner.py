@@ -14,12 +14,11 @@ LOGGER = logging.getLogger('Learner')
 
 class Learner:
 
-    received_experiences = 0
-    last_batch_timestamp = time.time()
-    training_counter = 0
-
     def __init__(self, config):
         self.config = config
+        self.received_experiences = 0
+        self.last_batch_timestamp = time.time()
+        self.training_counter = 0
         self.input_shape = (config.width, config.height, 1)
         self.dqn = DQN(
             input_shape=self.input_shape,
@@ -63,13 +62,11 @@ class Learner:
             experiences = pickle.loads(experiences_pickled)
             for experience in experiences:
                 self.buffer.add(experience.observation, experience.error)
-            num_experiences = len(experiences)
-            self.beta += (1. - self.beta) * self.config.replay_importance_weight_annealing_step_size * num_experiences
-            self.received_experiences += num_experiences
-            if self.received_experiences % 10000 == 0:
+            self.beta += (1. - self.beta) * self.config.replay_importance_weight_annealing_step_size * len(experiences)
+            self.received_experiences += 1
+            if self.received_experiences % self.config.training_interval == 0:
+                LOGGER.info(f'Received experiences total: {self.received_experiences}. Training...')
                 self.evaluate_experiences()
-            if self.received_experiences % 100000 == 0:
-                LOGGER.info(f'Received experiences total: {self.received_experiences}')
             if self.received_experiences % self.config.target_update_interval == 0:
                 self.dqn.update_target_model()
             return True

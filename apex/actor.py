@@ -9,24 +9,25 @@ import numpy as np
 
 from dqn.network import DQN
 from apex.models import Experience
-from apex.utils import get_free_port, get_ip_address
+from apex.utils import get_ip_address
 
 LOGGER = logging.getLogger('Actor')
 
 
 class Actor:
 
-    def __init__(self, config):
+    def __init__(self, config, index):
         self.received_parameter_updates = 0
         self.buffer = list()
         self.episode_buffer = list()
         self.config = config
+        self.idx = index
         self.input_shape = (config.width, config.height, 1)
         self.dqn = DQN(input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate)
         learner_address = config.learner_ip_address + ':' + config.starting_port
-        self.idx = self._connect_sockets(learner_address)
+        self._connect_sockets(learner_address)
 
-        self.epsilon = np.power(0.5, 1 + (self.idx / (self.config.get_num_actors() - 1)) * 7)
+        self.epsilon = np.power(0.5, (self.idx / self.config.get_num_actors()) * 7)
 
         LOGGER.info(f'Epsilon: {self.epsilon}')
 
@@ -102,13 +103,11 @@ class Actor:
 
         self.experience_socket = self.context.socket(zmq.PUB)
         self.experience_socket.setsockopt(zmq.LINGER, 0)
-        port = get_free_port(int(self.config.starting_port) + 1)
         ip_address = get_ip_address()
+        port = int(self.config.starting_port) + self.idx
         self.experience_socket.bind(f'tcp://{ip_address}:{port}')
         LOGGER.info(f'Created socket at {ip_address}:{port}')
-
         atexit.register(self._disconnect_sockets)
-        return port - int(self.config.starting_port)
 
     def _disconnect_sockets(self):
         self.experience_socket.close()

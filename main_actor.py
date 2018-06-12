@@ -1,3 +1,4 @@
+import argparse
 import logging
 
 import numpy as np
@@ -12,16 +13,22 @@ from main_utils import wrap_main
 
 def main():
 
+    parser = argparse.ArgumentParser(description='Actor for Battlesnake-DQN')
+
+    parser.add_argument('--actor_index', type=int)
+
+    args = parser.parse_args()
+
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     config = Configuration('./apex/config.json')
-    actor = Actor(config)
+    actor = Actor(config, args.actor_index)
     enemy_agents = []
     for _ in range(config.snakes - 1):
         enemy_agents.append(EnemyActor(actor))
     env = BattlesnakeEnvironment(width=config.width, height=config.height,
                                  snakes=config.snakes, fruits=config.fruits, enemy_agents=enemy_agents,
-                                 output_directory=config.output_directory, actor_idx=actor.idx)
+                                 output_directory=config.output_directory, actor_idx=args.actor_index)
 
     received_initial_parameters = False
     while not received_initial_parameters:

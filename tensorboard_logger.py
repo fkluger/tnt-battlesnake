@@ -34,7 +34,7 @@ class TensorboardLogger:
                             multiline=layout_pb2.MultilineChartContent(tag=[r'actor\d+/mean rewards']))
                     ])
             ])
-        self.writer.add_summary(summary.custom_scalars_pb(layout))
+        self.writer.add_summary(summary.custom_scalar_pb(layout))
 
     def log(self, metric):
         if metric.metric_type == MetricType.Value:

@@ -24,6 +24,17 @@ class TensorboardLogger:
     def __init__(self, output_directory, actor_idx):
         self.output_directory = f'{output_directory}/actor-{actor_idx}'
         self.writer = tf.summary.FileWriter(self.output_directory)
+        if actor_idx == 1:
+            self._init_custom_scalar_layout()
+
+    def log(self, metric):
+        if metric.metric_type == MetricType.Value:
+            self._log_value(metric)
+        elif metric.metric_type == MetricType.Histogram:
+            self._log_histogram(metric)
+        self.writer.flush()
+
+    def _init_custom_scalar_layout(self):
         layout = layout_pb2.Layout(
             category=[
                 layout_pb2.Category(
@@ -49,13 +60,6 @@ class TensorboardLogger:
                     ])
             ])
         self.writer.add_summary(summary.custom_scalar_pb(layout))
-
-    def log(self, metric):
-        if metric.metric_type == MetricType.Value:
-            self._log_value(metric)
-        elif metric.metric_type == MetricType.Histogram:
-            self._log_histogram(metric)
-        self.writer.flush()
 
     def _log_value(self, metric):
         self.writer.add_summary(tf.Summary(value=[tf.Summary.Value(

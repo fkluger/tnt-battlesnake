@@ -31,7 +31,7 @@ class TensorboardLogger:
                     chart=[
                         layout_pb2.Chart(
                             title='mean actor rewards',
-                            tag=[r'actor\d+/mean rewards'])
+                            multiline=layout_pb2.MultilineChartContent(tag=[r'actor\d+/mean rewards']))
                     ])
             ])
         self.writer.add_summary(summary.custom_scalars_pb(layout))

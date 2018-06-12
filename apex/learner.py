@@ -2,12 +2,13 @@ import atexit
 import logging
 import pickle
 import os
-import time
 import zlib
 import zmq
 
 from dqn.network import DQN
 from replay_buffer.prioritized_buffer import PrioritizedBuffer
+from tensorboard_logger import TensorboardLogger
+from .learner_statistics import LearnerStatistics
 
 LOGGER = logging.getLogger('Learner')
 
@@ -16,9 +17,7 @@ class Learner:
 
     def __init__(self, config):
         self.config = config
-        self.received_experiences = 0
-        self.last_batch_timestamp = time.time()
-        self.training_counter = 0
+        self.tensorboard_logger = TensorboardLogger(self.config.output_directory)
         self.input_shape = (config.width, config.height, 3)
         self.dqn = DQN(
             input_shape=self.input_shape,
@@ -26,8 +25,9 @@ class Learner:
             learning_rate=config.learning_rate)
         self.buffer = PrioritizedBuffer(
             capacity=config.replay_capacity, epsilon=config.replay_min_priority, alpha=config.replay_prioritization_factor, max_priority=config.replay_max_priority)
-
         self.beta = config.replay_importance_weight
+
+        self.stats = LearnerStatistics(self.tensorboard_logger, self.buffer)
         learner_address = config.learner_ip_address + ':' + config.starting_port
         self._connect_sockets(learner_address)
 
@@ -63,10 +63,10 @@ class Learner:
             for experience in experiences:
                 self.buffer.add(experience.observation, experience.error)
             self.beta += (1. - self.beta) * self.config.replay_importance_weight_annealing_step_size
-            self.received_experiences += 1
-            if self.received_experiences % self.config.training_interval == 0:
+            self.stats.on_batch_receive(experiences)
+            if self.stats.received_batches % self.config.training_interval == 0:
                 self.evaluate_experiences()
-            if self.received_experiences % self.config.target_update_interval == 0:
+            if self.stats.received_batches % self.config.target_update_interval == 0:
                 self.dqn.update_target_model()
             return True
         except zmq.Again:
@@ -83,12 +83,7 @@ class Learner:
         for idx in range(batch_size):
             self.buffer.update(indices[idx], errors[idx])
         loss = self.dqn.train(x, y, batch_size, weights)
-        self.training_counter += batch_size
-        time_difference = time.time() - self.last_batch_timestamp
-        if time_difference > 15:
-            self.last_batch_timestamp = time.time()
-            LOGGER.info(f'Learning on {self.training_counter / time_difference} samples/second. Current loss: {loss}')
-            self.training_counter = 0
+        self.stats.on_evaluation(batch, errors, loss)
 
     def send_parameters(self):
         LOGGER.debug('Sending parameters...')

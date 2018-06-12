@@ -20,7 +20,8 @@ def main():
     for _ in range(config.snakes - 1):
         enemy_agents.append(EnemyActor(actor))
     env = BattlesnakeEnvironment(width=config.width, height=config.height,
-                                 snakes=config.snakes, fruits=config.fruits, enemy_agents=enemy_agents, output_directory=config.output_directory)
+                                 snakes=config.snakes, fruits=config.fruits, enemy_agents=enemy_agents,
+                                 output_directory=config.output_directory, actor_idx=actor.idx)
 
     received_initial_parameters = False
     while not received_initial_parameters:

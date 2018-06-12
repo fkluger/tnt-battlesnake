@@ -24,9 +24,9 @@ class Actor:
         self.input_shape = (config.width, config.height, 1)
         self.dqn = DQN(input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate)
         learner_address = config.learner_ip_address + ':' + config.starting_port
-        idx = self._connect_sockets(learner_address)
+        self.idx = self._connect_sockets(learner_address)
 
-        self.epsilon = np.power(0.4, 1 + (idx / (self.config.get_num_actors() - 1)) * 7)
+        self.epsilon = np.power(0.5, 1 + (self.idx / (self.config.get_num_actors() - 1)) * 7)
 
         LOGGER.info(f'Epsilon: {self.epsilon}')
 

@@ -8,13 +8,13 @@ from .environment_renderer import EnvironmentRenderer
 
 class BattlesnakeEnvironment(Env):
 
-    def __init__(self, width, height, snakes, fruits, enemy_agents, output_directory):
+    def __init__(self, width, height, snakes, fruits, enemy_agents, output_directory, actor_idx):
         self.width = width
         self.height = height
         self.snakes = snakes
         self.fruits = fruits
         self.output_directory = output_directory
-        self.stats = EnvironmentStatistics()
+        self.stats = EnvironmentStatistics(output_directory, actor_idx)
         self.renderer = EnvironmentRenderer(output_directory)
         self.enemy_agents = enemy_agents
         self.state = None

@@ -2,6 +2,8 @@ import logging
 
 import numpy as np
 
+from tensorboard_logger import Metric, MetricType, TensorboardLogger
+
 LOGGER = logging.getLogger('EnvironmentStatistics')
 
 
@@ -20,12 +22,18 @@ class EnvironmentStatistics:
     episode_steps = list()
     episode_fruits = list()
 
+    def __init__(self, output_directory, actor_idx):
+        self.actor_idx = actor_idx
+        self.tensorboard_logger = TensorboardLogger(output_directory)
+
     def report(self):
         mean_rewards = np.mean(self.episode_rewards[self.last_report:])
         mean_steps = np.mean(self.episode_steps[self.last_report:])
         mean_fruits = np.mean(self.episode_fruits[self.last_report:])
         LOGGER.info(
             f'Episodes: {self.episodes}, Steps: {self.steps}, Mean rewards: {mean_rewards}, Mean steps: {mean_steps}, Mean fruits: {mean_fruits}')
+        self.tensorboard_logger.log(Metric(f'actor-{self.actor_idx}/mean rewards',
+                                           MetricType.Value, np.mean([obs.reward for obs in self.buffer]), self.steps))
         self.last_report = self.episodes
 
     def on_reset(self):
@@ -42,4 +50,3 @@ class EnvironmentStatistics:
         self.episode_steps_current += 1
         self.episode_fruits_current += fruit_eaten
         self.episode_rewards_current += reward
-        

@@ -27,7 +27,7 @@ class Learner:
             capacity=config.replay_capacity, epsilon=config.replay_min_priority, alpha=config.replay_prioritization_factor, max_priority=config.replay_max_priority)
         self.beta = config.replay_importance_weight
 
-        self.stats = LearnerStatistics(self.tensorboard_logger, self.buffer)
+        self.stats = LearnerStatistics(self.config, self.tensorboard_logger, self.buffer)
         learner_address = config.learner_ip_address + ':' + config.starting_port
         self._connect_sockets(learner_address)
 

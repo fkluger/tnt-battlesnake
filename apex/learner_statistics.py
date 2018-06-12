@@ -10,7 +10,8 @@ LOGGER = logging.getLogger('LearnerStatistics')
 
 class LearnerStatistics:
 
-    def __init__(self, tensorboard_logger, buffer):
+    def __init__(self, config, tensorboard_logger, buffer):
+        self.config = config
         self.tensorboard_logger = tensorboard_logger
         self.buffer = buffer
         self.received_batches = 0

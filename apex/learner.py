@@ -19,7 +19,7 @@ class Learner:
         self.received_experiences = 0
         self.last_batch_timestamp = time.time()
         self.training_counter = 0
-        self.input_shape = (config.width, config.height, 1)
+        self.input_shape = (config.width, config.height, 3)
         self.dqn = DQN(
             input_shape=self.input_shape,
             num_actions=3,

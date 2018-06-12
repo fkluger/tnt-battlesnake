@@ -22,7 +22,7 @@ class Actor:
         self.episode_buffer = list()
         self.config = config
         self.idx = index
-        self.input_shape = (config.width, config.height, 1)
+        self.input_shape = (config.width, config.height, 3)
         self.dqn = DQN(input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate)
         learner_address = config.learner_ip_address + ':' + config.starting_port
         self._connect_sockets(learner_address)

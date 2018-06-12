@@ -21,8 +21,8 @@ class Metric:
 
 class TensorboardLogger:
 
-    def __init__(self, output_directory):
-        self.output_directory = output_directory
+    def __init__(self, output_directory, actor_idx):
+        self.output_directory = f'{output_directory}/actor-{actor_idx}'
         self.writer = tf.summary.FileWriter(output_directory)
         layout = layout_pb2.Layout(
             category=[

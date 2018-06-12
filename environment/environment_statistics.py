@@ -24,7 +24,7 @@ class EnvironmentStatistics:
 
     def __init__(self, output_directory, actor_idx):
         self.actor_idx = actor_idx
-        self.tensorboard_logger = TensorboardLogger(output_directory)
+        self.tensorboard_logger = TensorboardLogger(output_directory, actor_idx)
 
     def report(self):
         mean_rewards = np.mean(self.episode_rewards[self.last_report:])

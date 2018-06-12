@@ -11,7 +11,7 @@
     "batch_size": 256,
     "learning_rate": 0.0000625,
     "discount_factor": 0.9,
-    "target_update_interval": 1600,
+    "target_update_interval": 2500,
     "training_interval": 16,
     "parameter_update_interval": 200,
     "multi_step_n": 3,
@@ -21,7 +21,7 @@
     "replay_max_priority": 1.0,
     "replay_prioritization_factor": 0.6,
     "replay_importance_weight": 0.4,
-    "replay_importance_weight_annealing_step_size": 5e-7,
+    "replay_importance_weight_annealing_step_size": 0,
 
     "learner_ip_address": "130.75.31.194",
     "starting_port": "7680",

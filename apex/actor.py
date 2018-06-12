@@ -68,9 +68,7 @@ class Actor:
 
     def send_experiences(self):
         _, _, errors = self.dqn.create_targets(self.buffer, len(self.buffer))
-        experiences = list()
-        for idx, observation in enumerate(np.copy(self.buffer)):
-            experiences.append(Experience(observation, errors[idx]))
+        experiences = [Experience(observation, errors[idx]) for idx, observation in enumerate(self.buffer)]
         experiences_pickled = pickle.dumps(experiences, -1)
         experiences_compressed = zlib.compress(experiences_pickled)
         self.experience_socket.send_multipart([b'experiences', experiences_compressed])

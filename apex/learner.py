@@ -57,12 +57,12 @@ class Learner:
     def update_experiences(self):
         try:
             message = self.experiences_socket.recv_multipart(flags=zmq.NOBLOCK)
-            _, experiences_compressed = message[0], message[1]
+            experiences_compressed = message[1]
             experiences_pickled = zlib.decompress(experiences_compressed)
             experiences = pickle.loads(experiences_pickled)
             for experience in experiences:
                 self.buffer.add(experience.observation, experience.error)
-            self.beta += (1. - self.beta) * self.config.replay_importance_weight_annealing_step_size * len(experiences)
+            self.beta += (1. - self.beta) * self.config.replay_importance_weight_annealing_step_size
             self.received_experiences += 1
             if self.received_experiences % self.config.training_interval == 0:
                 self.evaluate_experiences()

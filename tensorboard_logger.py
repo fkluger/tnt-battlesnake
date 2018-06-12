@@ -23,7 +23,7 @@ class TensorboardLogger:
 
     def __init__(self, output_directory, actor_idx):
         self.output_directory = f'{output_directory}/actor-{actor_idx}'
-        self.writer = tf.summary.FileWriter(output_directory)
+        self.writer = tf.summary.FileWriter(self.output_directory)
         layout = layout_pb2.Layout(
             category=[
                 layout_pb2.Category(

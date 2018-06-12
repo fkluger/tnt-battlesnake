@@ -65,7 +65,6 @@ class Learner:
             self.beta += (1. - self.beta) * self.config.replay_importance_weight_annealing_step_size * len(experiences)
             self.received_experiences += 1
             if self.received_experiences % self.config.training_interval == 0:
-                LOGGER.info(f'Received experiences total: {self.received_experiences}. Training...')
                 self.evaluate_experiences()
             if self.received_experiences % self.config.target_update_interval == 0:
                 self.dqn.update_target_model()
@@ -80,7 +79,7 @@ class Learner:
         # Actual batch size can differ from self.batch_size if the memory is not filled yet
         batch_size = len(batch)
 
-        x, y, errors = self.dqn.create_targets(batch, self.config.discount_factor, batch_size)
+        x, y, errors = self.dqn.create_targets(batch, batch_size)
         for idx in range(batch_size):
             self.buffer.update(indices[idx], errors[idx])
         loss = self.dqn.train(x, y, batch_size, weights)

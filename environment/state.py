@@ -60,7 +60,7 @@ class State:
 
     def _collided(self, snake, snake_head):
         snake_head_x, snake_head_y = snake_head[0], snake_head[1]
-        hit_wall = snake_head_x < 0 or snake_head_y < 0 or snake_head_x >= self.width or snake_head_y >= self.height
+        hit_wall = snake_head_x <= 0 or snake_head_y <= 0 or snake_head_x >= self.width - 1 or snake_head_y >= self.height - 1
         hit_snake = False
         for s in self.snakes:
             for s_body_idx, s_body in enumerate(s.body):
@@ -100,8 +100,8 @@ class State:
             field = None
             while not self._is_available(field):
                 field = [
-                    np.random.randint(self.width),
-                    np.random.randint(self.height)
+                    np.random.randint(1, self.width - 1),
+                    np.random.randint(1, self.height - 1)
                 ]
             if is_fruit:
                 self.fruits.append(field)

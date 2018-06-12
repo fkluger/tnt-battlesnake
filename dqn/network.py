@@ -28,7 +28,7 @@ class DQN:
         else:
             return self.online_model.predict(state)
 
-    def create_targets(self, observations, gamma, batch_size):
+    def create_targets(self, observations, batch_size):
 
         q_values, q_values_next, q_values_next_target = self._compute_q_values(observations)
 
@@ -42,7 +42,8 @@ class DQN:
             if o.next_state is None:
                 target[o.action] = o.reward
             else:
-                target[o.action] = o.reward + o.discount_factor * q_values_next_target[idx, np.argmax(q_values_next[idx])]
+                target[o.action] = o.reward + o.discount_factor * \
+                    q_values_next_target[idx, np.argmax(q_values_next[idx])]
             x[idx] = o.state
             y[idx] = target
             errors[idx] = np.abs(target[o.action] - target_old[o.action])

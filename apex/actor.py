@@ -66,7 +66,7 @@ class Actor:
             return False
 
     def send_experiences(self):
-        _, _, errors = self.dqn.create_targets(self.buffer, self.config.discount_factor, len(self.buffer))
+        _, _, errors = self.dqn.create_targets(self.buffer, len(self.buffer))
         experiences = list()
         for idx, observation in enumerate(np.copy(self.buffer)):
             experiences.append(Experience(observation, errors[idx]))

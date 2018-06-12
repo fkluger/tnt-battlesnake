@@ -3,6 +3,7 @@ import logging
 
 from apex.learner import Learner
 from apex.configuration import Configuration
+from main_utils import wrap_main
 
 
 def main():
@@ -19,4 +20,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    wrap_main(main)

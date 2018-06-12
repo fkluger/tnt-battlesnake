@@ -7,6 +7,7 @@ from apex.actor import Actor
 from apex.enemy_actor import EnemyActor
 from apex.models import Observation
 from environment.battlesnake_environment import BattlesnakeEnvironment
+from main_utils import wrap_main
 
 
 def main():
@@ -43,4 +44,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    wrap_main(main)

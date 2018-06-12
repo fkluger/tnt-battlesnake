@@ -30,8 +30,22 @@ class TensorboardLogger:
                     title='mean rewards',
                     chart=[
                         layout_pb2.Chart(
-                            title='mean actor rewards',
-                            multiline=layout_pb2.MultilineChartContent(tag=[r'actor\d+/mean rewards']))
+                            title='mean rewards per actor',
+                            multiline=layout_pb2.MultilineChartContent(tag=[r'actor-\d+/mean rewards']))
+                    ]),
+                layout_pb2.Category(
+                    title='mean episode lengths',
+                    chart=[
+                        layout_pb2.Chart(
+                            title='mean episode length per actor',
+                            multiline=layout_pb2.MultilineChartContent(tag=[r'actor-\d+/mean episode lengths']))
+                    ]),
+                layout_pb2.Category(
+                    title='mean fruits eaten',
+                    chart=[
+                        layout_pb2.Chart(
+                            title='mean fruits eaten per actor',
+                            multiline=layout_pb2.MultilineChartContent(tag=[r'actor-\d+/mean fruits eaten']))
                     ])
             ])
         self.writer.add_summary(summary.custom_scalar_pb(layout))
@@ -41,6 +55,7 @@ class TensorboardLogger:
             self._log_value(metric)
         elif metric.metric_type == MetricType.Histogram:
             self._log_histogram(metric)
+        self.writer.flush()
 
     def _log_value(self, metric):
         self.writer.add_summary(tf.Summary(value=[tf.Summary.Value(

@@ -61,7 +61,6 @@ class BattlesnakeEnvironment(Env):
         steps = self.stats.episode_steps[-1]
         fruits = self.stats.episode_fruits[-1]
         self.renderer.render(f'episode-{episode}-steps-{steps}-fruits-{fruits}.mp4')
-        self.stats.report()
 
     def _evaluate_reward(self, fruit_eaten, collided, starved):
         terminal = False

@@ -41,8 +41,9 @@ def main():
         if env.stats.episodes % config.parameter_update_interval == 0:
             actor.update_parameters()
         if env.stats.episodes % config.report_interval == 0:
+            env.stats.report()
+        if env.stats.episodes % (config.report_interval * 10) == 0:
             env.render()
-
 
 if __name__ == '__main__':
     wrap_main(main)

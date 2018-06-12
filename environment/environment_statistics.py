@@ -33,7 +33,7 @@ class EnvironmentStatistics:
         LOGGER.info(
             f'Episodes: {self.episodes}, Steps: {self.steps}, Mean rewards: {mean_rewards}, Mean steps: {mean_steps}, Mean fruits: {mean_fruits}')
         self.tensorboard_logger.log(Metric(f'actor-{self.actor_idx}/mean rewards',
-                                           MetricType.Value, np.mean([obs.reward for obs in self.buffer]), self.steps))
+                                           MetricType.Value, mean_rewards, self.steps))
         self.last_report = self.episodes
 
     def on_reset(self):

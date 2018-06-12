@@ -35,9 +35,9 @@ class EnvironmentStatistics:
         self.tensorboard_logger.log(Metric(f'actor-{self.actor_idx}/mean rewards',
                                            MetricType.Value, mean_rewards, self.steps))
         self.tensorboard_logger.log(Metric(f'actor-{self.actor_idx}/mean episode lengths',
-                                           MetricType.Value, mean_rewards, self.steps))
+                                           MetricType.Value, mean_steps, self.steps))
         self.tensorboard_logger.log(Metric(f'actor-{self.actor_idx}/mean fruits eaten',
-                                           MetricType.Value, mean_rewards, self.steps))
+                                           MetricType.Value, mean_fruits, self.steps))
         self.last_report = self.episodes
 
     def on_reset(self):

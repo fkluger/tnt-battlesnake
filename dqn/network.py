@@ -89,5 +89,5 @@ class DQN:
         final = Add()([value, advt])
         model = Model(inputs=inputs, outputs=final)
 
-        model.compile(loss='mse', optimizer=RMSprop(lr=self.learning_rate, decay=0.95, epsilon=1.5e-7))
+        model.compile(loss='mse', optimizer=RMSprop(lr=self.learning_rate, decay=0.95, epsilon=1.5e-7, clipnorm=40.))
         return model

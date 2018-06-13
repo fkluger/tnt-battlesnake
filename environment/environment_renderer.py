@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 class EnvironmentRenderer:
 
     current_frames = list()
-    episodes = list()
+    last_episode = None
 
     def __init__(self, output_directory):
         self.output_directory = output_directory
@@ -33,14 +33,16 @@ class EnvironmentRenderer:
         self.current_frames.append(np.sum(frame, -1))
 
     def on_reset(self):
-        self.episodes.append(np.copy(self.current_frames))
+        self.last_episode = np.copy(self.current_frames)
         self.current_frames.clear()
 
     def render(self, filename):
+        if self.last_episode is None:
+            return
         ims = []
         fig = plt.figure()
         plt.axis('off')
-        for frame in self.episodes[-1]:
+        for frame in self.last_episode:
             if frame is not None:
                 im = plt.imshow(frame, animated=True)
                 ims.append([im])

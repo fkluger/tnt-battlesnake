@@ -10,24 +10,23 @@ import numpy as np
 from dqn.network import DQN
 from apex.models import Experience
 from apex.utils import get_ip_address
+from .actor_statistics import ActorStatistics
 
 LOGGER = logging.getLogger('Actor')
 
 
 class Actor:
 
-    def __init__(self, config, index):
-        self.received_parameter_updates = 0
+    def __init__(self, config, actor_idx, tensorboard_logger):
+        self.stats = ActorStatistics(config, actor_idx, tensorboard_logger)
         self.buffer = list()
         self.episode_buffer = list()
         self.config = config
-        self.idx = index
+        self.idx = actor_idx
         self.input_shape = (config.width, config.height, 3)
-        self.epsilon = np.power(0.5, (self.idx / self.config.get_num_actors()) * 7)
-        self.dqn = DQN(input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate, dropout_rate=self.epsilon)
+        self.dqn = DQN(input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate)
         learner_address = config.learner_ip_address + ':' + config.starting_port
         self._connect_sockets(learner_address)
-        LOGGER.info(f'Epsilon: {self.epsilon}')
 
     def act(self, state):
         q_values = self.dqn.predict(state)
@@ -36,6 +35,7 @@ class Actor:
 
     def observe(self, observation):
         self.episode_buffer.append(observation)
+        self.stats.on_observe(observation)
 
         if observation.next_state is None:
             self.buffer += self._compute_multistep_bootstrap(self.episode_buffer)
@@ -52,7 +52,6 @@ class Actor:
             online_weights_pickled, target_weights_pickled = zlib.decompress(
                 online_weights_compressed), zlib.decompress(target_weights_compressed)
             online_weights, target_weights = pickle.loads(online_weights_pickled), pickle.loads(target_weights_pickled)
-            self.received_parameter_updates += 1
             self.dqn.online_model.set_weights(online_weights)
             self.dqn.target_model.set_weights(target_weights)
             LOGGER.info('Received parameter update from learner.')

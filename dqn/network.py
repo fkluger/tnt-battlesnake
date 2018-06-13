@@ -6,16 +6,17 @@ from keras.optimizers import RMSprop
 import tensorflow as tf
 import numpy as np
 
+from .noisy_dense import NoisyDense
+
 LOGGER = logging.getLogger('DQN')
 
 
 class DQN:
 
-    def __init__(self, input_shape, num_actions, learning_rate, dropout_rate=0):
+    def __init__(self, input_shape, num_actions, learning_rate):
         self.input_shape = input_shape
         self.num_actions = num_actions
         self.learning_rate = learning_rate
-        self.dropout_rate = dropout_rate
         self.online_model = self._create_model()
         self.target_model = self._create_model()
         self.callbacks = []
@@ -77,16 +78,11 @@ class DQN:
 
     def _create_model(self):
         inputs = Input(shape=self.input_shape)
-        net = Conv2D(32, 1, strides=1, activation='relu')(inputs)
-        net = Conv2D(64, 2, strides=2, activation='relu')(net)
-        net = Conv2D(64, 4, strides=1, activation='relu')(net)
-        net = Flatten()(net)
-        advt = Dense(512, activation='relu')(net)
-        advt = Dropout(self.dropout_rate)(advt)
-        advt = Dense(self.num_actions)(advt)
-        value = Dense(512, activation='relu')(net)
-        value = Dropout(self.dropout_rate)(value)
-        value = Dense(1)(value)
+        net = Flatten()(inputs)
+        advt = NoisyDense(128, activation='relu')(net)
+        advt = NoisyDense(self.num_actions)(advt)
+        value = NoisyDense(128, activation='relu')(net)
+        value = NoisyDense(1)(value)
         # now to combine the two streams
         advt = Lambda(lambda advt: advt - tf.reduce_mean(advt, axis=-1, keepdims=True))(advt)
         value = Lambda(lambda value: tf.tile(value, [1, self.num_actions]))(value)

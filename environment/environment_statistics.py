@@ -22,9 +22,9 @@ class EnvironmentStatistics:
     episode_steps = list()
     episode_fruits = list()
 
-    def __init__(self, output_directory, actor_idx):
+    def __init__(self, tensorboard_logger, actor_idx):
         self.actor_idx = actor_idx
-        self.tensorboard_logger = TensorboardLogger(output_directory, actor_idx)
+        self.tensorboard_logger = tensorboard_logger
 
     def report(self):
         mean_rewards = np.mean(self.episode_rewards[self.last_report:])

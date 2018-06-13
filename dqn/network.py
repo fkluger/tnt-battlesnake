@@ -1,7 +1,7 @@
 import logging
 
 from keras import Model, Input
-from keras.layers import Conv2D, Flatten, Lambda, Add, Dense
+from keras.layers import Conv2D, Flatten, Lambda, Add, Dense, Dropout
 from keras.optimizers import RMSprop
 import tensorflow as tf
 import numpy as np
@@ -11,10 +11,11 @@ LOGGER = logging.getLogger('DQN')
 
 class DQN:
 
-    def __init__(self, input_shape, num_actions, learning_rate):
+    def __init__(self, input_shape, num_actions, learning_rate, dropout_rate=0):
         self.input_shape = input_shape
         self.num_actions = num_actions
         self.learning_rate = learning_rate
+        self.dropout_rate = dropout_rate
         self.online_model = self._create_model()
         self.target_model = self._create_model()
         self.callbacks = []
@@ -81,8 +82,10 @@ class DQN:
         net = Conv2D(64, 4, strides=1, activation='relu')(net)
         net = Flatten()(net)
         advt = Dense(512, activation='relu')(net)
+        advt = Dropout(self.dropout_rate)(advt)
         advt = Dense(self.num_actions)(advt)
         value = Dense(512, activation='relu')(net)
+        value = Dropout(self.dropout_rate)(value)
         value = Dense(1)(value)
         # now to combine the two streams
         advt = Lambda(lambda advt: advt - tf.reduce_mean(advt, axis=-1, keepdims=True))(advt)

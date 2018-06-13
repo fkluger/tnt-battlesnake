@@ -23,22 +23,16 @@ class Actor:
         self.config = config
         self.idx = index
         self.input_shape = (config.width, config.height, 3)
-        self.dqn = DQN(input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate)
+        self.epsilon = np.power(0.5, (self.idx / self.config.get_num_actors()) * 7)
+        self.dqn = DQN(input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate, dropout_rate=self.epsilon)
         learner_address = config.learner_ip_address + ':' + config.starting_port
         self._connect_sockets(learner_address)
-
-        self.epsilon = np.power(0.5, (self.idx / self.config.get_num_actors()) * 7)
-
         LOGGER.info(f'Epsilon: {self.epsilon}')
 
     def act(self, state):
-        if random.random() < self.epsilon:
-            return np.random.choice(3)
-        else:
-            q_values = self.dqn.predict(state)
-            best_action = np.argmax(q_values)
-            LOGGER.debug(f'Q-Values: {q_values}, Action: {best_action}')
-            return best_action
+        q_values = self.dqn.predict(state)
+        best_action = np.argmax(q_values)
+        return best_action
 
     def observe(self, observation):
         self.episode_buffer.append(observation)

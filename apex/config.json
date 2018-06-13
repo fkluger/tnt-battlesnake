@@ -4,12 +4,12 @@
 
     "width": 11,
     "height": 11,
-    "snakes": 2,
+    "snakes": 1,
     "fruits": 3,
 
     "random_initial_steps": 80000,
     "batch_size": 256,
-    "learning_rate": 0.0000625,
+    "learning_rate": 0.001,
     "discount_factor": 0.9,
     "target_update_interval": 2500,
     "training_interval": 16,

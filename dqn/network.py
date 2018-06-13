@@ -78,7 +78,10 @@ class DQN:
 
     def _create_model(self):
         inputs = Input(shape=self.input_shape)
-        net = Flatten()(inputs)
+        net = Conv2D(32, 1, strides=1, activation='relu')(inputs)
+        net = Conv2D(64, 2, strides=2, activation='relu')(net)
+        net = Conv2D(64, 4, strides=1, activation='relu')(net)
+        net = Flatten()(net)
         advt = NoisyDense(128, activation='relu')(net)
         advt = NoisyDense(self.num_actions)(advt)
         value = NoisyDense(128, activation='relu')(net)

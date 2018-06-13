@@ -70,7 +70,7 @@ class TensorboardLogger:
             tag=metric.name, simple_value=metric.value)]), global_step=metric.global_step)
 
     def _log_histogram(self, metric):
-        self.writer.add_summary(self._create_histogram(metric.name, metric.value))
+        self.writer.add_summary(self._create_histogram(metric.name, metric.value), global_step=metric.global_step)
 
     def _create_histogram(self, tag, values, bins=1000):
 

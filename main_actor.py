@@ -2,6 +2,7 @@ import argparse
 import logging
 
 import numpy as np
+from pympler.tracker import SummaryTracker
 
 from apex.configuration import Configuration
 from apex.actor import Actor
@@ -12,6 +13,8 @@ from main_utils import wrap_main
 
 
 def main():
+
+    tracker = SummaryTracker()
 
     parser = argparse.ArgumentParser(description='Actor for Battlesnake-DQN')
 
@@ -48,6 +51,7 @@ def main():
         if env.stats.episodes % config.parameter_update_interval == 0:
             actor.update_parameters()
         if env.stats.episodes % config.report_interval == 0:
+            tracker.print_diff()
             env.stats.report()
         if env.stats.episodes % (config.report_interval * 10) == 0:
             env.render()

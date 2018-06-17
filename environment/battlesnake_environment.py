@@ -26,7 +26,7 @@ class BattlesnakeEnvironment(Env):
                 f'Need an enemy agent for each enemy snake. Expected {self.snakes - 1} agents, got {num_agents}')
 
     def reset(self):
-        self.state = State(self.width, self.height, self.snakes, self.fruits, self.stacked_frames)
+        self.state = State(self.width, self.height, self.stacked_frames, self.snakes, self.fruits)
         self.stats.on_reset()
         self.renderer.on_reset()
         state = self.state.observe()

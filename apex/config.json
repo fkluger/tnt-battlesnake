@@ -15,6 +15,7 @@
     "training_interval": 16,
     "parameter_update_interval": 200,
     "multi_step_n": 3,
+    "stacked_frames": 4,
 
     "replay_capacity": 2000000,
     "replay_min_priority": 0.01,

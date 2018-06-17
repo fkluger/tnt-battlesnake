@@ -1,7 +1,7 @@
 import numpy as np
 
 from .snake import Snake
-from .state_serializer import StateSerializer
+from .serializers.state_serializer import StateSerializer
 
 
 class State:
@@ -13,7 +13,7 @@ class State:
         self.snakes = []
         self._place_fruits_or_snakes(fruits, True)
         self._place_fruits_or_snakes(snakes, False)
-        self.serializer = StateSerializer()
+        self.serializer = StateSerializer(self.width, self.height, 4)
 
     def move_snakes(self, actions):
 

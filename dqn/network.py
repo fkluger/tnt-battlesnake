@@ -1,12 +1,10 @@
 import logging
 
 from keras import Model, Input
-from keras.layers import Conv2D, Flatten, Lambda, Add, Dense, Dropout
+from keras.layers import Conv2D, Flatten, Lambda, Add, Dense
 from keras.optimizers import RMSprop
 import tensorflow as tf
 import numpy as np
-
-from .noisy_dense import NoisyDense
 
 LOGGER = logging.getLogger('DQN')
 
@@ -82,10 +80,10 @@ class DQN:
         net = Conv2D(64, 2, strides=2, activation='relu')(net)
         net = Conv2D(64, 4, strides=1, activation='relu')(net)
         net = Flatten()(net)
-        advt = NoisyDense(128, activation='relu')(net)
-        advt = NoisyDense(self.num_actions)(advt)
-        value = NoisyDense(128, activation='relu')(net)
-        value = NoisyDense(1)(value)
+        advt = Dense(128, activation='relu')(net)
+        advt = Dense(self.num_actions)(advt)
+        value = Dense(128, activation='relu')(net)
+        value = Dense(1)(value)
         # now to combine the two streams
         advt = Lambda(lambda advt: advt - tf.reduce_mean(advt, axis=-1, keepdims=True))(advt)
         value = Lambda(lambda value: tf.tile(value, [1, self.num_actions]))(value)

@@ -18,7 +18,7 @@ class Learner:
     def __init__(self, config):
         self.config = config
         self.tensorboard_logger = TensorboardLogger(self.config.output_directory)
-        self.input_shape = (config.width, config.height, 3)
+        self.input_shape = (config.width, config.height, self.config.stacked_frames)
         self.dqn = DQN(
             input_shape=self.input_shape,
             num_actions=3,

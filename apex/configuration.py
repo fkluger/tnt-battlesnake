@@ -23,6 +23,7 @@ class Configuration:
             self.training_interval = config['training_interval']
             self.parameter_update_interval = config['parameter_update_interval']
             self.multi_step_n = config['multi_step_n']
+            self.stacked_frames = config['stacked_frames']
 
             self.replay_capacity = config['replay_capacity']
             self.replay_min_priority = config['replay_min_priority']

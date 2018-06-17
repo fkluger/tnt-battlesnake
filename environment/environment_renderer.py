@@ -20,17 +20,16 @@ import matplotlib.pyplot as plt
 
 class EnvironmentRenderer:
 
-    current_frames = list()
-    last_episode = None
-
     def __init__(self, output_directory):
+        self.current_frames = list()
+        self.last_episode = None
         self.output_directory = output_directory
         if not os.path.exists(output_directory):
             os.makedirs(output_directory)
             LOGGER.info('Created output directory.')
 
     def add_frame(self, frame):
-        self.current_frames.append(np.sum(frame, -1))
+        self.current_frames.append(frame)
 
     def on_reset(self):
         self.last_episode = np.copy(self.current_frames)
@@ -39,15 +38,20 @@ class EnvironmentRenderer:
     def render(self, filename):
         if self.last_episode is None:
             return
-        ims = []
-        fig = plt.figure()
-        plt.axis('off')
-        for frame in self.last_episode:
+        fig, (ax1) = plt.subplots(1, 1)
+        ax1.axis('off')
+
+        frame = self.last_episode[0]
+        img1 = ax1.imshow(frame[:, :, 0], animated=True)
+
+        def update(current_frame):
+            frame = self.last_episode[current_frame]
             if frame is not None:
-                im = plt.imshow(frame, animated=True)
-                ims.append([im])
-        ani = animation.ArtistAnimation(fig, ims, interval=100, repeat=False, blit=True)
+                img1.set_data(frame[:, :, 0])
+            return [img1]
+
+        ani = animation.FuncAnimation(fig, update, frames=len(self.last_episode), interval=100, repeat=False)
         output_file = f'{self.output_directory}/{filename}'
-        ani.save(output_file)
         plt.close()
+        ani.save(output_file)
         LOGGER.info(f'Rendered current episode to {output_file}.')

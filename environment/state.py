@@ -6,14 +6,14 @@ from .serializers.state_serializer import StateSerializer
 
 class State:
 
-    def __init__(self, width, height, snakes, fruits):
+    def __init__(self, width, height, stacked_frames, snakes, fruits):
         self.width = width
         self.height = height
         self.fruits = []
         self.snakes = []
         self._place_fruits_or_snakes(fruits, True)
         self._place_fruits_or_snakes(snakes, False)
-        self.serializer = StateSerializer(self.width, self.height, 4)
+        self.serializer = StateSerializer(self.width, self.height, stacked_frames)
 
     def move_snakes(self, actions):
 

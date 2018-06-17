@@ -31,7 +31,7 @@ def main():
     enemy_agents = []
     for _ in range(config.snakes - 1):
         enemy_agents.append(EnemyActor(actor))
-    env = BattlesnakeEnvironment(width=config.width, height=config.height,
+    env = BattlesnakeEnvironment(width=config.width, height=config.height, stacked_frames=config.stacked_frames,
                                  snakes=config.snakes, fruits=config.fruits, enemy_agents=enemy_agents,
                                  output_directory=config.output_directory, actor_idx=args.actor_index,
                                  tensorboard_logger=tensorboard_logger)

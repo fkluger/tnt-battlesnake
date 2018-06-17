@@ -8,11 +8,12 @@ from .environment_renderer import EnvironmentRenderer
 
 class BattlesnakeEnvironment(Env):
 
-    def __init__(self, width, height, snakes, fruits, enemy_agents, output_directory, actor_idx, tensorboard_logger):
+    def __init__(self, width, height, stacked_frames, snakes, fruits, enemy_agents, output_directory, actor_idx, tensorboard_logger):
         self.width = width
         self.height = height
         self.snakes = snakes
         self.fruits = fruits
+        self.stacked_frames = stacked_frames
         self.output_directory = output_directory
         self.stats = EnvironmentStatistics(tensorboard_logger, actor_idx)
         self.renderer = EnvironmentRenderer(output_directory)
@@ -25,7 +26,7 @@ class BattlesnakeEnvironment(Env):
                 f'Need an enemy agent for each enemy snake. Expected {self.snakes - 1} agents, got {num_agents}')
 
     def reset(self):
-        self.state = State(self.width, self.height, self.snakes, self.fruits)
+        self.state = State(self.width, self.height, self.snakes, self.fruits, self.stacked_frames)
         self.stats.on_reset()
         self.renderer.on_reset()
         state = self.state.observe()

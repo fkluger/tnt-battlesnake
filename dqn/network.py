@@ -79,13 +79,13 @@ class DQN:
 
     def _create_model(self):
         inputs = Input(shape=self.input_shape)
-        net = Conv2D(16, 1, strides=1, activation='relu')(inputs)
-        net = Conv2D(32, 2, strides=2, activation='relu')(net)
-        net = Conv2D(32, 4, strides=1, activation='relu')(net)
+        net = Conv2D(32, 1, strides=1, activation='relu')(inputs)
+        net = Conv2D(64, 2, strides=2, activation='relu')(net)
+        net = Conv2D(64, 4, strides=1, activation='relu')(net)
         net = Flatten()(net)
-        advt = Dense(128, activation='relu')(net)
+        advt = Dense(512, activation='relu')(net)
         advt = Dense(self.num_actions)(advt)
-        value = Dense(128, activation='relu')(net)
+        value = Dense(512, activation='relu')(net)
         value = Dense(1)(value)
         # now to combine the two streams
         advt = Lambda(lambda advt: advt - tf.reduce_mean(advt, axis=-1, keepdims=True))(advt)

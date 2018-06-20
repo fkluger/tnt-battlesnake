@@ -5,9 +5,9 @@ import numpy as np
 
 class Field:
     own_head_up = -42
-    own_head_right = -43
-    own_head_down = -44
-    own_head_left = -45
+    own_head_right = -42
+    own_head_down = -42
+    own_head_left = -42
     own_body = 32
     own_tail = 33
     head = 31

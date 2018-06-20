@@ -18,7 +18,3 @@ class ActorStatistics:
     def on_observe(self, observation):
         self.actions_taken.append(observation.action)
         self.steps += 1
-
-        if observation.next_state is None:
-            self.tensorboard_logger.log(Metric(f'actor-{self.actor_idx}/actions taken',
-                                               MetricType.Histogram, self.actions_taken, self.steps))

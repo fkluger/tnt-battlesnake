@@ -6,6 +6,8 @@ from keras.optimizers import RMSprop
 import tensorflow as tf
 import numpy as np
 
+from .huber_loss import huber_loss
+
 LOGGER = logging.getLogger('DQN')
 
 
@@ -39,10 +41,11 @@ class DQN:
         for idx, o in enumerate(observations):
             target = q_values[idx]
             target_old = np.copy(target)
+            clipped_reward = np.clip(o.reward, -1, 1)
             if o.next_state is None:
-                target[o.action] = o.reward
+                target[o.action] = clipped_reward
             else:
-                target[o.action] = o.reward + o.discount_factor * \
+                target[o.action] = clipped_reward + o.discount_factor * \
                     q_values_next_target[idx, np.argmax(q_values_next[idx])]
             x[idx] = o.state
             y[idx] = target
@@ -76,9 +79,9 @@ class DQN:
 
     def _create_model(self):
         inputs = Input(shape=self.input_shape)
-        net = Conv2D(32, 1, strides=1, activation='relu')(inputs)
-        net = Conv2D(64, 2, strides=2, activation='relu')(net)
-        net = Conv2D(64, 4, strides=1, activation='relu')(net)
+        net = Conv2D(16, 1, strides=1, activation='relu')(inputs)
+        net = Conv2D(32, 2, strides=2, activation='relu')(net)
+        net = Conv2D(32, 4, strides=1, activation='relu')(net)
         net = Flatten()(net)
         advt = Dense(128, activation='relu')(net)
         advt = Dense(self.num_actions)(advt)
@@ -90,5 +93,5 @@ class DQN:
         final = Add()([value, advt])
         model = Model(inputs=inputs, outputs=final)
 
-        model.compile(loss='mse', optimizer=RMSprop(lr=self.learning_rate, decay=0.95, epsilon=1.5e-7, clipnorm=40.))
+        model.compile(loss=huber_loss, optimizer=RMSprop(lr=self.learning_rate))
         return model

@@ -24,6 +24,7 @@ class Actor:
         self.config = config
         self.idx = actor_idx
         self.epsilon = np.power(0.5, (self.idx / self.config.get_num_actors()) * 7)
+        LOGGER.info(f'Epsilon: {self.epsilon}')
         self.input_shape = (config.width, config.height, config.stacked_frames)
         self.dqn = DQN(input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate)
         learner_address = config.learner_ip_address + ':' + config.starting_port

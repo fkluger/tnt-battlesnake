@@ -8,7 +8,7 @@
     "fruits": 3,
 
     "random_initial_steps": 80000,
-    "batch_size": 32,
+    "batch_size": 128,
     "learning_rate": 0.00025,
     "discount_factor": 0.99,
     "target_update_interval": 2500,
@@ -22,7 +22,7 @@
     "replay_max_priority": 1.0,
     "replay_prioritization_factor": 0.6,
     "replay_importance_weight": 0.4,
-    "replay_importance_weight_annealing_step_size": 5e-9,
+    "replay_importance_weight_annealing_step_size": 0,
 
     "learner_ip_address": "130.75.31.194",
     "starting_port": "7680",

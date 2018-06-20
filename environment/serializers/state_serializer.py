@@ -25,10 +25,10 @@ class StateSerializer:
         self.on_reset()
 
     def on_reset(self):
-        self.last_frames = deque(np.zeros([self.stacked_frames, self.width, self.height]), self.stacked_frames)
+        self.last_frames = deque(np.zeros([self.stacked_frames, self.width, self.height], dtype=np.int8), self.stacked_frames)
 
     def serialize(self, snake_perspective, state):
-        current_state = np.zeros([state.width, state.height], dtype=int)
+        current_state = np.zeros([state.width, state.height], dtype=np.int8)
         for x in range(state.width):
             for y in range(state.height):
                 if x == 0 or y == 0 or x == state.width - 1 or y == state.height - 1:

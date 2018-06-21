@@ -1,9 +1,27 @@
+import atexit
 import logging
+import os
+
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+
+import tensorflow as tf
+
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+
+import keras.backend as K
+K.set_session(tf.Session(config=config))
+
+
+def close_session():
+    K.get_session().close()
+
+
+atexit.register(close_session)
 
 from keras import Model, Input
 from keras.layers import Conv2D, Flatten, Lambda, Add, Dense
 from keras.optimizers import RMSprop
-import tensorflow as tf
 import numpy as np
 
 from .huber_loss import huber_loss

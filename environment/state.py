@@ -13,7 +13,7 @@ class State:
         self.snakes = []
         self._place_fruits_or_snakes(fruits, True)
         self._place_fruits_or_snakes(snakes, False)
-        self.serializer = StateSerializer(self.width, self.height, stacked_frames)
+        self.serializer = StateSerializer(snakes, self.width, self.height, stacked_frames)
 
     def move_snakes(self, actions):
 

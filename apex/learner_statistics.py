@@ -24,15 +24,15 @@ class LearnerStatistics:
         self.received_observations += len(experiences)
 
     def on_evaluation(self, batch, errors, loss):
-        global_step = self.received_observations / self.config.get_num_actors()
-
-        self.tensorboard_logger.log(Metric('learner/batch loss', MetricType.Value, loss, global_step))
-        self.tensorboard_logger.log(Metric('learner/batch mean error', MetricType.Value, np.mean(errors), global_step))
-
         self.training_counter += len(batch)
         time_difference = time.time() - self.last_batch_timestamp
+
+        global_step = self.received_observations / self.config.get_num_actors()
         if time_difference > 15:
             self.last_batch_timestamp = time.time()
+            self.tensorboard_logger.log(Metric('learner/batch loss', MetricType.Value, loss, global_step))
+            self.tensorboard_logger.log(Metric('learner/batch mean error',
+                                               MetricType.Value, np.mean(errors), global_step))
             self.tensorboard_logger.log(Metric('learner/samples per second', MetricType.Value,
                                                self.training_counter / time_difference, global_step))
             self.training_counter = 0

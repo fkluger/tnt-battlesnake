@@ -33,7 +33,7 @@ def main():
         enemy_agents.append(EnemyActor(actor))
     env = BattlesnakeEnvironment(width=config.width, height=config.height, stacked_frames=config.stacked_frames,
                                  snakes=config.snakes, fruits=config.fruits, enemy_agents=enemy_agents,
-                                 output_directory=config.output_directory, actor_idx=args.actor_index,
+                                 output_directory=f'{config.output_directory}/actor-{args.actor_index}', actor_idx=args.actor_index,
                                  tensorboard_logger=tensorboard_logger)
 
     received_initial_parameters = False

@@ -1,5 +1,24 @@
-import time
+import atexit
 import logging
+import os
+import time
+
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+
+import tensorflow as tf
+
+session_config = tf.ConfigProto()
+session_config.gpu_options.allow_growth = True
+
+import keras.backend as K
+K.set_session(tf.Session(config=session_config))
+
+
+def close_session():
+    K.get_session().close()
+
+
+atexit.register(close_session)
 
 from apex.learner import Learner
 from apex.configuration import Configuration

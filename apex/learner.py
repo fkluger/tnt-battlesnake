@@ -5,23 +5,6 @@ import os
 import zlib
 import zmq
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-
-import tensorflow as tf
-
-session_config = tf.ConfigProto()
-session_config.gpu_options.allow_growth = True
-
-import keras.backend as K
-K.set_session(tf.Session(config=session_config))
-
-
-def close_session():
-    K.get_session().close()
-
-
-atexit.register(close_session)
-
 from dqn.network import DQN
 from replay_buffer.prioritized_buffer import PrioritizedBuffer
 from tensorboard_logger import TensorboardLogger

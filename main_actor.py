@@ -1,4 +1,5 @@
 import argparse
+import os
 import logging
 
 import numpy as np
@@ -10,6 +11,8 @@ from apex.models import Observation
 from environment.battlesnake_environment import BattlesnakeEnvironment
 from main_utils import wrap_main
 from tensorboard_logger import TensorboardLogger
+
+os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
 
 def get_args():

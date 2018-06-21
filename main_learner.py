@@ -1,9 +1,6 @@
 import atexit
 import logging
-import os
 import time
-
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
 import tensorflow as tf
 

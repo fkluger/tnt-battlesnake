@@ -17,6 +17,11 @@
     "multi_step_n": 1,
     "stacked_frames": 2,
 
+    "distributional": false,
+    "atoms": 51,
+    "v_min": -2.0,
+    "v_max": 24,
+
     "replay_capacity": 2000000,
     "replay_min_priority": 0.01,
     "replay_max_priority": 1.0,
@@ -24,10 +29,10 @@
     "replay_importance_weight": 0.4,
     "replay_importance_weight_annealing_step_size": 0,
 
-    "learner_ip_address": "130.75.31.194",
+    "learner_ip_address": "130.75.31.197",
     "starting_port": "7680",
     "actors": {
-        "helena4": 10
+        "helena4": 6
     },
     "actor_buffer_size": 200
 }

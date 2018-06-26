@@ -5,6 +5,7 @@ import os
 import zlib
 import zmq
 
+from dqn.distributional_network import DistributionalDQN
 from dqn.network import DQN
 from replay_buffer.prioritized_buffer import PrioritizedBuffer
 from tensorboard_logger import TensorboardLogger
@@ -19,10 +20,12 @@ class Learner:
         self.config = config
         self.tensorboard_logger = TensorboardLogger(self.config.output_directory)
         self.input_shape = (config.width, config.height, self.config.stacked_frames)
-        self.dqn = DQN(
-            input_shape=self.input_shape,
-            num_actions=3,
-            learning_rate=config.learning_rate)
+        if config.distributional:
+            self.dqn = DistributionalDQN(num_atoms=config.atoms, v_max=config.v_max, v_min=config.v_min,
+                                         input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate)
+        else:
+            self.dqn = DQN(input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate)
+
         self.buffer = PrioritizedBuffer(
             capacity=config.replay_capacity, epsilon=config.replay_min_priority, alpha=config.replay_prioritization_factor, max_priority=config.replay_max_priority)
         self.beta = config.replay_importance_weight

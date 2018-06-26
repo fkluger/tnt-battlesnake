@@ -25,6 +25,11 @@ class Configuration:
             self.multi_step_n = config['multi_step_n']
             self.stacked_frames = config['stacked_frames']
 
+            self.distributional = config['stacked_frames']
+            self.atoms = config['stacked_frames']
+            self.v_min = config['stacked_frames']
+            self.v_max = config['stacked_frames']
+
             self.replay_capacity = config['replay_capacity']
             self.replay_min_priority = config['replay_min_priority']
             self.replay_max_priority = config['replay_max_priority']

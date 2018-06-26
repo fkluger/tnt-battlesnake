@@ -7,6 +7,7 @@ import zmq
 
 import numpy as np
 
+from dqn.distributional_network import DistributionalDQN
 from dqn.network import DQN
 from apex.models import Experience
 from apex.utils import get_ip_address
@@ -26,7 +27,12 @@ class Actor:
         self.epsilon = np.power(0.5, (self.idx / self.config.get_num_actors()) * 7)
         LOGGER.info(f'Epsilon: {self.epsilon}')
         self.input_shape = (config.width, config.height, config.stacked_frames)
-        self.dqn = DQN(input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate)
+        if config.distributional:
+            self.dqn = DistributionalDQN(num_atoms=config.atoms, v_max=config.v_max, v_min=config.v_min,
+                                         input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate)
+        else:
+            self.dqn = DQN(input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate)
+
         learner_address = config.learner_ip_address + ':' + config.starting_port
         self._connect_sockets(learner_address)
 
@@ -45,10 +51,9 @@ class Actor:
         if observation.next_state is None:
             self.buffer += self._compute_multistep_bootstrap(self.episode_buffer)
             self.episode_buffer.clear()
-
-        if len(self.buffer) >= self.config.actor_buffer_size:
-            self.send_experiences()
-            self.buffer.clear()
+            if len(self.buffer) >= self.config.actor_buffer_size:
+                self.send_experiences()
+                self.buffer.clear()
 
     def update_parameters(self):
         try:

@@ -68,8 +68,9 @@ class Snake:
             else:
                 return 'up'
 
-    def _get_next_head(self, direction):
-        head = self.body[0]
+    def _get_next_head(self, direction, head=None):
+        if not head:
+            head = self.body[0]
         if direction == 'up':
             return [head[0], head[1] - 1]
         elif direction == 'right':

@@ -1,5 +1,7 @@
 import argparse
 import os
+import logging
+import random
 import bottle
 
 from battlesnake.agent import Agent
@@ -33,7 +35,7 @@ def start():
         snake.on_reset()
 
     return {
-        'color': '#FF0000',
+        'color': '#%02X%02X%02X' % (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)),
         'taunt': '{} ({}x{})'.format(game_id, board_width, board_height),
         'name': 'rl-snake'
     }
@@ -55,6 +57,7 @@ def end():
 
 def main():
     global config, snake
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     args = get_args()
     application = bottle.default_app()
     config = Configuration(args.config_path)

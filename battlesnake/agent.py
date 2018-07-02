@@ -38,7 +38,7 @@ class Agent(Snake):
         state = data_to_state(data, self.head_direction)
         self.frames.appendleft(state)
         frames = np.moveaxis(self.frames, 0, -1)
-        q_values = self.dqn.predict(frames)
+        q_values = np.squeeze(self.dqn.predict(frames))
         best_action = np.argmax(q_values)
         actions = [best_action]
         for i in range(3):
@@ -72,7 +72,8 @@ class Agent(Snake):
                     if np.array_equal(head, coord):
                         collision = True
         snake_head_x, snake_head_y = head[0], head[1]
-        hit_wall = snake_head_x <= 0 or snake_head_y <= 0 or snake_head_x >= self.config.width - 1 or snake_head_y >= self.config.height - 1
+        hit_wall = snake_head_x <= 0 or snake_head_y <= 0 or snake_head_x >= self.config.width - \
+            1 or snake_head_y >= self.config.height - 1
         if hit_wall:
             collision = True
         return collision

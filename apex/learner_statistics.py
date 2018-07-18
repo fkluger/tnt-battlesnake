@@ -1,3 +1,4 @@
+import json
 import logging
 import time
 
@@ -13,6 +14,8 @@ class LearnerStatistics:
     def __init__(self, config, tensorboard_logger, buffer):
         self.config = config
         self.tensorboard_logger = tensorboard_logger
+        with open(f'{self.tensorboard_logger.output_directory}/{config.json}') as f:
+            json.dump(self.config, f)
         self.buffer = buffer
         self.received_batches = 0
         self.received_observations = 0

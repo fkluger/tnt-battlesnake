@@ -15,7 +15,7 @@ class LearnerStatistics:
         self.config = config
         self.tensorboard_logger = tensorboard_logger
         with open(f'{self.tensorboard_logger.output_directory}/config.json', 'w') as f:
-            json.dump(self.config, f)
+            json.dump(self.config._config, f)
         self.buffer = buffer
         self.received_batches = 0
         self.received_observations = 0

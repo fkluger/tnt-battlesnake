@@ -6,6 +6,7 @@ class Configuration:
     def __init__(self, path):
         with open(path) as f:
             config = json.load(f)
+            self._config = config
 
             self.report_interval = config['report_interval']
             self.output_directory = config['output_directory']

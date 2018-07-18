@@ -24,7 +24,7 @@ class Actor:
         self.episode_buffer = list()
         self.config = config
         self.idx = actor_idx
-        self.epsilon = np.power(0.5, (self.idx / self.config.get_num_actors()) * 7)
+        self.epsilon = np.power(self.config.epsilon_base, (self.idx / self.config.get_num_actors()) * 7)
         LOGGER.info(f'Epsilon: {self.epsilon}')
         self.input_shape = (config.width, config.height, config.stacked_frames)
         if config.distributional:

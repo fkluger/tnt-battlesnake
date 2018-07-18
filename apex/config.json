@@ -17,6 +17,8 @@
     "multi_step_n": 1,
     "stacked_frames": 2,
 
+    "epsilon_base": 0.4,
+
     "distributional": false,
     "atoms": 51,
     "v_min": -2.0,

@@ -24,6 +24,8 @@ class Configuration:
             self.parameter_update_interval = config['parameter_update_interval']
             self.multi_step_n = config['multi_step_n']
             self.stacked_frames = config['stacked_frames']
+            
+            self.epsilon_base = config['epsilon_base']
 
             self.distributional = config['distributional']
             self.atoms = config['atoms']

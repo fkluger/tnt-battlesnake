@@ -31,7 +31,7 @@ class LearnerStatistics:
         time_difference = time.time() - self.last_batch_timestamp
 
         global_step = self.received_observations / self.config.get_num_actors()
-        if time_difference > 15:
+        if time_difference > 600:
             self.last_batch_timestamp = time.time()
             self.tensorboard_logger.log(Metric('learner/batch loss', MetricType.Value, loss, global_step))
             self.tensorboard_logger.log(Metric('learner/batch mean error',

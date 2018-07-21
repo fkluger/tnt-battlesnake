@@ -17,7 +17,8 @@
     "multi_step_n": 1,
     "stacked_frames": 2,
 
-    "epsilon_base": 0.4,
+    "epsilon_base": 0,
+    "noisy_nets": true,
 
     "distributional": false,
     "atoms": 51,
@@ -31,10 +32,10 @@
     "replay_importance_weight": 0.4,
     "replay_importance_weight_annealing_step_size": 0,
 
-    "learner_ip_address": "130.75.31.197",
+    "learner_ip_address": "130.75.31.52",
     "starting_port": "7680",
     "actors": {
-        "helena4": 6
+        "paris2": 2
     },
     "actor_buffer_size": 200
 }

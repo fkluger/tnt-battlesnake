@@ -26,6 +26,7 @@ class Configuration:
             self.multi_step_n = config['multi_step_n']
             self.stacked_frames = config['stacked_frames']
             
+            self.noisy_nets = config['noisy_nets']
             self.epsilon_base = config['epsilon_base']
 
             self.distributional = config['distributional']

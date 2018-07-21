@@ -24,7 +24,7 @@ class Learner:
             self.dqn = DistributionalDQN(num_atoms=config.atoms, v_max=config.v_max, v_min=config.v_min,
                                          input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate)
         else:
-            self.dqn = DQN(input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate)
+            self.dqn = DQN(input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate, noisy_nets=self.config.noisy_nets)
 
         self.buffer = PrioritizedBuffer(
             capacity=config.replay_capacity, epsilon=config.replay_min_priority, alpha=config.replay_prioritization_factor, max_priority=config.replay_max_priority)

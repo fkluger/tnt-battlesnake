@@ -22,7 +22,7 @@ class Agent(Snake):
             self.dqn = DistributionalDQN(num_atoms=config.atoms, v_max=config.v_max, v_min=config.v_min,
                                          input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate)
         else:
-            self.dqn = DQN(input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate)
+            self.dqn = DQN(input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate, noisy_nets=self.config.noisy_nets)
         self.dqn.online_model.load_weights(weights_path)
         self.dqn.online_model._make_predict_function()
         self.frames = None

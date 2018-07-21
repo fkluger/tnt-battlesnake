@@ -18,9 +18,9 @@ class DQN:
         self.input_shape = input_shape
         self.num_actions = num_actions
         self.learning_rate = learning_rate
+        self.noisy_nets = noisy_nets
         self.online_model = self._create_model()
         self.target_model = self._create_model()
-        self.noisy_nets = noisy_nets
         self.callbacks = []
 
     def predict(self, state, target=False):

@@ -26,13 +26,15 @@ class LearnerStatistics:
         self.received_batches += 1
         self.received_observations += len(experiences)
 
-    def on_evaluation(self, batch, errors, loss):
+    def on_evaluation(self, batch, errors, loss, icm_loss):
         self.training_counter += len(batch)
         time_difference = time.time() - self.last_batch_timestamp
 
         global_step = self.received_observations / self.config.get_num_actors()
-        if time_difference > 600:
+        if time_difference > 15:
             self.last_batch_timestamp = time.time()
+            if self.config.icm:
+                self.tensorboard_logger.log(Metric('learner/icm loss', MetricType.Value, icm_loss, global_step))
             self.tensorboard_logger.log(Metric('learner/batch loss', MetricType.Value, loss, global_step))
             self.tensorboard_logger.log(Metric('learner/batch mean error',
                                                MetricType.Value, np.mean(errors), global_step))

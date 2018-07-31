@@ -18,7 +18,8 @@
     "stacked_frames": 2,
 
     "epsilon_base": 0,
-    "noisy_nets": true,
+    "noisy_nets": false,
+    "icm": true,
 
     "distributional": false,
     "atoms": 51,
@@ -32,10 +33,10 @@
     "replay_importance_weight": 0.4,
     "replay_importance_weight_annealing_step_size": 0,
 
-    "learner_ip_address": "130.75.31.52",
+    "learner_ip_address": "192.168.1.4",
     "starting_port": "7680",
     "actors": {
-        "paris2": 2
+        "192.168.1.4": 1
     },
     "actor_buffer_size": 200
 }

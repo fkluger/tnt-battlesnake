@@ -96,12 +96,14 @@ class State:
         return available
 
     def _place_fruits_or_snakes(self, fields, is_fruit):
+        # Leave one row/column for snakes to prevent instant-death episodes
+        padding = 1 if is_fruit else 2
         for _ in range(fields):
             field = None
             while not self._is_available(field):
                 field = [
-                    np.random.randint(1, self.width - 1),
-                    np.random.randint(1, self.height - 1)
+                    np.random.randint(padding, self.width - padding),
+                    np.random.randint(padding, self.height - padding)
                 ]
             if is_fruit:
                 self.fruits.append(field)

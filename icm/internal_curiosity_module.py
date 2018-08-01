@@ -13,22 +13,27 @@ from .inverse_model import InverseModel
 
 class ICM:
 
-    def __init__(self, input_shape, num_actions, beta, eta):
+    def __init__(self, input_shape, num_actions, learning_rate, beta, eta):
         self.input_shape = input_shape
         self.num_actions = num_actions
+        self.learning_rate = learning_rate
         self.beta = beta
         self.eta = eta
         self.model = self._create_model()
 
-    def compute_internal_reward(self, observations):
+    def compute_internal_rewards(self, observations):
         batch_size = len(observations)
         [states, actions, next_states] = self._create_targets(observations, batch_size)
         internal_rewards = np.zeros([batch_size])
+        inverse_losses = np.zeros([batch_size])
+        forward_losses = np.zeros([batch_size])
         for idx in range(batch_size):
             prediction = self.model.predict([np.expand_dims(states[idx], 0), np.expand_dims(
                 actions[idx], 0), np.expand_dims(next_states[idx], 0)])
             internal_rewards[idx] = prediction[0]
-        return internal_rewards
+            inverse_losses[idx] = prediction[2]
+            forward_losses[idx] = prediction[3]
+        return internal_rewards, np.mean(inverse_losses), np.mean(forward_losses)
 
     def train(self, observations):
         batch_size = len(observations)
@@ -55,8 +60,9 @@ class ICM:
         input_action = Input(shape=(1,), name='action')
 
         features = FeatureEncoder()
+        num_features = features.compute_output_shape(self.input_shape)[-1]
         inverse_model = InverseModel(self.num_actions)
-        forward_model = ForwardModel(32)
+        forward_model = ForwardModel(num_features)
 
         features_state = features(input_state)
         features_next_state = features(input_next_state)
@@ -67,19 +73,19 @@ class ICM:
         state_and_action = Concatenate(name='state_and_action')([features_state, input_action])
         next_state_prediction = forward_model(state_and_action)
 
-        internal_reward = Subtract(name='state_prediction_error')([next_state_prediction, features_next_state])
+        state_prediction_error = Subtract(name='state_prediction_error')([next_state_prediction, features_next_state])
         internal_reward = Lambda(lambda x: self.eta * 0.5 * tf.reduce_mean(tf.square(x)),
-                                 name='internal_reward')(internal_reward)
+                                 name='internal_reward')(state_prediction_error)
 
         forward_loss = Lambda(lambda x: self.beta * x, name='forward_loss')(internal_reward)
 
         inverse_loss = Lambda(lambda x: (1 - self.beta) *
-                              tf.nn.sparse_softmax_cross_entropy_with_logits(logits=x, labels=tf.to_int32(tf.squeeze(input_action))), name='inverse_loss')(action_prediction)
+                              tf.nn.sparse_softmax_cross_entropy_with_logits(logits=x, labels=tf.to_int32(tf.argmax(input_action, axis=1))), name='inverse_loss')(action_prediction)
 
         model = Model(inputs=[input_state, input_action, input_next_state],
-                      outputs=[internal_reward, action_prediction])
+                      outputs=[internal_reward, action_prediction, inverse_loss, forward_loss])
         model.add_loss([forward_loss, inverse_loss])
-        model.compile(optimizer=RMSprop(lr=1e-3),  loss=None)
+        model.compile(optimizer=RMSprop(lr=self.learning_rate))
 
         # print(model.summary())
         # plot_model(model, to_file='model.png')

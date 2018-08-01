@@ -28,7 +28,7 @@ class Learner:
             self.dqn = DQN(input_shape=self.input_shape, num_actions=3,
                            learning_rate=config.learning_rate, noisy_nets=self.config.noisy_nets)
 
-        self.icm = ICM(input_shape=self.input_shape, num_actions=3, beta=0.2, eta=1)
+        self.icm = ICM(input_shape=self.input_shape, num_actions=3, learning_rate=1e-3, beta=0.5, eta=1)
         self.buffer = PrioritizedBuffer(
             capacity=config.replay_capacity, epsilon=config.replay_min_priority, alpha=config.replay_prioritization_factor, max_priority=config.replay_max_priority)
         self.beta = config.replay_importance_weight

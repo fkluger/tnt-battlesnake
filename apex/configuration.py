@@ -15,6 +15,7 @@ class Configuration:
             self.height = config['height']
             self.snakes = config['snakes']
             self.fruits = config['fruits']
+            self.sparse_rewards = config['sparse_rewards']
 
             self.random_initial_steps = config['random_initial_steps']
             self.batch_size = config['batch_size']
@@ -25,7 +26,7 @@ class Configuration:
             self.parameter_update_interval = config['parameter_update_interval']
             self.multi_step_n = config['multi_step_n']
             self.stacked_frames = config['stacked_frames']
-            
+
             self.icm = config['icm']
             self.noisy_nets = config['noisy_nets']
             self.epsilon_base = config['epsilon_base']

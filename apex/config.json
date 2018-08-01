@@ -2,10 +2,12 @@
     "report_interval": 1000,
     "output_directory": "tmp",
 
-    "width": 15,
-    "height": 15,
-    "snakes": 2,
-    "fruits": 3,
+    "width": 10,
+    "height": 10,
+    "snakes": 1,
+    "fruits": 1,
+
+    "sparse_rewards": true,
 
     "random_initial_steps": 50000,
     "batch_size": 256,

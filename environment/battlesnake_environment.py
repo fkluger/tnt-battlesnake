@@ -8,12 +8,13 @@ from .environment_renderer import EnvironmentRenderer
 
 class BattlesnakeEnvironment(Env):
 
-    def __init__(self, width, height, stacked_frames, snakes, fruits, enemy_agents, output_directory, actor_idx, tensorboard_logger):
-        self.width = width
-        self.height = height
-        self.snakes = snakes
-        self.fruits = fruits
-        self.stacked_frames = stacked_frames
+    def __init__(self, config, enemy_agents, output_directory, actor_idx, tensorboard_logger):
+        self.config = config
+        self.width = config.width
+        self.height = config.height
+        self.snakes = config.snakes
+        self.fruits = config.fruits
+        self.stacked_frames = config.stacked_frames
         self.output_directory = output_directory
         self.stats = EnvironmentStatistics(tensorboard_logger, actor_idx)
         self.renderer = EnvironmentRenderer(output_directory)
@@ -44,7 +45,7 @@ class BattlesnakeEnvironment(Env):
 
         fruit_eaten, collided, starved, won = self.state.move_snakes(actions)
 
-        reward, terminal = self._evaluate_reward(fruit_eaten, collided, starved)
+        reward, terminal = self._evaluate_reward(fruit_eaten, collided, starved, won)
         terminal = terminal or won
 
         if terminal:
@@ -63,16 +64,25 @@ class BattlesnakeEnvironment(Env):
         fruits = self.stats.episode_fruits[-1]
         self.renderer.render(f'episode-{episode}-steps-{steps}-fruits-{fruits}.mp4')
 
-    def _evaluate_reward(self, fruit_eaten, collided, starved):
+    def _evaluate_reward(self, fruit_eaten, collided, starved, won):
         terminal = False
-        reward = Reward.nothing
-        if collided:
-            terminal = True
-            reward = Reward.collision
-        else:
-            if fruit_eaten:
-                reward = Reward.fruit
-            elif starved:
+        if self.config.sparse_rewards:
+            reward = 0
+            if collided or starved:
+                reward = Reward.lost
                 terminal = True
-                reward = Reward.starve
+            elif won:
+                reward = Reward.won
+                terminal = True
+        else:
+            reward = Reward.nothing
+            if collided:
+                terminal = True
+                reward = Reward.collision
+            else:
+                if fruit_eaten:
+                    reward = Reward.fruit
+                elif starved:
+                    terminal = True
+                    reward = Reward.starve
         return reward, terminal

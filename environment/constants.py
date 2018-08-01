@@ -6,3 +6,6 @@ class Reward:
     starve = -1
     nothing = -0.01
     fruit = 1
+
+    lost = -1
+    won = 1

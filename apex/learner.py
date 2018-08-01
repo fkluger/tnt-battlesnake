@@ -91,6 +91,8 @@ class Learner:
         loss = self.dqn.train(x, y, batch_size, weights)
         if self.config.icm:
             icm_loss = self.icm.train(batch)
+        else:
+            icm_loss = None
         self.stats.on_evaluation(batch, errors, loss, icm_loss)
 
     def _compress_weights(self, weights):

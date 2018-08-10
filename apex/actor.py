@@ -18,12 +18,13 @@ LOGGER = logging.getLogger('Actor')
 
 class Actor:
 
-    def __init__(self, config, actor_idx, tensorboard_logger):
+    def __init__(self, config, actor_idx, starting_port, tensorboard_logger):
         self.stats = ActorStatistics(config, actor_idx, tensorboard_logger)
         self.buffer = list()
         self.episode_buffer = list()
         self.config = config
         self.idx = actor_idx
+        self.starting_port = starting_port
         self.epsilon = np.power(self.config.epsilon_base, (self.idx / self.config.get_num_actors()) * 7)
         LOGGER.info(f'Epsilon: {self.epsilon}')
         self.input_shape = (config.width, config.height, config.stacked_frames)
@@ -102,7 +103,7 @@ class Actor:
         self.experience_socket = self.context.socket(zmq.PUB)
         self.experience_socket.setsockopt(zmq.LINGER, 0)
         ip_address = get_ip_address()
-        port = int(self.config.starting_port) + self.idx
+        port = self.starting_port + self.idx
         self.experience_socket.bind(f'tcp://{ip_address}:{port}')
         LOGGER.info(f'Created socket at {ip_address}:{port}')
         atexit.register(self._disconnect_sockets)

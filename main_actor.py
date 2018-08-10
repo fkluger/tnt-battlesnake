@@ -15,6 +15,7 @@ from tensorboard_logger import TensorboardLogger
 def get_args():
     parser = argparse.ArgumentParser(description='Actor for Battlesnake-DQN')
     parser.add_argument('--actor_index', type=int)
+    parser.add_argument('--starting_port', type=int)
     return parser.parse_args()
 
 
@@ -27,7 +28,7 @@ def main():
     config = Configuration('./apex/config.json')
 
     tensorboard_logger = TensorboardLogger(config.output_directory, args.actor_index)
-    actor = Actor(config, args.actor_index, tensorboard_logger)
+    actor = Actor(config, args.actor_index, args.starting_port, tensorboard_logger)
     enemy_agents = []
     for _ in range(config.snakes - 1):
         enemy_agents.append(EnemyActor(actor))

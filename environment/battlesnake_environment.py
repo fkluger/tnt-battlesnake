@@ -66,8 +66,8 @@ class BattlesnakeEnvironment(Env):
 
     def _evaluate_reward(self, fruit_eaten, collided, starved, won):
         terminal = False
+        reward = Reward.nothing
         if self.config.sparse_rewards:
-            reward = 0
             if collided or starved:
                 reward = Reward.lost
                 terminal = True
@@ -75,7 +75,6 @@ class BattlesnakeEnvironment(Env):
                 reward = Reward.won
                 terminal = True
         else:
-            reward = Reward.nothing
             if collided:
                 terminal = True
                 reward = Reward.collision

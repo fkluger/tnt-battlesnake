@@ -79,7 +79,9 @@ class BattlesnakeEnvironment(Env):
                 terminal = True
                 reward = Reward.collision
             else:
-                if fruit_eaten:
+                if won:
+                    reward = Reward.won  
+                elif fruit_eaten:
                     reward = Reward.fruit
                 elif starved:
                     terminal = True

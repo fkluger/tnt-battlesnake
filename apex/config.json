@@ -5,13 +5,13 @@
     "width": 15,
     "height": 15,
     "snakes": 2,
-    "fruits": 3,
+    "fruits": 1,
 
     "sparse_rewards": false,
 
-    "random_initial_steps": 50000,
-    "batch_size": 256,
-    "learning_rate": 0.00025,
+    "random_initial_steps": 80000,
+    "batch_size": 512,
+    "learning_rate": 0.00003125,
     "discount_factor": 0.99,
     "target_update_interval": 2500,
     "training_interval": 8,
@@ -21,17 +21,18 @@
 
     "epsilon_base": 0.3,
 
-    "replay_capacity": 1000000,
+    "replay_capacity": 2000000,
     "replay_min_priority": 0.01,
     "replay_max_priority": 1.0,
     "replay_prioritization_factor": 0.6,
     "replay_importance_weight": 0.4,
     "replay_importance_weight_annealing_step_size": 0,
 
-    "learner_ip_address": "192.168.1.4",
+    "learner_ip_address": "130.75.31.196",
     "starting_port": "7680",
     "actors": {
-        "192.168.1.4": 1
+        "helena4": 6,
+        "helena2": 6
     },
     "actor_buffer_size": 200
 }

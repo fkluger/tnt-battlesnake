@@ -2,23 +2,21 @@ import logging
 
 from keras import Model, Input
 from keras.layers import Conv2D, Flatten, Lambda, Add, Dense
-from keras.optimizers import RMSprop
+from keras.optimizers import SGD
 import numpy as np
 import tensorflow as tf
 
 from .huber_loss import huber_loss
-from .noisy_dense import NoisyDense
 
 LOGGER = logging.getLogger('DQN')
 
 
 class DQN:
 
-    def __init__(self, input_shape, num_actions, learning_rate, noisy_nets):
+    def __init__(self, input_shape, num_actions, learning_rate):
         self.input_shape = input_shape
         self.num_actions = num_actions
         self.learning_rate = learning_rate
-        self.noisy_nets = noisy_nets
         self.online_model = self._create_model()
         self.target_model = self._create_model()
         self.callbacks = []
@@ -85,21 +83,15 @@ class DQN:
         net = Conv2D(64, 2, strides=2, activation='relu')(net)
         net = Conv2D(64, 4, strides=1, activation='relu')(net)
         net = Flatten()(net)
-        if self.noisy_nets:
-            advt = NoisyDense(512, activation='relu')(net)
-            advt = NoisyDense(self.num_actions)(advt)
-            value = NoisyDense(512, activation='relu')(net)
-            value = NoisyDense(1)(value)
-        else:
-            advt = Dense(512, activation='relu')(net)
-            advt = Dense(self.num_actions)(advt)
-            value = Dense(512, activation='relu')(net)
-            value = Dense(1)(value)
+        advt = Dense(512, activation='relu')(net)
+        advt = Dense(self.num_actions)(advt)
+        value = Dense(512, activation='relu')(net)
+        value = Dense(1)(value)
 
         # now to combine the two streams
         advt = Lambda(lambda advt: advt - tf.reduce_mean(advt, axis=-1, keepdims=True))(advt)
         value = Lambda(lambda value: tf.tile(value, [1, self.num_actions]))(value)
         final = Add()([value, advt])
         model = Model(inputs=inputs, outputs=final)
-        model.compile(loss=huber_loss, optimizer=RMSprop(lr=self.learning_rate))
+        model.compile(loss=huber_loss, optimizer=SGD(lr=self.learning_rate))
         return model

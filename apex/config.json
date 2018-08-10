@@ -2,16 +2,16 @@
     "report_interval": 1000,
     "output_directory": "tmp",
 
-    "width": 10,
-    "height": 10,
-    "snakes": 1,
-    "fruits": 1,
+    "width": 15,
+    "height": 15,
+    "snakes": 2,
+    "fruits": 3,
 
-    "sparse_rewards": true,
+    "sparse_rewards": false,
 
     "random_initial_steps": 50000,
     "batch_size": 256,
-    "learning_rate": 0.00003125,
+    "learning_rate": 0.00025,
     "discount_factor": 0.99,
     "target_update_interval": 2500,
     "training_interval": 8,
@@ -19,16 +19,9 @@
     "multi_step_n": 1,
     "stacked_frames": 2,
 
-    "epsilon_base": 0,
-    "noisy_nets": false,
-    "icm": true,
+    "epsilon_base": 0.3,
 
-    "distributional": false,
-    "atoms": 51,
-    "v_min": -2.0,
-    "v_max": 24,
-
-    "replay_capacity": 2000000,
+    "replay_capacity": 1000000,
     "replay_min_priority": 0.01,
     "replay_max_priority": 1.0,
     "replay_prioritization_factor": 0.6,

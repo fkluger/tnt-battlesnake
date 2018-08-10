@@ -27,14 +27,7 @@ class Configuration:
             self.multi_step_n = config['multi_step_n']
             self.stacked_frames = config['stacked_frames']
 
-            self.icm = config['icm']
-            self.noisy_nets = config['noisy_nets']
             self.epsilon_base = config['epsilon_base']
-
-            self.distributional = config['distributional']
-            self.atoms = config['atoms']
-            self.v_min = config['v_min']
-            self.v_max = config['v_max']
 
             self.replay_capacity = config['replay_capacity']
             self.replay_min_priority = config['replay_min_priority']

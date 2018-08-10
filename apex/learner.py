@@ -5,12 +5,10 @@ import os
 import zlib
 import zmq
 
-from dqn.distributional_network import DistributionalDQN
 from dqn.network import DQN
 from replay_buffer.prioritized_buffer import PrioritizedBuffer
 from tensorboard_logger import TensorboardLogger
 from .learner_statistics import LearnerStatistics
-from icm.internal_curiosity_module import ICM
 
 LOGGER = logging.getLogger('Learner')
 
@@ -21,14 +19,8 @@ class Learner:
         self.config = config
         self.tensorboard_logger = TensorboardLogger(self.config.output_directory)
         self.input_shape = (config.width, config.height, self.config.stacked_frames)
-        if config.distributional:
-            self.dqn = DistributionalDQN(num_atoms=config.atoms, v_max=config.v_max, v_min=config.v_min,
-                                         input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate)
-        else:
-            self.dqn = DQN(input_shape=self.input_shape, num_actions=3,
-                           learning_rate=config.learning_rate, noisy_nets=self.config.noisy_nets)
+        self.dqn = DQN(input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate)
 
-        self.icm = ICM(input_shape=self.input_shape, num_actions=3, learning_rate=1e-3, beta=0.5, eta=1)
         self.buffer = PrioritizedBuffer(
             capacity=config.replay_capacity, epsilon=config.replay_min_priority, alpha=config.replay_prioritization_factor, max_priority=config.replay_max_priority)
         self.beta = config.replay_importance_weight
@@ -89,28 +81,17 @@ class Learner:
         for idx in range(batch_size):
             self.buffer.update(indices[idx], errors[idx])
         loss = self.dqn.train(x, y, batch_size, weights)
-        if self.config.icm:
-            icm_loss = self.icm.train(batch)
-        else:
-            icm_loss = None
-        self.stats.on_evaluation(batch, errors, loss, icm_loss)
+        self.stats.on_evaluation(batch, errors, loss)
 
     def _compress_weights(self, weights):
-        pickled_weights = pickle.dumps(weights, -1)
-        return zlib.compress(pickled_weights)
+        return pickle.dumps(weights, -1)
 
     def send_parameters(self):
         LOGGER.debug('Sending parameters...')
         online_weights = self.dqn.online_model.get_weights()
         target_weights = self.dqn.target_model.get_weights()
-        icm_weights = self.icm.model.get_weights()
-        output_directory = self.config.output_directory
-        if not os.path.exists(output_directory):
-            os.makedirs(output_directory)
-            LOGGER.info('Created output directory.')
-        self.dqn.online_model.save_weights(f'{output_directory}/checkpoint-model.h5')
+        self.stats.on_weight_export(self.dqn.online_model)
         online_weights_compressed = self._compress_weights(online_weights)
         target_weights_compressed = self._compress_weights(target_weights)
-        icm_weights_compressed = self._compress_weights(icm_weights)
 
-        self.parameter_socket.send_multipart([b'parameters', online_weights_compressed, target_weights_compressed, icm_weights_compressed])
+        self.parameter_socket.send_multipart([b'parameters', online_weights_compressed, target_weights_compressed])

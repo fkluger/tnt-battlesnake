@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import time
 
 import numpy as np
@@ -20,21 +21,29 @@ class LearnerStatistics:
         self.received_batches = 0
         self.received_observations = 0
         self.last_batch_timestamp = time.time()
+        self.last_weight_export_timestamp = time.time()
         self.training_counter = 0
+
+    def on_weight_export(self, model):
+        if time.time() - self.last_weight_export_timestamp > 300:
+            output_directory = self.config.output_directory
+            if not os.path.exists(output_directory):
+                os.makedirs(output_directory)
+                LOGGER.info('Created output directory.')
+            model.save_weights(f'{output_directory}/checkpoint-model.h5')
+            self.last_weight_export_timestamp = time.time()
 
     def on_batch_receive(self, experiences):
         self.received_batches += 1
         self.received_observations += len(experiences)
 
-    def on_evaluation(self, batch, errors, loss, icm_loss):
+    def on_evaluation(self, batch, errors, loss):
         self.training_counter += len(batch)
         time_difference = time.time() - self.last_batch_timestamp
 
-        global_step = self.received_observations / self.config.get_num_actors()
         if time_difference > 15:
+            global_step = self.received_observations / self.config.get_num_actors()
             self.last_batch_timestamp = time.time()
-            if self.config.icm:
-                self.tensorboard_logger.log(Metric('learner/icm loss', MetricType.Value, icm_loss, global_step))
             self.tensorboard_logger.log(Metric('learner/batch loss', MetricType.Value, loss, global_step))
             self.tensorboard_logger.log(Metric('learner/batch mean error',
                                                MetricType.Value, np.mean(errors), global_step))

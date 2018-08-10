@@ -8,12 +8,10 @@ import zmq
 
 import numpy as np
 
-from dqn.distributional_network import DistributionalDQN
 from dqn.network import DQN
 from apex.models import Experience, Observation
 from apex.utils import get_ip_address
 from .actor_statistics import ActorStatistics
-from icm.internal_curiosity_module import ICM
 
 LOGGER = logging.getLogger('Actor')
 
@@ -29,14 +27,7 @@ class Actor:
         self.epsilon = np.power(self.config.epsilon_base, (self.idx / self.config.get_num_actors()) * 7)
         LOGGER.info(f'Epsilon: {self.epsilon}')
         self.input_shape = (config.width, config.height, config.stacked_frames)
-        if config.distributional:
-            self.dqn = DistributionalDQN(num_atoms=config.atoms, v_max=config.v_max, v_min=config.v_min,
-                                         input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate)
-        else:
-            self.dqn = DQN(input_shape=self.input_shape, num_actions=3,
-                           learning_rate=config.learning_rate, noisy_nets=self.config.noisy_nets)
-
-        self.icm = ICM(input_shape=self.input_shape, num_actions=3, learning_rate=1e-3, beta=0.5, eta=1)
+        self.dqn = DQN(input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate)
         learner_address = config.learner_ip_address + ':' + config.starting_port
         self._connect_sockets(learner_address)
 
@@ -59,29 +50,23 @@ class Actor:
                 self.send_experiences()
                 self.buffer.clear()
 
+    def _decompress_weights(self, weights):
+        return pickle.loads(weights)
+
     def update_parameters(self):
         try:
             message = self.parameter_socket.recv_multipart(flags=zmq.NOBLOCK)
-            online_weights_compressed, target_weights_compressed, icm_weights_compressed = message[
-                1], message[2], message[3]
-            online_weights_pickled, target_weights_pickled, icm_weights_pickled = zlib.decompress(
-                online_weights_compressed), zlib.decompress(target_weights_compressed), zlib.decompress(icm_weights_compressed)
-            online_weights, target_weights, icm_weights = pickle.loads(online_weights_pickled), pickle.loads(
-                target_weights_pickled), pickle.loads(icm_weights_pickled)
+            online_weights_pickled, target_weights_pickled = message[1], message[2]
+            online_weights, target_weights = self._decompress_weights(
+                online_weights_pickled), self._decompress_weights(target_weights_pickled)
             self.dqn.online_model.set_weights(online_weights)
             self.dqn.target_model.set_weights(target_weights)
-            self.icm.model.set_weights(icm_weights)
             LOGGER.info('Received parameter update from learner.')
             return True
         except zmq.Again:
             return False
 
     def send_experiences(self):
-        if self.config.icm:
-            internal_rewards, mean_inverse_losses, mean_forward_losses = self.icm.compute_internal_rewards(self.buffer)
-            self.stats.on_send(np.mean(internal_rewards), mean_inverse_losses, mean_forward_losses)
-            for idx, internal_reward in enumerate(internal_rewards):
-                self.buffer[idx].reward += internal_reward
         _, _, errors = self.dqn.create_targets(self.buffer, len(self.buffer))
         experiences = [Experience(observation, errors[idx]) for idx, observation in enumerate(self.buffer)]
         experiences_pickled = pickle.dumps(experiences, -1)

@@ -4,7 +4,6 @@ from collections import deque
 import numpy as np
 
 from dqn.network import DQN
-from dqn.distributional_network import DistributionalDQN
 from apex.configuration import Configuration
 from environment.constants import DIRECTIONS
 from environment.snake import Snake

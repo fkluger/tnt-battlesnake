@@ -2,7 +2,7 @@ import logging
 
 from keras import Model, Input
 from keras.layers import Conv2D, Flatten, Lambda, Add, Dense
-from keras.optimizers import SGD
+from keras.optimizers import RMSprop
 import numpy as np
 import tensorflow as tf
 
@@ -93,5 +93,5 @@ class DQN:
         value = Lambda(lambda value: tf.tile(value, [1, self.num_actions]))(value)
         final = Add()([value, advt])
         model = Model(inputs=inputs, outputs=final)
-        model.compile(loss=huber_loss, optimizer=SGD(lr=self.learning_rate))
+        model.compile(loss=huber_loss, optimizer=RMSprop(lr=self.learning_rate))
         return model

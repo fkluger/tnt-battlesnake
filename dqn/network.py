@@ -79,9 +79,9 @@ class DQN:
 
     def _create_model(self):
         inputs = Input(shape=self.input_shape)
-        net = Conv2D(32, 1, strides=1, activation='relu')(inputs)
+        net = Conv2D(32, 3, strides=3, activation='relu')(inputs)
         net = Conv2D(64, 2, strides=2, activation='relu')(net)
-        net = Conv2D(64, 4, strides=1, activation='relu')(net)
+        net = Conv2D(64, 1, strides=1, activation='relu')(net)
         net = Flatten()(net)
         advt = Dense(512, activation='relu')(net)
         advt = Dense(self.num_actions)(advt)
@@ -94,4 +94,5 @@ class DQN:
         final = Add()([value, advt])
         model = Model(inputs=inputs, outputs=final)
         model.compile(loss=huber_loss, optimizer=RMSprop(lr=self.learning_rate))
+        print(model.summary())
         return model

@@ -10,7 +10,7 @@
     "sparse_rewards": false,
 
     "random_initial_steps": 50000,
-    "batch_size": 256,
+    "batch_size": 512,
     "learning_rate": 0.0000625,
     "discount_factor": 0.99,
     "target_update_interval": 2500,

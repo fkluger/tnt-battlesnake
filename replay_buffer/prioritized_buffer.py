@@ -2,10 +2,11 @@ import numpy as np
 
 from .sum_tree import SumTree
 
+
 class PrioritizedBuffer:
-    '''
+    """
     Buffer that samples observations proportional to their time-difference error.
-    '''
+    """
 
     def __init__(self, capacity, epsilon, alpha, max_priority):
         self.tree = SumTree(capacity)

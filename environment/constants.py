@@ -1,4 +1,4 @@
-DIRECTIONS = ['up', 'right', 'down', 'left']
+DIRECTIONS = ["up", "right", "down", "left"]
 
 
 class Reward:

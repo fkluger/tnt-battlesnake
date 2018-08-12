@@ -10,41 +10,50 @@ from replay_buffer.prioritized_buffer import PrioritizedBuffer
 from tensorboard_logger import TensorboardLogger
 from .learner_statistics import LearnerStatistics
 
-LOGGER = logging.getLogger('Learner')
+LOGGER = logging.getLogger("Learner")
 
 
 class Learner:
-
     def __init__(self, config):
         self.config = config
         self.tensorboard_logger = TensorboardLogger(self.config.output_directory)
         self.input_shape = (config.width, config.height, self.config.stacked_frames)
-        self.dqn = DQN(input_shape=self.input_shape, num_actions=3, learning_rate=config.learning_rate)
+        self.dqn = DQN(
+            input_shape=self.input_shape,
+            num_actions=3,
+            learning_rate=config.learning_rate,
+        )
 
         self.buffer = PrioritizedBuffer(
-            capacity=config.replay_capacity, epsilon=config.replay_min_priority, alpha=config.replay_prioritization_factor, max_priority=config.replay_max_priority)
+            capacity=config.replay_capacity,
+            epsilon=config.replay_min_priority,
+            alpha=config.replay_prioritization_factor,
+            max_priority=config.replay_max_priority,
+        )
         self.beta = config.replay_importance_weight
 
-        self.stats = LearnerStatistics(self.config, self.tensorboard_logger, self.buffer)
-        learner_address = config.learner_ip_address + ':' + config.starting_port
+        self.stats = LearnerStatistics(
+            self.config, self.tensorboard_logger, self.buffer
+        )
+        learner_address = config.learner_ip_address + ":" + config.starting_port
         self._connect_sockets(learner_address)
 
     def _connect_sockets(self, learner_address):
         self.context = zmq.Context()
         self.parameter_socket = self.context.socket(zmq.PUB)
         self.parameter_socket.setsockopt(zmq.LINGER, 0)
-        self.parameter_socket.bind(f'tcp://{learner_address}')
-        LOGGER.info(f'Created socket at {learner_address}')
+        self.parameter_socket.bind(f"tcp://{learner_address}")
+        LOGGER.info(f"Created socket at {learner_address}")
 
         self.experiences_socket = self.context.socket(zmq.SUB)
         self.experiences_socket.setsockopt(zmq.LINGER, 0)
-        self.experiences_socket.setsockopt(zmq.SUBSCRIBE, b'experiences')
+        self.experiences_socket.setsockopt(zmq.SUBSCRIBE, b"experiences")
         for ip in self.config.actors.keys():
             for idx in range(self.config.actors[ip]):
                 port = str(int(self.config.starting_port) + idx + 1)
-                address = ip + ':' + port
-                self.experiences_socket.connect(f'tcp://{address}')
-                LOGGER.info(f'Connected socket to actor at {address}')
+                address = ip + ":" + port
+                self.experiences_socket.connect(f"tcp://{address}")
+                LOGGER.info(f"Connected socket to actor at {address}")
         atexit.register(self._disconnect_sockets)
 
     def _disconnect_sockets(self):
@@ -60,7 +69,9 @@ class Learner:
             experiences = pickle.loads(experiences_pickled)
             for experience in experiences:
                 self.buffer.add(experience.observation, experience.error)
-            self.beta += (1. - self.beta) * self.config.replay_importance_weight_annealing_step_size
+            self.beta += (
+                1. - self.beta
+            ) * self.config.replay_importance_weight_annealing_step_size
             self.stats.on_batch_receive(experiences)
             if self.stats.received_batches % self.config.training_interval == 0:
                 self.evaluate_experiences()
@@ -87,11 +98,13 @@ class Learner:
         return pickle.dumps(weights, -1)
 
     def send_parameters(self):
-        LOGGER.debug('Sending parameters...')
+        LOGGER.debug("Sending parameters...")
         online_weights = self.dqn.online_model.get_weights()
         target_weights = self.dqn.target_model.get_weights()
         self.stats.on_weight_export(self.dqn.online_model)
         online_weights_compressed = self._compress_weights(online_weights)
         target_weights_compressed = self._compress_weights(target_weights)
 
-        self.parameter_socket.send_multipart([b'parameters', online_weights_compressed, target_weights_compressed])
+        self.parameter_socket.send_multipart(
+            [b"parameters", online_weights_compressed, target_weights_compressed]
+        )

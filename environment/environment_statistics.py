@@ -4,7 +4,7 @@ import numpy as np
 
 from tensorboard_logger import Metric, MetricType, TensorboardLogger
 
-LOGGER = logging.getLogger('EnvironmentStatistics')
+LOGGER = logging.getLogger("EnvironmentStatistics")
 
 
 class EnvironmentStatistics:
@@ -27,17 +27,36 @@ class EnvironmentStatistics:
         self.tensorboard_logger = tensorboard_logger
 
     def report(self):
-        mean_rewards = np.mean(self.episode_rewards[self.last_report:])
-        mean_steps = np.mean(self.episode_steps[self.last_report:])
-        mean_fruits = np.mean(self.episode_fruits[self.last_report:])
+        mean_rewards = np.mean(self.episode_rewards[self.last_report :])
+        mean_steps = np.mean(self.episode_steps[self.last_report :])
+        mean_fruits = np.mean(self.episode_fruits[self.last_report :])
         LOGGER.info(
-            f'Episodes: {self.episodes}, Steps: {self.steps}, Mean rewards: {mean_rewards}, Mean steps: {mean_steps}, Mean fruits: {mean_fruits}')
-        self.tensorboard_logger.log(Metric(f'actor-{self.actor_idx}/mean rewards',
-                                           MetricType.Value, mean_rewards, self.steps))
-        self.tensorboard_logger.log(Metric(f'actor-{self.actor_idx}/mean episode lengths',
-                                           MetricType.Value, mean_steps, self.steps))
-        self.tensorboard_logger.log(Metric(f'actor-{self.actor_idx}/mean fruits eaten',
-                                           MetricType.Value, mean_fruits, self.steps))
+            f"Episodes: {self.episodes}, Steps: {self.steps}, Mean rewards: {mean_rewards}, Mean steps: {mean_steps}, Mean fruits: {mean_fruits}"
+        )
+        self.tensorboard_logger.log(
+            Metric(
+                f"actor-{self.actor_idx}/mean rewards",
+                MetricType.Value,
+                mean_rewards,
+                self.steps,
+            )
+        )
+        self.tensorboard_logger.log(
+            Metric(
+                f"actor-{self.actor_idx}/mean episode lengths",
+                MetricType.Value,
+                mean_steps,
+                self.steps,
+            )
+        )
+        self.tensorboard_logger.log(
+            Metric(
+                f"actor-{self.actor_idx}/mean fruits eaten",
+                MetricType.Value,
+                mean_fruits,
+                self.steps,
+            )
+        )
         self.last_report = self.episodes
 
     def on_reset(self):

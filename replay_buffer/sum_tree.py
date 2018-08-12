@@ -2,14 +2,14 @@ import logging
 
 import numpy as np
 
-LOGGER = logging.getLogger('PrioritizedBuffer')
+LOGGER = logging.getLogger("PrioritizedBuffer")
 
 
 class SumTree:
 
-    '''
+    """
     Stores the observations in a sum tree that is represented in BFS order in an array.
-    '''
+    """
 
     write_pointer = 0
     size = 0
@@ -38,7 +38,7 @@ class SumTree:
         self.write_pointer += 1
         # If capacity is reached, reset write pointer
         if self.write_pointer >= self.capacity:
-            LOGGER.info(f'Reached buffer maximum capacity.')
+            LOGGER.info(f"Reached buffer maximum capacity.")
             self.write_pointer = 0
         return observation_idx
 

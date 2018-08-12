@@ -7,8 +7,9 @@ from .environment_renderer import EnvironmentRenderer
 
 
 class BattlesnakeEnvironment(Env):
-
-    def __init__(self, config, enemy_agents, output_directory, actor_idx, tensorboard_logger):
+    def __init__(
+        self, config, enemy_agents, output_directory, actor_idx, tensorboard_logger
+    ):
         self.config = config
         self.width = config.width
         self.height = config.height
@@ -24,10 +25,13 @@ class BattlesnakeEnvironment(Env):
         num_agents = len(self.enemy_agents)
         if num_agents != self.snakes - 1:
             raise ValueError(
-                f'Need an enemy agent for each enemy snake. Expected {self.snakes - 1} agents, got {num_agents}')
+                f"Need an enemy agent for each enemy snake. Expected {self.snakes - 1} agents, got {num_agents}"
+            )
 
     def reset(self):
-        self.state = State(self.width, self.height, self.stacked_frames, self.snakes, self.fruits)
+        self.state = State(
+            self.width, self.height, self.stacked_frames, self.snakes, self.fruits
+        )
         self.stats.on_reset()
         self.renderer.on_reset()
         state = self.state.observe()
@@ -58,11 +62,11 @@ class BattlesnakeEnvironment(Env):
 
         return next_state, reward, terminal
 
-    def render(self, mode='human'):
+    def render(self, mode="human"):
         episode = self.stats.episodes
         steps = self.stats.episode_steps[-1]
         fruits = self.stats.episode_fruits[-1]
-        self.renderer.render(f'episode-{episode}-steps-{steps}-fruits-{fruits}.mp4')
+        self.renderer.render(f"episode-{episode}-steps-{steps}-fruits-{fruits}.mp4")
 
     def _evaluate_reward(self, fruit_eaten, collided, starved, won):
         terminal = False
@@ -80,7 +84,7 @@ class BattlesnakeEnvironment(Env):
                 reward = Reward.collision
             else:
                 if won:
-                    reward = Reward.won  
+                    reward = Reward.won
                 elif fruit_eaten:
                     reward = Reward.fruit
                 elif starved:

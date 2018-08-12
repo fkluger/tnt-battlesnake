@@ -4,7 +4,6 @@ from .constants import DIRECTIONS
 
 
 class Snake:
-
     def __init__(self, head):
         self.health = 100
         self.head_direction = np.random.choice(DIRECTIONS)
@@ -39,43 +38,43 @@ class Snake:
         self.body = []
 
     def _get_direction(self, action):
-        if self.head_direction == 'up':
+        if self.head_direction == "up":
             if action == 0:
-                return 'left'
+                return "left"
             elif action == 1:
-                return 'up'
+                return "up"
             else:
-                return 'right'
-        elif self.head_direction == 'right':
+                return "right"
+        elif self.head_direction == "right":
             if action == 0:
-                return 'up'
+                return "up"
             elif action == 1:
-                return 'right'
+                return "right"
             else:
-                return 'down'
-        elif self.head_direction == 'down':
+                return "down"
+        elif self.head_direction == "down":
             if action == 0:
-                return 'right'
+                return "right"
             elif action == 1:
-                return 'down'
+                return "down"
             else:
-                return 'left'
+                return "left"
         else:
             if action == 0:
-                return 'down'
+                return "down"
             elif action == 1:
-                return 'left'
+                return "left"
             else:
-                return 'up'
+                return "up"
 
     def _get_next_head(self, direction, head=None):
         if not head:
             head = self.body[0]
-        if direction == 'up':
+        if direction == "up":
             return [head[0], head[1] - 1]
-        elif direction == 'right':
+        elif direction == "right":
             return [head[0] + 1, head[1]]
-        elif direction == 'down':
+        elif direction == "down":
             return [head[0], head[1] + 1]
         else:
             return [head[0] - 1, head[1]]

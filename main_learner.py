@@ -8,6 +8,7 @@ session_config = tf.ConfigProto()
 session_config.gpu_options.allow_growth = True
 
 import keras.backend as K
+
 K.set_session(tf.Session(config=session_config))
 
 
@@ -24,9 +25,12 @@ from main_utils import wrap_main
 
 def main():
 
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
 
-    learner = Learner(Configuration('./apex/config.json'))
+    learner = Learner(Configuration("./apex/config.json"))
     last_parameter_update = time.time()
     while True:
         learner.update_experiences()
@@ -35,5 +39,5 @@ def main():
             learner.send_parameters()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     wrap_main(main)

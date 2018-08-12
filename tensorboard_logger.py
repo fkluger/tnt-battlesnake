@@ -11,7 +11,6 @@ class MetricType:
 
 
 class Metric:
-
     def __init__(self, name, metric_type, value, global_step):
         self.name = name
         self.metric_type = metric_type
@@ -20,12 +19,11 @@ class Metric:
 
 
 class TensorboardLogger:
-
     def __init__(self, output_directory, actor_idx=None):
         if actor_idx is not None:
-            self.output_directory = f'{output_directory}/actor-{actor_idx}'
+            self.output_directory = f"{output_directory}/actor-{actor_idx}"
         else:
-            self.output_directory = f'{output_directory}/learner'
+            self.output_directory = f"{output_directory}/learner"
 
         self.writer = tf.summary.FileWriter(self.output_directory)
         if actor_idx == 1:
@@ -42,35 +40,55 @@ class TensorboardLogger:
         layout = layout_pb2.Layout(
             category=[
                 layout_pb2.Category(
-                    title='mean rewards',
+                    title="mean rewards",
                     chart=[
                         layout_pb2.Chart(
-                            title='mean rewards per actor',
-                            multiline=layout_pb2.MultilineChartContent(tag=[r'actor-\d+/mean rewards']))
-                    ]),
+                            title="mean rewards per actor",
+                            multiline=layout_pb2.MultilineChartContent(
+                                tag=[r"actor-\d+/mean rewards"]
+                            ),
+                        )
+                    ],
+                ),
                 layout_pb2.Category(
-                    title='mean episode lengths',
+                    title="mean episode lengths",
                     chart=[
                         layout_pb2.Chart(
-                            title='mean episode length per actor',
-                            multiline=layout_pb2.MultilineChartContent(tag=[r'actor-\d+/mean episode lengths']))
-                    ]),
+                            title="mean episode length per actor",
+                            multiline=layout_pb2.MultilineChartContent(
+                                tag=[r"actor-\d+/mean episode lengths"]
+                            ),
+                        )
+                    ],
+                ),
                 layout_pb2.Category(
-                    title='mean fruits eaten',
+                    title="mean fruits eaten",
                     chart=[
                         layout_pb2.Chart(
-                            title='mean fruits eaten per actor',
-                            multiline=layout_pb2.MultilineChartContent(tag=[r'actor-\d+/mean fruits eaten']))
-                    ])
-            ])
+                            title="mean fruits eaten per actor",
+                            multiline=layout_pb2.MultilineChartContent(
+                                tag=[r"actor-\d+/mean fruits eaten"]
+                            ),
+                        )
+                    ],
+                ),
+            ]
+        )
         self.writer.add_summary(summary.custom_scalar_pb(layout))
 
     def _log_value(self, metric):
-        self.writer.add_summary(tf.Summary(value=[tf.Summary.Value(
-            tag=metric.name, simple_value=metric.value)]), global_step=metric.global_step)
+        self.writer.add_summary(
+            tf.Summary(
+                value=[tf.Summary.Value(tag=metric.name, simple_value=metric.value)]
+            ),
+            global_step=metric.global_step,
+        )
 
     def _log_histogram(self, metric):
-        self.writer.add_summary(self._create_histogram(metric.name, metric.value), global_step=metric.global_step)
+        self.writer.add_summary(
+            self._create_histogram(metric.name, metric.value),
+            global_step=metric.global_step,
+        )
 
     def _create_histogram(self, tag, values, bins=1000):
 
@@ -86,7 +104,7 @@ class TensorboardLogger:
         hist.max = float(np.max(values))
         hist.num = int(np.prod(values.shape))
         hist.sum = float(np.sum(values))
-        hist.sum_squares = float(np.sum(values**2))
+        hist.sum_squares = float(np.sum(values ** 2))
 
         # Requires equal number as bins, where the first goes from -DBL_MAX to bin_edges[1]
         # See https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/framework/summary.proto#L30

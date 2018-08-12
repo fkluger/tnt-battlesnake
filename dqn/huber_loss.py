@@ -3,6 +3,7 @@ import keras.backend as K
 
 HUBER_LOSS_DELTA = 2.0
 
+
 def huber_loss(y_true, y_pred):
     err = y_true - y_pred
 

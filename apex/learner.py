@@ -86,6 +86,7 @@ class Learner:
             return
         if self.stats.training_batches % self.config.target_update_interval == 0:
             self.dqn.update_target_model()
+            self.target_weights_changed = True
         batch, indices, weights = self.buffer.sample(self.config.batch_size, self.beta)
         # Actual batch size can differ from self.batch_size if the memory is not filled yet
         batch_size = len(batch)
@@ -107,6 +108,7 @@ class Learner:
         if self.target_weights_changed:
             target_weights = self.dqn.target_model.get_weights()
             target_weights_compressed = self._compress_weights(target_weights)
+            self.target_weights_changed = False
         else:
             target_weights_compressed = b"empty"
         self.parameter_socket.send_multipart(

@@ -102,6 +102,5 @@ class DQN:
         value = Lambda(lambda value: tf.tile(value, [1, self.num_actions]))(value)
         final = Add()([value, advt])
         model = Model(inputs=inputs, outputs=final)
-        model.compile(loss=huber_loss, optimizer=RMSprop(lr=self.learning_rate))
-        print(model.summary())
+        model.compile(loss=huber_loss, optimizer=RMSprop(lr=self.learning_rate, epsilon=1.5e-7, decay=0.95, clipnorm=40.0))
         return model

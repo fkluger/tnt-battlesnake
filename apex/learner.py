@@ -9,12 +9,13 @@ from dqn.network import DQN
 from replay_buffer.prioritized_buffer import PrioritizedBuffer
 from tensorboard_logger import TensorboardLogger
 from .learner_statistics import LearnerStatistics
+from apex.configuration import Configuration
 
 LOGGER = logging.getLogger("Learner")
 
 
 class Learner:
-    def __init__(self, config):
+    def __init__(self, config: Configuration):
         self.config = config
         self.tensorboard_logger = TensorboardLogger(self.config.output_directory)
         self.input_shape = (config.width, config.height, self.config.stacked_frames)
@@ -35,6 +36,7 @@ class Learner:
         self.stats = LearnerStatistics(
             self.config, self.tensorboard_logger, self.buffer
         )
+        self.target_weights_changed = False
         learner_address = config.learner_ip_address + ":" + config.starting_port
         self._connect_sockets(learner_address)
 
@@ -75,8 +77,6 @@ class Learner:
             self.stats.on_batch_receive(experiences)
             if self.stats.received_batches % self.config.training_interval == 0:
                 self.evaluate_experiences()
-            if self.stats.received_batches % self.config.target_update_interval == 0:
-                self.dqn.update_target_model()
             return True
         except zmq.Again:
             return False
@@ -84,6 +84,8 @@ class Learner:
     def evaluate_experiences(self):
         if self.buffer.size() <= self.config.batch_size:
             return
+        if self.stats.training_batches % self.config.target_update_interval == 0:
+            self.dqn.update_target_model()
         batch, indices, weights = self.buffer.sample(self.config.batch_size, self.beta)
         # Actual batch size can differ from self.batch_size if the memory is not filled yet
         batch_size = len(batch)
@@ -100,11 +102,13 @@ class Learner:
     def send_parameters(self):
         LOGGER.debug("Sending parameters...")
         online_weights = self.dqn.online_model.get_weights()
-        target_weights = self.dqn.target_model.get_weights()
         self.stats.on_weight_export(self.dqn.online_model)
         online_weights_compressed = self._compress_weights(online_weights)
-        target_weights_compressed = self._compress_weights(target_weights)
-
+        if self.target_weights_changed:
+            target_weights = self.dqn.target_model.get_weights()
+            target_weights_compressed = self._compress_weights(target_weights)
+        else:
+            target_weights_compressed = b"empty"
         self.parameter_socket.send_multipart(
             [b"parameters", online_weights_compressed, target_weights_compressed]
         )

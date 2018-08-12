@@ -12,7 +12,7 @@ import numpy as np
 from dqn.network import DQN
 from apex.models import Experience, Observation
 from apex.utils import get_ip_address
-from configuration import Configuration
+from apex.configuration import Configuration
 from .actor_statistics import ActorStatistics
 
 LOGGER = logging.getLogger("Actor")
@@ -45,8 +45,8 @@ class Actor:
         learner_address = config.learner_ip_address + ":" + config.starting_port
         self._connect_sockets(learner_address)
 
-    def act(self, state):
-        if random.random() < self.epsilon:
+    def act(self, state, deterministic=False):
+        if not deterministic and random.random() < self.epsilon:
             return np.random.choice(3), False
         else:
             q_values = self.dqn.predict(state)
@@ -71,12 +71,13 @@ class Actor:
         try:
             message = self.parameter_socket.recv_multipart(flags=zmq.NOBLOCK)
             online_weights_pickled, target_weights_pickled = message[1], message[2]
-            online_weights, target_weights = (
-                self._decompress_weights(online_weights_pickled),
-                self._decompress_weights(target_weights_pickled),
-            )
+            online_weights = self._decompress_weights(online_weights_pickled)
             self.dqn.online_model.set_weights(online_weights)
-            self.dqn.target_model.set_weights(target_weights)
+
+            if target_weights_pickled != b"empty":
+                print(target_weights_pickled)
+                target_weights = self._decompress_weights(target_weights_pickled)
+                self.dqn.target_model.set_weights(target_weights)
             LOGGER.info("Received parameter update from learner.")
             return True
         except zmq.Again:

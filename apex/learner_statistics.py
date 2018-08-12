@@ -19,6 +19,7 @@ class LearnerStatistics:
         self.buffer = buffer
         self.received_batches = 0
         self.received_observations = 0
+        self.training_batches = 0
         self.last_batch_timestamp = time.time()
         self.last_weight_export_timestamp = time.time()
         self.training_counter = 0
@@ -38,6 +39,7 @@ class LearnerStatistics:
 
     def on_evaluation(self, batch, errors, loss):
         self.training_counter += len(batch)
+        self.training_batches += 1
         time_difference = time.time() - self.last_batch_timestamp
 
         if time_difference > 15:

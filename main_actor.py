@@ -54,7 +54,8 @@ def main():
             if env.stats.steps > config.random_initial_steps:
                 action, greedy = actor.act(state)
             else:
-                action, greedy = np.random.choice(3)
+                action = np.random.choice(3)
+                greedy = False
             next_state, reward, terminal = env.step(action)
             actor.observe(
                 Observation(

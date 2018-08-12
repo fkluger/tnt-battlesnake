@@ -75,7 +75,6 @@ class Actor:
             self.dqn.online_model.set_weights(online_weights)
 
             if target_weights_pickled != b"empty":
-                print(target_weights_pickled)
                 target_weights = self._decompress_weights(target_weights_pickled)
                 self.dqn.target_model.set_weights(target_weights)
             LOGGER.info("Received parameter update from learner.")

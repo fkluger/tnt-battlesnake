@@ -19,6 +19,7 @@ class LearnerStatistics:
         self.buffer = buffer
         self.received_batches = 0
         self.received_observations = 0
+        self.received_observations_since_last_batch = 0
         self.training_batches = 0
         self.last_batch_timestamp = time.time()
         self.last_weight_export_timestamp = time.time()
@@ -36,6 +37,7 @@ class LearnerStatistics:
     def on_batch_receive(self, experiences):
         self.received_batches += 1
         self.received_observations += len(experiences)
+        self.received_observations_since_last_batch += len(experiences)
 
     def on_evaluation(self, batch, errors, loss):
         self.training_counter += len(batch)
@@ -64,12 +66,29 @@ class LearnerStatistics:
                     global_step,
                 )
             )
+            self.tensorboard_logger.log(
+                Metric(
+                    "learner/received experiences per second",
+                    MetricType.Value,
+                    self.received_observations_since_last_batch / time_difference,
+                    global_step,
+                )
+            )
             self.training_counter = 0
+            self.received_observations_since_last_batch = 0
             self.tensorboard_logger.log(
                 Metric(
                     "learner/priorities",
                     MetricType.Histogram,
                     self.buffer.tree.priorities,
+                    global_step,
+                )
+            )
+            self.tensorboard_logger.log(
+                Metric(
+                    "learner/sample training counts",
+                    MetricType.Histogram,
+                    self.buffer.tree.sampling_counter,
                     global_step,
                 )
             )

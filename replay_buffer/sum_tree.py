@@ -20,6 +20,7 @@ class SumTree:
         self.tree = np.zeros(2 * capacity - 1)
         self.observations = np.zeros(capacity, dtype=np.ndarray)
         self.priorities = np.zeros(capacity)
+        self.sampling_counter = np.zeros(capacity, dtype=int)
 
     def total(self):
         return self.tree[0]
@@ -31,6 +32,7 @@ class SumTree:
 
         self.observations[self.write_pointer] = observation
         self.priorities[self.write_pointer] = priority
+        self.sampling_counter[self.write_pointer] = 0
         self.update(idx, priority)
 
         observation_idx = self.write_pointer
@@ -52,6 +54,7 @@ class SumTree:
     def get(self, s):
         idx = self._retrieve(0, s)
         dataIdx = idx - self.capacity + 1
+        self.sampling_counter[dataIdx] += 1
 
         return (idx, self.tree[idx], self.observations[dataIdx])
 

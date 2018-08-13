@@ -9,7 +9,7 @@
 
     "sparse_rewards": false,
 
-    "random_initial_steps": 5000,
+    "random_initial_steps": 50000,
     "batch_size": 512,
     "learning_rate": 0.0000625,
     "discount_factor": 0.99,
@@ -28,10 +28,11 @@
     "replay_importance_weight": 0.4,
     "replay_importance_weight_annealing_step_size": 0,
 
-    "learner_ip_address": "192.168.1.4",
+    "learner_ip_address": "130.75.31.196",
     "starting_port": "7680",
     "actors": {
-        "192.168.1.4": 1
+        "helena2": 6,
+        "helena4": 6
     },
-    "actor_buffer_size": 400
+    "actor_buffer_size": 200
 }

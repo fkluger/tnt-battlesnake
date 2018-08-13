@@ -13,7 +13,7 @@
     "batch_size": 512,
     "learning_rate": 0.0000625,
     "discount_factor": 0.99,
-    "target_update_interval": 2500,
+    "target_update_interval": 500,
     "training_interval": 8,
     "parameter_update_interval": 100,
     "multi_step_n": 3,

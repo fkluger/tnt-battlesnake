@@ -21,6 +21,7 @@ class EnvironmentStatistics:
     episode_rewards = list()
     episode_steps = list()
     episode_fruits = list()
+    episode_wins = list()
 
     def __init__(self, tensorboard_logger, actor_idx):
         self.actor_idx = actor_idx
@@ -30,6 +31,7 @@ class EnvironmentStatistics:
         mean_rewards = np.mean(self.episode_rewards[self.last_report :])
         mean_steps = np.mean(self.episode_steps[self.last_report :])
         mean_fruits = np.mean(self.episode_fruits[self.last_report :])
+        mean_wins = np.mean(self.episode_wins[self.last_report :])
         LOGGER.info(
             f"Episodes: {self.episodes}, Steps: {self.steps}, Mean rewards: {mean_rewards}, Mean steps: {mean_steps}, Mean fruits: {mean_fruits}"
         )
@@ -57,7 +59,18 @@ class EnvironmentStatistics:
                 self.steps,
             )
         )
+        self.tensorboard_logger.log(
+            Metric(
+                f"actor-{self.actor_idx}/mean wins",
+                MetricType.Value,
+                mean_wins,
+                self.steps,
+            )
+        )
         self.last_report = self.episodes
+    
+    def on_terminal(self, won):
+        self.episode_wins.append(won)
 
     def on_reset(self):
         self.episodes += 1

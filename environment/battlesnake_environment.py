@@ -50,17 +50,17 @@ class BattlesnakeEnvironment(Env):
         fruit_eaten, collided, starved, won = self.state.move_snakes(actions)
 
         reward, terminal = self._evaluate_reward(fruit_eaten, collided, starved, won)
-        terminal = terminal or won
 
-        if terminal:
+        if terminal or won:
             next_state = None
+            self.stats.on_terminal(won)
         else:
             next_state = self.state.observe()
             self.renderer.add_frame(next_state)
 
         self.stats.on_step(fruit_eaten, reward)
 
-        return next_state, reward, terminal
+        return next_state, reward, terminal or won
 
     def render(self, mode="human"):
         episode = self.stats.episodes

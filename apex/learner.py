@@ -3,7 +3,9 @@ import logging
 import pickle
 import os
 import zlib
+import asyncio
 import zmq
+from zmq.asyncio import Context
 
 from dqn.network import DQN
 from replay_buffer.prioritized_buffer import PrioritizedBuffer
@@ -41,7 +43,7 @@ class Learner:
         self._connect_sockets(learner_address)
 
     def _connect_sockets(self, learner_address):
-        self.context = zmq.Context()
+        self.context = zmq.asyncio.Context()
         self.parameter_socket = self.context.socket(zmq.PUB)
         self.parameter_socket.setsockopt(zmq.LINGER, 0)
         self.parameter_socket.bind(f"tcp://{learner_address}")
@@ -63,9 +65,9 @@ class Learner:
         self.experiences_socket.close()
         self.context.term()
 
-    def update_experiences(self):
+    async def update_experiences(self):
         try:
-            message = self.experiences_socket.recv_multipart(flags=zmq.NOBLOCK)
+            message = await self.experiences_socket.recv_multipart(flags=zmq.NOBLOCK)
             experiences_compressed = message[1]
             experiences_pickled = zlib.decompress(experiences_compressed)
             experiences = pickle.loads(experiences_pickled)
@@ -100,7 +102,7 @@ class Learner:
     def _compress_weights(self, weights):
         return pickle.dumps(weights, -1)
 
-    def send_parameters(self):
+    async def send_parameters(self):
         LOGGER.debug("Sending parameters...")
         online_weights = self.dqn.online_model.get_weights()
         self.stats.on_weight_export(self.dqn.online_model)
@@ -111,6 +113,6 @@ class Learner:
             self.target_weights_changed = False
         else:
             target_weights_compressed = b"empty"
-        self.parameter_socket.send_multipart(
+        await self.parameter_socket.send_multipart(
             [b"parameters", online_weights_compressed, target_weights_compressed]
         )

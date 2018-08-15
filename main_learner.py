@@ -1,3 +1,4 @@
+import asyncio
 import atexit
 import logging
 import time
@@ -23,7 +24,7 @@ from apex.configuration import Configuration
 from main_utils import wrap_main
 
 
-def main():
+async def main():
 
     logging.basicConfig(
         level=logging.INFO,
@@ -33,11 +34,12 @@ def main():
     learner = Learner(Configuration("./apex/config.json"))
     last_parameter_update = time.time()
     while True:
-        learner.update_experiences()
+        await learner.update_experiences()
         if time.time() - last_parameter_update > 5:
             last_parameter_update = time.time()
-            learner.send_parameters()
+            await learner.send_parameters()
 
 
 if __name__ == "__main__":
-    wrap_main(main)
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())

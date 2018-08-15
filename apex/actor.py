@@ -5,7 +5,9 @@ import pickle
 import math
 import random
 import zlib
+import asyncio
 import zmq
+from zmq.asyncio import Context
 
 import numpy as np
 
@@ -53,7 +55,7 @@ class Actor:
             best_action = np.argmax(q_values)
             return best_action, True
 
-    def observe(self, observation: Observation):
+    async def observe(self, observation: Observation):
         self.episode_buffer.append(observation)
         self.stats.on_observe(observation)
 
@@ -61,15 +63,15 @@ class Actor:
             self.buffer += self._compute_multistep_bootstrap(self.episode_buffer)
             self.episode_buffer.clear()
             if len(self.buffer) >= self.config.actor_buffer_size:
-                self.send_experiences()
+                await self.send_experiences()
                 self.buffer.clear()
 
     def _decompress_weights(self, weights):
         return pickle.loads(weights)
 
-    def update_parameters(self):
+    async def update_parameters(self):
         try:
-            message = self.parameter_socket.recv_multipart(flags=zmq.NOBLOCK)
+            message = await self.parameter_socket.recv_multipart(flags=zmq.NOBLOCK)
             online_weights_pickled, target_weights_pickled = message[1], message[2]
             online_weights = self._decompress_weights(online_weights_pickled)
             self.dqn.online_model.set_weights(online_weights)
@@ -82,7 +84,7 @@ class Actor:
         except zmq.Again:
             return False
 
-    def send_experiences(self):
+    async def send_experiences(self):
         _, _, errors = self.dqn.create_targets(self.buffer, len(self.buffer))
         experiences = [
             Experience(observation, errors[idx])
@@ -90,7 +92,9 @@ class Actor:
         ]
         experiences_pickled = pickle.dumps(experiences, -1)
         experiences_compressed = zlib.compress(experiences_pickled)
-        self.experience_socket.send_multipart([b"experiences", experiences_compressed])
+        await self.experience_socket.send_multipart(
+            [b"experiences", experiences_compressed]
+        )
 
     def _compute_multistep_bootstrap(self, episode_observations: List[Observation]):
         episode_length = len(episode_observations)
@@ -116,7 +120,7 @@ class Actor:
         return episode_observations
 
     def _connect_sockets(self, learner_address: str):
-        self.context = zmq.Context()
+        self.context = zmq.asyncio.Context()
         self.parameter_socket = self.context.socket(zmq.SUB)
         self.parameter_socket.setsockopt(zmq.LINGER, 0)
         self.parameter_socket.connect(f"tcp://{learner_address}")

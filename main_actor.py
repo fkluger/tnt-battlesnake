@@ -1,3 +1,4 @@
+import asyncio
 import argparse
 import logging
 
@@ -19,7 +20,7 @@ def get_args():
     return parser.parse_args()
 
 
-def main():
+async def main():
 
     args = get_args()
 
@@ -57,14 +58,14 @@ def main():
                 action = np.random.choice(3)
                 greedy = False
             next_state, reward, terminal = env.step(action)
-            actor.observe(
+            await actor.observe(
                 Observation(
                     state, action, reward, next_state, config.discount_factor, greedy
                 )
             )
             state = next_state
         if env.stats.episodes % config.parameter_update_interval == 0:
-            actor.update_parameters()
+            await actor.update_parameters()
         if env.stats.episodes % config.report_interval == 0:
             env.stats.report()
         if env.stats.episodes % (config.report_interval * 10) == 0:
@@ -72,4 +73,5 @@ def main():
 
 
 if __name__ == "__main__":
-    wrap_main(main)
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())

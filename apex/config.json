@@ -28,11 +28,10 @@
     "replay_importance_weight": 0.4,
     "replay_importance_weight_annealing_step_size": 0,
 
-    "learner_ip_address": "130.75.31.196",
+    "learner_ip_address": "192.168.1.4",
     "starting_port": "7680",
     "actors": {
-        "helena2": 6,
-        "helena4": 6
+        "192.168.1.4": 2
     },
     "actor_buffer_size": 200
 }

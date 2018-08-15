@@ -11,7 +11,7 @@ class EnemyActor:
 
     def act(self, state: State, snake_idx: int):
         snake: Snake = state.snakes[snake_idx]
-        default_action, greedy = self.actor.act(state.observe(snake_idx), deterministic=True)
+        default_action, greedy = self.actor.act(state.observe(snake_idx))
         possible_actions = [default_action]
         possible_actions.extend([i for i in range(3) if i != default_action])
         # Try all actions starting with the default action, chosen by the actor

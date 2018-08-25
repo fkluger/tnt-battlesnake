@@ -12,6 +12,7 @@ from keras.layers import (
 from keras.callbacks import LambdaCallback
 from keras.models import Model
 from keras.datasets import mnist
+from keras.optimizers import Adam
 import keras.backend as K
 import tensorflow as tf
 import numpy as np
@@ -38,7 +39,7 @@ class VariationalAutoencoder:
         outputs = self.decoder(encoder(inputs)[2])
         self.model = Model(inputs, outputs, name="vae")
 
-        self.model.compile(optimizer="adam", loss=vae_loss)
+        self.model.compile(optimizer=Adam(lr=1e-4), loss=vae_loss)
         print(self.model.summary())
 
     def create_encoder(self, inputs):
@@ -49,7 +50,7 @@ class VariationalAutoencoder:
             filters=32, kernel_size=1, strides=2, activation="elu", padding="same"
         )(net)
         net = Flatten()(net)
-        net = Dense(16, activation="elu")(net)
+        net = Dense(128, activation="elu")(net)
         mu = Dense(self.z_dim)(net)
         log_sigma = Dense(self.z_dim)(net)
 

@@ -16,6 +16,15 @@ import keras.backend as K
 import tensorflow as tf
 import numpy as np
 import png
+import matplotlib
+try:
+    if os.environ["DISPLAY"]:
+        LOGGER.debug("Found display. Using ffmpeg backend.")
+except KeyError:
+    LOGGER.debug("Did not find display. Using Agg backend.")
+    matplotlib.use("Agg")
+
+
 import matplotlib.pyplot as plt
 
 

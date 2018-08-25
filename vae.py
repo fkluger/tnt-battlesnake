@@ -17,6 +17,7 @@ import tensorflow as tf
 import numpy as np
 import os
 import matplotlib
+
 try:
     if os.environ["DISPLAY"]:
         print("Found display. Using ffmpeg backend.")
@@ -99,7 +100,7 @@ def plot_latent_space(epoch, vae):
 
     for i, yi in enumerate(grid_y):
         for j, xi in enumerate(grid_x):
-            z_sample = np.array([[xi, yi]])
+            z_sample = np.random.normal(0.0, 1.0, size=(1, vae.z_dim))
             x_decoded = vae.decoder.predict(z_sample)
             digit = x_decoded[0].reshape(digit_size, digit_size)
             figure[
@@ -122,7 +123,7 @@ def plot_latent_space(epoch, vae):
 
 
 def main():
-    z_dim = 2
+    z_dim = 10
     epochs = 15
     vae = VariationalAutoencoder((28, 28, 1), z_dim)
     (x_train, y_train), (x_test, y_test) = mnist.load_data()

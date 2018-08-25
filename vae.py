@@ -43,10 +43,10 @@ class VariationalAutoencoder:
 
     def create_encoder(self, inputs):
         net = Conv2D(
-            filters=32, kernel_size=3, strides=2, activation="elu", padding="same"
+            filters=16, kernel_size=1, strides=2, activation="elu", padding="same"
         )(inputs)
         net = Conv2D(
-            filters=64, kernel_size=3, strides=2, activation="elu", padding="same"
+            filters=32, kernel_size=1, strides=2, activation="elu", padding="same"
         )(net)
         net = Flatten()(net)
         net = Dense(16, activation="elu")(net)
@@ -77,13 +77,13 @@ class VariationalAutoencoder:
         net = Dense(np.product(self.input_shape), activation="elu")(inputs)
         net = Reshape(self.input_shape)(net)
         net = Conv2DTranspose(
-            filters=64, kernel_size=3, activation="elu", padding="same"
+            filters=32, kernel_size=1, activation="elu", padding="same"
         )(net)
         net = Conv2DTranspose(
-            filters=32, kernel_size=3, activation="elu", padding="same"
+            filters=16, kernel_size=1, activation="elu", padding="same"
         )(net)
         outputs = Conv2DTranspose(
-            filters=1, kernel_size=3, activation="sigmoid", padding="same"
+            filters=1, kernel_size=1, activation="sigmoid", padding="same"
         )(net)
         decoder = Model(inputs, outputs, name="decoder")
         return decoder
@@ -123,7 +123,7 @@ def plot_latent_space(epoch, vae):
 
 
 def main():
-    z_dim = 10
+    z_dim = 32
     epochs = 15
     vae = VariationalAutoencoder((28, 28, 1), z_dim)
     (x_train, y_train), (x_test, y_test) = mnist.load_data()

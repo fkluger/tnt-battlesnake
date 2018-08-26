@@ -5,8 +5,7 @@ from keras.layers import (
     Input,
     Flatten,
     Lambda,
-    MaxPool2D,
-    UpSampling2D,
+    Dropout,
     Reshape,
 )
 from keras.callbacks import LambdaCallback
@@ -33,6 +32,8 @@ class VariationalAutoencoder:
     def __init__(self, input_shape, z_dim):
         self.input_shape = input_shape
         self.z_dim = z_dim
+        self.dropout_layers = []
+        self.training_dropout_rate = 0.8
 
         inputs = Input(shape=self.input_shape, name="input")
         self.encoder, vae_loss = self.create_encoder(inputs)
@@ -44,13 +45,26 @@ class VariationalAutoencoder:
         self.model.compile(optimizer=Adam(lr=1e-4), loss=vae_loss)
         print(self.model.summary())
 
+    def toggle_test_mode(self):
+        for layer in self.dropout_layers:
+            if layer.rate == self.training_dropout_rate:
+                layer.rate = 1.0
+            else:
+                layer.rate = self.training_dropout_rate
+
     def create_encoder(self, inputs):
         net = Conv2D(
             filters=64, kernel_size=4, strides=2, activation="elu", padding="same"
         )(inputs)
+        dropout_layer = Dropout(rate=self.training_dropout_rate)
+        self.dropout_layers.append(dropout_layer)
+        net = dropout_layer(net)
         net = Conv2D(
             filters=64, kernel_size=4, strides=2, activation="elu", padding="same"
         )(net)
+        dropout_layer = Dropout(rate=self.training_dropout_rate)
+        self.dropout_layers.append(dropout_layer)
+        net = dropout_layer(net)
         net = Conv2D(
             filters=64, kernel_size=4, strides=1, activation="elu", padding="same"
         )(net)
@@ -85,9 +99,15 @@ class VariationalAutoencoder:
         net = Conv2DTranspose(
             filters=64, kernel_size=4, activation="elu", padding="same"
         )(net)
+        dropout_layer = Dropout(rate=self.training_dropout_rate)
+        self.dropout_layers.append(dropout_layer)
+        net = dropout_layer(net)
         net = Conv2DTranspose(
             filters=64, kernel_size=4, activation="elu", padding="same"
         )(net)
+        dropout_layer = Dropout(rate=self.training_dropout_rate)
+        self.dropout_layers.append(dropout_layer)
+        net = dropout_layer(net)
         net = Conv2DTranspose(
             filters=64, kernel_size=4, activation="elu", padding="same"
         )(net)
@@ -107,6 +127,7 @@ def plot_latent_space(epoch, vae):
     grid_x = np.linspace(-4, 4, n)
     grid_y = np.linspace(-4, 4, n)[::-1]
 
+    vae.toggle_test_mode()
     for i, yi in enumerate(grid_y):
         for j, xi in enumerate(grid_x):
             z_sample = np.random.normal(0.0, 1.0, size=(1, vae.z_dim))
@@ -116,6 +137,8 @@ def plot_latent_space(epoch, vae):
                 i * digit_size : (i + 1) * digit_size,
                 j * digit_size : (j + 1) * digit_size,
             ] = digit
+    
+    vae.toggle_test_mode()
 
     plt.figure(figsize=(10, 10))
     start_range = digit_size // 2

@@ -82,7 +82,7 @@ class VariationalAutoencoder:
         z = Lambda(sample_z, output_shape=(self.z_dim,))([z_mean, z_log_variance])
 
         def vae_loss(y_true, y_pred):
-            reconstruction_error = K.sum(K.square(y_true - y_pred))
+            reconstruction_error = tf.losses.sigmoid_cross_entropy(tf.cast(y_true, tf.uint8), y_pred)
             kl_divergence = K.sum(
                 1 + z_log_variance - K.square(z_mean) - K.exp(z_log_variance), axis=-1
             )

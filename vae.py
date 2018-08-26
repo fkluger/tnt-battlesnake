@@ -33,10 +33,12 @@ class VariationalAutoencoder:
     def __init__(self, input_shape, z_dim):
         self.input_shape = input_shape
         self.z_dim = z_dim
+
         inputs = Input(shape=self.input_shape, name="input")
-        encoder, vae_loss = self.create_encoder(inputs)
+        self.encoder, vae_loss = self.create_encoder(inputs)
         self.decoder = self.create_decoder()
-        outputs = self.decoder(encoder(inputs)[2])
+        outputs = self.decoder(self.encoder(inputs)[2])
+
         self.model = Model(inputs, outputs, name="vae")
 
         self.model.compile(optimizer=Adam(lr=1e-4), loss=vae_loss)
@@ -44,15 +46,17 @@ class VariationalAutoencoder:
 
     def create_encoder(self, inputs):
         net = Conv2D(
-            filters=16, kernel_size=1, strides=2, activation="elu", padding="same"
+            filters=64, kernel_size=4, strides=2, activation="elu", padding="same"
         )(inputs)
         net = Conv2D(
-            filters=32, kernel_size=1, strides=2, activation="elu", padding="same"
+            filters=64, kernel_size=4, strides=2, activation="elu", padding="same"
+        )(net)
+        net = Conv2D(
+            filters=64, kernel_size=4, strides=1, activation="elu", padding="same"
         )(net)
         net = Flatten()(net)
-        net = Dense(128, activation="elu")(net)
-        mu = Dense(self.z_dim)(net)
-        log_sigma = Dense(self.z_dim)(net)
+        z_mean = Dense(self.z_dim)(net)
+        z_log_variance = Dense(self.z_dim)(net)
 
         def sample_z(args):
             mu, log_sigma = args
@@ -61,16 +65,17 @@ class VariationalAutoencoder:
             )
             return mu + tf.exp(0.5 * log_sigma) * epsilon
 
-        z = Lambda(sample_z, output_shape=(self.z_dim,))([mu, log_sigma])
+        z = Lambda(sample_z, output_shape=(self.z_dim,))([z_mean, z_log_variance])
 
         def vae_loss(y_true, y_pred):
             reconstruction_error = K.binary_crossentropy(y_true, y_pred)
-            kl_divergence = 1 + log_sigma - K.square(mu) - K.exp(log_sigma)
-            kl_divergence = K.sum(kl_divergence, axis=-1)
+            kl_divergence = K.sum(
+                1 + z_log_variance - K.square(z_mean) - K.exp(z_log_variance), axis=-1
+            )
             kl_divergence *= -0.5
             return K.mean(reconstruction_error + kl_divergence)
 
-        encoder = Model(inputs, [mu, log_sigma, z], name="encoder")
+        encoder = Model(inputs, [z_mean, z_log_variance, z], name="encoder")
         return encoder, vae_loss
 
     def create_decoder(self):
@@ -78,10 +83,13 @@ class VariationalAutoencoder:
         net = Dense(np.product(self.input_shape), activation="elu")(inputs)
         net = Reshape(self.input_shape)(net)
         net = Conv2DTranspose(
-            filters=32, kernel_size=1, activation="elu", padding="same"
+            filters=64, kernel_size=4, activation="elu", padding="same"
         )(net)
         net = Conv2DTranspose(
-            filters=16, kernel_size=1, activation="elu", padding="same"
+            filters=64, kernel_size=4, activation="elu", padding="same"
+        )(net)
+        net = Conv2DTranspose(
+            filters=64, kernel_size=4, activation="elu", padding="same"
         )(net)
         outputs = Conv2DTranspose(
             filters=1, kernel_size=1, activation="sigmoid", padding="same"
@@ -124,7 +132,7 @@ def plot_latent_space(epoch, vae):
 
 
 def main():
-    z_dim = 32
+    z_dim = 8
     epochs = 15
     vae = VariationalAutoencoder((28, 28, 1), z_dim)
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
@@ -135,7 +143,7 @@ def main():
         x=x_train,
         y=x_train,
         validation_data=[x_test, x_test],
-        batch_size=128,
+        batch_size=64,
         epochs=epochs,
         callbacks=[
             LambdaCallback(

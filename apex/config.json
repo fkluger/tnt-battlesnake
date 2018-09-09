@@ -14,10 +14,10 @@
     "batch_size": 512,
     "learning_rate": 0.0000625,
     "discount_factor": 0.99,
-    "target_update_interval": 500,
+    "target_update_interval": 250,
     "training_interval": 8,
     "parameter_update_interval": 100,
-    "multi_step_n": 5,
+    "multi_step_n": 3,
     "stacked_frames": 2,
 
     "epsilon_base": 0.3,
@@ -25,15 +25,14 @@
     "replay_capacity": 2000000,
     "replay_min_priority": 0.01,
     "replay_max_priority": 1.0,
-    "replay_prioritization_factor": 0.6,
+    "replay_prioritization_factor": 0.7,
     "replay_importance_weight": 0.4,
     "replay_importance_weight_annealing_step_size": 0,
 
     "learner_ip_address": "130.75.31.196",
     "starting_port": "7680",
     "actors": {
-        "helena1": 6,
-        "helena2": 6
+        "paris3": 6
     },
-    "actor_buffer_size": 200
+    "actor_buffer_size": 1000
 }

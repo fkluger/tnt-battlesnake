@@ -1,8 +1,6 @@
 import logging
 
-from keras import Model, Input
-from keras.layers import Conv2D, Flatten, Lambda, Add, Dense
-from keras.optimizers import RMSprop
+from tensorflow import keras
 import numpy as np
 import tensorflow as tf
 
@@ -17,6 +15,7 @@ class DQN:
         self.num_actions = num_actions
         self.learning_rate = learning_rate
         self.online_model = self._create_model()
+        print(self.online_model.summary())
         self.target_model = self._create_model()
         self.callbacks = []
 
@@ -85,22 +84,24 @@ class DQN:
         return q_values, q_values_next, q_values_next_target
 
     def _create_model(self):
-        inputs = Input(shape=self.input_shape)
-        net = Conv2D(32, 3, strides=3, activation="relu")(inputs)
-        net = Conv2D(64, 2, strides=2, activation="relu")(net)
-        net = Conv2D(64, 1, strides=1, activation="relu")(net)
-        net = Flatten()(net)
-        advt = Dense(512, activation="relu")(net)
-        advt = Dense(self.num_actions)(advt)
-        value = Dense(512, activation="relu")(net)
-        value = Dense(1)(value)
-
-        # now to combine the two streams
-        advt = Lambda(lambda advt: advt - tf.reduce_mean(advt, axis=-1, keepdims=True))(
-            advt
+        inputs = keras.layers.Input(shape=self.input_shape)
+        net = keras.layers.Conv2D(16, 3, strides=3, activation="elu")(inputs)
+        net = keras.layers.Conv2D(32, 2, strides=2, activation="elu")(net)
+        net = keras.layers.Conv2D(32, 1, strides=1, activation="elu")(net)
+        net = keras.layers.Flatten()(net)
+        advt = keras.layers.Dense(256, activation="elu")(net)
+        advt = keras.layers.Dense(self.num_actions)(advt)
+        value = keras.layers.Dense(256, activation="elu")(net)
+        value = keras.layers.Dense(1)(value)
+        advt = keras.layers.Lambda(
+            lambda advt: advt - tf.reduce_mean(advt, axis=-1, keepdims=True)
+        )(advt)
+        value = keras.layers.Lambda(
+            lambda value: tf.tile(value, [1, self.num_actions])
+        )(value)
+        final = keras.layers.Add()([value, advt])
+        model = keras.models.Model(inputs=inputs, outputs=final)
+        model.compile(
+            loss=huber_loss, optimizer=keras.optimizers.RMSprop(lr=self.learning_rate)
         )
-        value = Lambda(lambda value: tf.tile(value, [1, self.num_actions]))(value)
-        final = Add()([value, advt])
-        model = Model(inputs=inputs, outputs=final)
-        model.compile(loss=huber_loss, optimizer=RMSprop(lr=self.learning_rate))
         return model

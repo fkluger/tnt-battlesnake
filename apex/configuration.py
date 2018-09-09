@@ -9,6 +9,7 @@ class Configuration:
             self._config = config
 
             self.report_interval: int = config["report_interval"]
+            self.render_interval: int = config["render_interval"]
             self.output_directory: str = config["output_directory"]
 
             self.width: int = config["width"]

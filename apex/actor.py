@@ -10,9 +10,10 @@ import zmq
 import numpy as np
 
 from dqn.network import DQN
-from apex.models import Experience, Observation
-from apex.utils import get_ip_address
-from apex.configuration import Configuration
+
+from .models import Experience, Observation
+from .utils import get_ip_address
+from .configuration import Configuration
 from .actor_statistics import ActorStatistics
 
 LOGGER = logging.getLogger("Actor")

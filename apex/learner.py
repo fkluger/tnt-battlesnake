@@ -8,8 +8,9 @@ import zmq
 from dqn.network import DQN
 from replay_buffer.prioritized_buffer import PrioritizedBuffer
 from tensorboard_logger import TensorboardLogger
-from .learner_statistics import LearnerStatistics
 from apex.configuration import Configuration
+
+from .learner_statistics import LearnerStatistics
 
 LOGGER = logging.getLogger("Learner")
 

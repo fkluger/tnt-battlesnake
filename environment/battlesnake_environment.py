@@ -1,12 +1,10 @@
-from gym import Env
-
 from .state import State
 from .constants import Reward
 from .environment_statistics import EnvironmentStatistics
 from .environment_renderer import EnvironmentRenderer
 
 
-class BattlesnakeEnvironment(Env):
+class BattlesnakeEnvironment:
     def __init__(
         self, config, enemy_agents, output_directory, actor_idx, tensorboard_logger
     ):

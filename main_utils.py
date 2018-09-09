@@ -4,6 +4,10 @@ import os
 
 LOGGING_DIR = "./logs"
 
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+
 
 def wrap_main(main_fn):
     try:

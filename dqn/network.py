@@ -85,13 +85,13 @@ class DQN:
 
     def _create_model(self):
         inputs = keras.layers.Input(shape=self.input_shape)
-        net = keras.layers.Conv2D(16, 3, strides=3, activation="elu")(inputs)
-        net = keras.layers.Conv2D(32, 2, strides=2, activation="elu")(net)
-        net = keras.layers.Conv2D(32, 1, strides=1, activation="elu")(net)
+        net = keras.layers.Conv2D(32, 3, strides=3, activation="elu")(inputs)
+        net = keras.layers.Conv2D(64, 2, strides=2, activation="elu")(net)
+        net = keras.layers.Conv2D(64, 1, strides=1, activation="elu")(net)
         net = keras.layers.Flatten()(net)
-        advt = keras.layers.Dense(256, activation="elu")(net)
+        advt = keras.layers.Dense(512, activation="elu")(net)
         advt = keras.layers.Dense(self.num_actions)(advt)
-        value = keras.layers.Dense(256, activation="elu")(net)
+        value = keras.layers.Dense(512, activation="elu")(net)
         value = keras.layers.Dense(1)(value)
         advt = keras.layers.Lambda(
             lambda advt: advt - tf.reduce_mean(advt, axis=-1, keepdims=True)

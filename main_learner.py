@@ -11,6 +11,7 @@ def main():
     last_parameter_update = time.time()
     while True:
         learner.update_experiences()
+        learner.evaluate_experiences()
         if time.time() - last_parameter_update > 5:
             last_parameter_update = time.time()
             learner.send_parameters()

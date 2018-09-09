@@ -76,8 +76,6 @@ class Learner:
                 1. - self.beta
             ) * self.config.replay_importance_weight_annealing_step_size
             self.stats.on_batch_receive(experiences)
-            if self.stats.received_batches % self.config.training_interval == 0:
-                self.evaluate_experiences()
             return True
         except zmq.Again:
             return False

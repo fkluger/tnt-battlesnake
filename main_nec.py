@@ -29,7 +29,6 @@ def main():
         while True:
             state = env.reset()
             terminal = False
-            print(f"Episode: {env.stats.episodes}, Steps: {env.stats.steps}")
             while not terminal:
                 if env.stats.steps > config.random_initial_steps:
                     if env.stats.steps % 16 == 0:

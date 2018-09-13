@@ -88,7 +88,6 @@ class NECAgent:
         target_q_values = self._compute_q_values(batch)
 
         error = self._train(states, actions, target_q_values)
-        print(f"Error: {error}")
 
     def _compute_q_values(self, observations: List[Observation]):
         q_values = np.zeros(len(observations))

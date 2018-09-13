@@ -27,12 +27,12 @@ def build_graph(
     best_actions = tf.argmax(tf.transpose(q_values), axis=1, name="best_actions")
 
     q_values_selected = tf.gather(q_values, actions_ph, name="q_values_selected")
-    error = tf.reduce_sum(tf.square(target_q_values_ph - q_values_selected), axis=1)
-    train_op = optimizer.minimize(error)
+    loss = tf.reduce_sum(tf.square(target_q_values_ph - q_values_selected), axis=1)
+    train_op = optimizer.minimize(loss)
 
     def train(observations, actions, target_q_values):
         error, _ = tf.get_default_session().run(
-            [error, train_op],
+            [loss, train_op],
             {
                 observations_ph: observations,
                 actions_ph: actions,

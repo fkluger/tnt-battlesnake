@@ -2,10 +2,7 @@ import argparse
 
 import numpy as np
 
-from apex.configuration import Configuration
-from apex.actor import Actor
-from apex.enemy_actor import EnemyActor
-from apex.models import Observation
+from apex import Configuration, Actor, EnemyActor, Observation
 from environment.battlesnake_environment import BattlesnakeEnvironment
 from main_utils import wrap_main
 from tensorboard_logger import TensorboardLogger

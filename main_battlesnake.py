@@ -5,7 +5,7 @@ import random
 import bottle
 
 from battlesnake.agent import Agent
-from apex.configuration import Configuration
+from apex import Configuration
 
 snake: Agent = None
 config: Configuration = None

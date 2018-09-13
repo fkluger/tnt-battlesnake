@@ -9,8 +9,6 @@ import zmq
 
 import numpy as np
 
-from dqn.network import DQN
-
 from .models import Experience, Observation
 from .utils import get_ip_address
 from .configuration import Configuration
@@ -19,7 +17,7 @@ from .actor_statistics import ActorStatistics
 LOGGER = logging.getLogger("Actor")
 
 
-class Actor:
+class AbstractActor:
     def __init__(
         self,
         config: Configuration,
@@ -37,12 +35,6 @@ class Actor:
             self.config.epsilon_base, (self.idx / self.config.get_num_actors()) * 7
         )
         LOGGER.info(f"Epsilon: {self.epsilon}")
-        self.input_shape = (config.width, config.height, config.stacked_frames)
-        self.dqn = DQN(
-            input_shape=self.input_shape,
-            num_actions=3,
-            learning_rate=config.learning_rate,
-        )
         learner_address = config.learner_ip_address + ":" + config.starting_port
         self._connect_sockets(learner_address)
 
@@ -50,9 +42,10 @@ class Actor:
         if not deterministic and random.random() < self.epsilon:
             return np.random.choice(3), False
         else:
-            q_values = self.dqn.predict(state)
-            best_action = np.argmax(q_values)
-            return best_action, True
+            return self._act(state)
+
+    def _act(self, state):
+        pass
 
     def observe(self, observation: Observation):
         self.episode_buffer.append(observation)
@@ -65,26 +58,21 @@ class Actor:
                 self.send_experiences()
                 self.buffer.clear()
 
-    def _decompress_weights(self, weights):
-        return pickle.loads(weights)
+    def _update_parameters(self, message):
+        pass
 
     def update_parameters(self):
         try:
             message = self.parameter_socket.recv_multipart(flags=zmq.NOBLOCK)
-            online_weights_pickled, target_weights_pickled = message[1], message[2]
-            online_weights = self._decompress_weights(online_weights_pickled)
-            self.dqn.online_model.set_weights(online_weights)
-
-            if target_weights_pickled != b"empty":
-                target_weights = self._decompress_weights(target_weights_pickled)
-                self.dqn.target_model.set_weights(target_weights)
-            LOGGER.info("Received parameter update from learner.")
-            return True
+            return self._update_parameters(message)
         except zmq.Again:
             return False
 
+    def _compute_errors(self):
+        pass
+
     def send_experiences(self):
-        _, _, errors = self.dqn.create_targets(self.buffer, len(self.buffer))
+        errors = self._compute_errors()
         experiences = [
             Experience(observation, errors[idx])
             for idx, observation in enumerate(self.buffer)

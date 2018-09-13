@@ -12,6 +12,7 @@ class Configuration:
             self.render_interval: int = config["render_interval"]
             self.output_directory: str = config["output_directory"]
 
+            self.num_actions: int = config["num_actions"]
             self.width: int = config["width"]
             self.height: int = config["height"]
             self.snakes: int = config["snakes"]
@@ -45,6 +46,15 @@ class Configuration:
             self.starting_port: str = config["starting_port"]
             self.actors: Dict[str, int] = config["actors"]
             self.actor_buffer_size: int = config["actor_buffer_size"]
+
+            self.nec_key_length: int = config["nec_key_length"]
+            self.nec_capacity: int = config["nec_capacity"]
+            self.nec_num_nearest_neighbours: int = config["nec_num_nearest_neighbours"]
+            self.nec_delta: float = config["nec_delta"]
+            self.nec_learning_rate: float = config["nec_learning_rate"]
+
+    def get_input_shape(self):
+        return [self.width, self.height, self.stacked_frames]
 
     def get_num_actors(self) -> int:
         num_actors = 0

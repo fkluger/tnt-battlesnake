@@ -2,11 +2,11 @@ import numpy as np
 
 from environment.snake import Snake
 from environment.state import State
-from apex.actor import Actor
+from apex import AbstractActor
 
 
 class EnemyActor:
-    def __init__(self, actor: Actor):
+    def __init__(self, actor: AbstractActor):
         self.actor = actor
 
     def act(self, state: State, snake_idx: int):

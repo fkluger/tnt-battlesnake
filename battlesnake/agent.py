@@ -3,8 +3,8 @@ import logging
 from collections import deque
 import numpy as np
 
-from dqn.network import DQN
-from apex.configuration import Configuration
+from dqn import DQN
+from apex import Configuration
 from environment.constants import DIRECTIONS
 from environment.snake import Snake
 from .data_to_state import data_to_state

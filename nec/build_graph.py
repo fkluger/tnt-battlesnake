@@ -1,0 +1,62 @@
+from typing import List, Tuple
+
+import tensorflow as tf
+from .dnd import DifferentiableNeuralDictionary
+
+
+def build_graph(
+    encoder: tf.keras.Model,
+    optimizer: tf.train.Optimizer,
+    dnds: List[DifferentiableNeuralDictionary],
+    input_shape: List[int],
+    num_actions: int,
+    key_length: int,
+):
+    observations_ph = tf.placeholder(
+        name="observations", shape=[None] + input_shape, dtype=tf.float32
+    )
+    q_values_ph = tf.placeholder(name="q_values", shape=[None], dtype=tf.float32)
+    actions_ph = tf.placeholder(name="actions", shape=[None], dtype=tf.int32)
+    target_q_values_ph = tf.placeholder(
+        name="target_q_values", shape=[None], dtype=tf.float32
+    )
+
+    keys = encoder(observations_ph)
+
+    q_values = [dnd.lookup(keys) for dnd in dnds]
+    best_actions = tf.argmax(tf.transpose(q_values), axis=1, name="best_actions")
+
+    q_values_selected = tf.gather(q_values, actions_ph, name="q_values_selected")
+    error = tf.reduce_sum(tf.square(target_q_values_ph - q_values_selected), axis=1)
+    train_op = optimizer.minimize(error)
+
+    def train(observations, actions, target_q_values):
+        error, _ = tf.get_default_session().run(
+            [error, train_op],
+            {
+                observations_ph: observations,
+                actions_ph: actions,
+                target_q_values_ph: target_q_values,
+            },
+        )
+        return error
+
+    def act(observations):
+        return tf.get_default_session().run(
+            [best_actions, q_values], {observations_ph: observations}
+        )
+
+    def write(observations_per_action, q_values_per_action):
+        return [
+            tf.get_default_session().run(
+                dnds[a].write(keys, q_values_ph),
+                {
+                    observations_ph: observations_per_action[a],
+                    q_values_ph: q_values_per_action[a],
+                },
+            )
+            for a in range(num_actions)
+            if len(observations_per_action[a])
+        ]
+
+    return train, act, write

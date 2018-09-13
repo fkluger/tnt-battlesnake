@@ -16,6 +16,7 @@ class NECAgent:
         self.beta = config.replay_importance_weight
         self.epsilon = config.epsilon_base
         self.episode_buffer = []
+        self.write_buffer = []
         self.replay_buffer = PrioritizedBuffer(
             capacity=config.replay_capacity,
             epsilon=config.replay_min_priority,
@@ -58,20 +59,24 @@ class NECAgent:
         self.episode_buffer.append(observation)
         if observation.next_state is None:
             self.episode_buffer = self._compute_multistep_bootstrap(self.episode_buffer)
-            observations_per_action = [
-                [obs for obs in self.episode_buffer if obs.action == a]
-                for a in range(self.config.num_actions)
-            ]
-            states_per_action = [
-                [obs.state for obs in self.episode_buffer if obs.action == a]
-                for a in range(self.config.num_actions)
-            ]
-            q_values_per_action = [
-                self._compute_q_values(observations)
-                for observations in observations_per_action
-            ]
-            self._write(states_per_action, q_values_per_action)
+            self.write_buffer.extend(self.episode_buffer)
             self.episode_buffer.clear()
+
+            if len(self.write_buffer) > 1000:
+                observations_per_action = [
+                    [obs for obs in self.episode_buffer if obs.action == a]
+                    for a in range(self.config.num_actions)
+                ]
+                states_per_action = [
+                    [obs.state for obs in self.episode_buffer if obs.action == a]
+                    for a in range(self.config.num_actions)
+                ]
+                q_values_per_action = [
+                    self._compute_q_values(observations)
+                    for observations in observations_per_action
+                ]
+                self._write(states_per_action, q_values_per_action)
+                self.write_buffer.clear()
 
     def train(self):
         self._update_importance_weight_coefficient()

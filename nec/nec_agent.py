@@ -14,6 +14,7 @@ class NECAgent:
     def __init__(self, config: Configuration):
         self.config = config
         self.beta = config.replay_importance_weight
+        self.steps = 0
         self.epsilon = config.epsilon_base
         self.episode_buffer = []
         self.write_buffer = []
@@ -35,7 +36,7 @@ class NECAgent:
             for a in range(config.num_actions)
         ]
         self.encoder = create_encoder(config.get_input_shape(), config.nec_key_length)
-        self._train, self._act, self._write, self._update_indices = build_graph(
+        self._train, self._act, self._write, self.update_indices = build_graph(
             self.encoder,
             tf.train.AdamOptimizer(config.learning_rate),
             self.dnds,
@@ -44,6 +45,7 @@ class NECAgent:
         )
 
     def act(self, state):
+        self.steps += 1
         if np.random.uniform(0.0, 1.0) < self.epsilon:
             return np.random.choice(self.config.num_actions), False
         else:
@@ -54,8 +56,8 @@ class NECAgent:
 
     def observe(self, observation: Observation):
         # TODO: Compute error
-        self.replay_buffer.add(observation)
         self.episode_buffer.append(observation)
+        self.epsilon = 0.01 + (1.0 - 0.01) * np.exp(-0.0001 * self.steps)
         if observation.next_state is None:
             self.episode_buffer = self._compute_multistep_bootstrap(self.episode_buffer)
             self.write_buffer.extend(self.episode_buffer)
@@ -63,19 +65,21 @@ class NECAgent:
 
             if len(self.write_buffer) > 1000:
                 observations_per_action = [
-                    [obs for obs in self.episode_buffer if obs.action == a]
+                    [obs for obs in self.write_buffer if obs.action == a]
                     for a in range(self.config.num_actions)
                 ]
                 states_per_action = [
-                    [obs.state for obs in self.episode_buffer if obs.action == a]
+                    [obs.state for obs in self.write_buffer if obs.action == a]
                     for a in range(self.config.num_actions)
                 ]
                 q_values_per_action = [
                     self._compute_q_values(observations)
                     for observations in observations_per_action
                 ]
+                for observation in self.write_buffer:
+                    self.replay_buffer.add(observation)
                 self._write(states_per_action, q_values_per_action)
-                self._update_indices()
+                self.update_indices()
                 self.write_buffer.clear()
 
     def train(self):
@@ -91,7 +95,7 @@ class NECAgent:
 
     def _compute_q_values(self, observations: List[Observation]):
         q_values = np.zeros(len(observations))
-        if len(observations):
+        if len(observations) > 0:
             _, q_values_next = self._act(
                 [
                     (

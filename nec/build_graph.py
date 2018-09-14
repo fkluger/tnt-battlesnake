@@ -24,10 +24,11 @@ def build_graph(
         keys = encoder(tf.to_float(observations_ph))
 
         q_values = [dnd.lookup(keys) for dnd in dnds]
+        mean_q_values = tf.reduce_mean(q_values)
         best_actions = tf.argmax(tf.transpose(q_values), axis=1, name="best_actions")
 
         q_values_selected = tf.gather(q_values, actions_ph, name="q_values_selected")
-        loss = tf.reduce_sum(tf.square(target_q_values_ph - q_values_selected))
+        loss = tf.reduce_mean(tf.square(target_q_values_ph - q_values_selected))
         train_op = optimizer.minimize(loss)
 
         def update_indices():
@@ -36,15 +37,15 @@ def build_graph(
             )
 
         def train(observations, actions, target_q_values):
-            error, _ = tf.get_default_session().run(
-                [loss, train_op],
+            error, _, q_values = tf.get_default_session().run(
+                [loss, train_op, mean_q_values],
                 {
                     observations_ph: observations,
                     actions_ph: actions,
                     target_q_values_ph: target_q_values,
                 },
             )
-            return error
+            return error, q_values
 
         def act(observations):
             return tf.get_default_session().run(

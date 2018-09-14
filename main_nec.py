@@ -26,14 +26,17 @@ def main():
         )
 
         sess.run(tf.global_variables_initializer())
+        agent._update_indices()
         while True:
             state = env.reset()
             terminal = False
             while not terminal:
                 if env.stats.steps > config.random_initial_steps:
                     if env.stats.steps % 16 == 0:
-                        error = agent.train()
+                        error, mean_q_value = agent.train()
                         tensorboard_logger.log(Metric("loss", MetricType.Value, error, env.stats.steps))
+                        tensorboard_logger.log(Metric("mean_q_value", MetricType.Value, mean_q_value, env.stats.steps))
+                        tensorboard_logger.log(Metric("epsilon", MetricType.Value, agent.epsilon, env.stats.steps))
                     action, greedy = agent.act(state)
                 else:
                     action = np.random.choice(3)

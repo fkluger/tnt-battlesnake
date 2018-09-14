@@ -60,7 +60,7 @@ class BattlesnakeEnvironment:
 
         return next_state, reward, terminal or won
 
-    def render(self, mode="human"):
+    def render(self):
         episode = self.stats.episodes
         steps = self.stats.episode_steps[-1]
         fruits = self.stats.episode_fruits[-1]

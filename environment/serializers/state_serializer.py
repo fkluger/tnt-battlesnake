@@ -27,7 +27,7 @@ class StateSerializer:
     def on_reset(self):
         self.last_frames_per_snake = [
             deque(
-                np.zeros([self.stacked_frames, self.width, self.height], dtype=np.float32),
+                np.zeros([self.stacked_frames, self.width, self.height], dtype=np.int8),
                 self.stacked_frames,
             )
             for snake_idx in range(self.snakes)
@@ -36,7 +36,7 @@ class StateSerializer:
     def serialize(self, snake_perspective, state):
         if snake_perspective == 0:
             for snake_idx in range(self.snakes):
-                current_state = np.zeros([state.width, state.height], dtype=np.float32)
+                current_state = np.zeros([state.width, state.height], dtype=np.int8)
                 for x in range(state.width):
                     for y in range(state.height):
                         if (

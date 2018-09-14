@@ -8,8 +8,8 @@ class DifferentiableNeuralDictionaryTest(tf.test.TestCase):
     def testWrite(self):
         batch_size = 2
         key_length = 1
-        capacity = 20
-        num_nearest_neighbours = 8
+        capacity = 500000
+        num_nearest_neighbours = 50
         dnd = DifferentiableNeuralDictionary(
             0, capacity, key_length, num_nearest_neighbours, 1e-3, 0.1
         )
@@ -30,17 +30,7 @@ class DifferentiableNeuralDictionaryTest(tf.test.TestCase):
             for i in range(10):
                 sess.run(write_op, {keys: np.array([[i], [i]]), values: np.array([i, i])})
 
-            print("Keys\n", dnd.keys.eval())
-            print("Values\n", dnd.values.eval())
-            print("Ages\n", dnd.ages.eval())
-
             sess.run(lookup_op, {keys: np.array([[1], [1]])})
-
-            print("Keys\n", dnd.keys.eval())
-            print("Values\n", dnd.values.eval())
-            print("Ages\n", dnd.ages.eval())
-
-            sess.run(lookup_op, {keys: np.array([[5], [5]])})
 
             print("Keys\n", dnd.keys.eval())
             print("Values\n", dnd.values.eval())

@@ -160,9 +160,7 @@ class DifferentiableNeuralDictionary:
         distances = tf.square(
             tf.norm(
                 tf.expand_dims(self.keys, 0)  # [1, capacity, key_length]
-                - tf.tile(
-                    tf.expand_dims(keys, 1), [1, self.capacity, 1]
-                ),  # [batch_size, capacity, key_length]
+                - tf.expand_dims(keys, 1),  # [batch_size, 1, key_length]
                 axis=-1,
             )
         )

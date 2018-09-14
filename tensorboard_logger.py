@@ -19,13 +19,13 @@ class Metric:
 
 
 class TensorboardLogger:
-    def __init__(self, output_directory, actor_idx=None):
+    def __init__(self, output_directory, actor_idx=None, graph=None):
         if actor_idx is not None:
             self.output_directory = f"{output_directory}/actor-{actor_idx}"
         else:
             self.output_directory = f"{output_directory}/learner"
 
-        self.writer = tf.summary.FileWriter(self.output_directory)
+        self.writer = tf.summary.FileWriter(self.output_directory, graph=graph)
         if actor_idx == 1:
             self._init_custom_scalar_layout()
 

@@ -16,7 +16,7 @@ def main():
         actor_index = 0
         config = Configuration("./apex/config.json")
         agent = NECAgent(config)
-        tensorboard_logger = TensorboardLogger(config.output_directory, actor_index)
+        tensorboard_logger = TensorboardLogger(config.output_directory, actor_index, sess.graph)
         env = BattlesnakeEnvironment(
             config,
             enemy_agents=[],

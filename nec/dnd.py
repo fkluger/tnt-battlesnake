@@ -19,7 +19,7 @@ class DifferentiableNeuralDictionary:
         self.delta = delta
         self.learning_rate = learning_rate
         self._reset_index()
-        with tf.name_scope("dnd"):
+        with tf.name_scope(f"dnd_{action_index}"):
             self.pointer = tf.get_variable(
                 f"pointer_{action_index}",
                 [],

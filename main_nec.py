@@ -26,7 +26,7 @@ def main():
         )
 
         sess.run(tf.global_variables_initializer())
-        agent._update_indices()
+        agent.update_indices()
         while True:
             state = env.reset()
             terminal = False

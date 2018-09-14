@@ -2,6 +2,7 @@ from typing import List, Tuple
 
 import tensorflow as tf
 from .dnd import DifferentiableNeuralDictionary
+from dqn.huber_loss import huber_loss
 
 
 def build_graph(
@@ -28,7 +29,7 @@ def build_graph(
         best_actions = tf.argmax(tf.transpose(q_values), axis=1, name="best_actions")
 
         q_values_selected = tf.gather(q_values, actions_ph, name="q_values_selected")
-        loss = tf.reduce_mean(tf.square(target_q_values_ph - q_values_selected))
+        loss = huber_loss(target_q_values_ph, q_values_selected)
         train_op = optimizer.minimize(loss)
 
         def update_indices():

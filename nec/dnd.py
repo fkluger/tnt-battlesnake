@@ -54,6 +54,7 @@ class DifferentiableNeuralDictionary:
             self.index.reset()
             self.index.add(keys)
             return True
+
         return tf.py_func(_update_index, [self.keys], bool)
 
     def lookup(self, keys):
@@ -70,6 +71,7 @@ class DifferentiableNeuralDictionary:
             weights = nn_distances / tf.reshape(
                 tf.reduce_sum(nn_distances, -1), [-1, 1]
             )
+
             values = tf.reduce_sum(nn_values * weights, axis=-1)
 
             with tf.control_dependencies([update_ages_op, self.write(keys, values)]):
@@ -77,6 +79,7 @@ class DifferentiableNeuralDictionary:
 
     def write(self, keys, values):
         with tf.name_scope("write"):
+            # [batch_size, num_nearest_neighbours], [batch_size, num_nearest_neighbours]
             nn_distances, nn_indices = self._find_nearest_neighbours(keys)
             # [batch_size] of minimal distances to self.values
             min_distances = nn_distances[:, 0]
@@ -85,12 +88,18 @@ class DifferentiableNeuralDictionary:
             not_zero_distances_mask = tf.logical_not(tf.equal(min_distances, 0.))
 
             update_values_op = self._update_values(
-                tf.boolean_mask(nn_indices, zero_distances_mask),
-                tf.boolean_mask(nn_distances, zero_distances_mask),
+                tf.boolean_mask(nn_indices, tf.expand_dims(zero_distances_mask, 0)),
+                tf.boolean_mask(values, zero_distances_mask),
+            )
+
+            cond_update_values_op = tf.cond(
+                tf.greater(tf.count_nonzero(zero_distances_mask), 0),
+                lambda: update_values_op,
+                lambda: 0.0,
             )
 
             # Update values when min_distances is evaluated
-            with tf.control_dependencies([update_values_op]):
+            with tf.control_dependencies([cond_update_values_op]):
                 keys = tf.identity(keys)
 
             new_keys, new_values = (
@@ -98,7 +107,7 @@ class DifferentiableNeuralDictionary:
                 tf.boolean_mask(values, not_zero_distances_mask),
             )
 
-            return  tf.cond(
+            return tf.cond(
                 tf.less_equal(
                     tf.add(self.pointer, tf.shape(new_keys)[0]), self.capacity
                 ),
@@ -108,7 +117,9 @@ class DifferentiableNeuralDictionary:
 
     def _replace(self, keys, values):
         with tf.name_scope("replace"):
-            _, max_age_indices = tf.nn.top_k(self.ages, k=tf.shape(keys)[0], sorted=False)
+            _, max_age_indices = tf.nn.top_k(
+                self.ages, k=tf.shape(keys)[0], sorted=False
+            )
             replace_op = tf.group(
                 tf.scatter_update(self.keys, max_age_indices, keys),
                 tf.scatter_update(self.values, max_age_indices, values),
@@ -150,9 +161,13 @@ class DifferentiableNeuralDictionary:
 
     def _find_nearest_neighbours(self, keys):
         with tf.name_scope("find_nearest_neighbours"):
+
             def approximate_nearest_neighbours(query_keys):
                 return self.index.search(query_keys, self.num_nearest_neighbours)
-            nn_distances, nn_indices = tf.py_func(approximate_nearest_neighbours, [keys], [tf.float32, tf.int64])
+
+            nn_distances, nn_indices = tf.py_func(
+                approximate_nearest_neighbours, [keys], [tf.float32, tf.int64]
+            )
             nn_distances.set_shape([None, self.num_nearest_neighbours])
             nn_indices.set_shape([None, self.num_nearest_neighbours])
             return nn_distances, nn_indices

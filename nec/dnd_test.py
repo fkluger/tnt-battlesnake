@@ -7,9 +7,9 @@ from dnd import DifferentiableNeuralDictionary
 class DifferentiableNeuralDictionaryTest(tf.test.TestCase):
     def testWrite(self):
         batch_size = 2
-        key_length = 32
-        capacity = 500000 * 5
-        num_nearest_neighbours = 1
+        key_length = 1
+        capacity = 20
+        num_nearest_neighbours = 4
         dnd = DifferentiableNeuralDictionary(
             0, capacity, key_length, num_nearest_neighbours, 1e-3, 0.1
         )
@@ -32,17 +32,18 @@ class DifferentiableNeuralDictionaryTest(tf.test.TestCase):
 
             sess.run(dnd.update_index())
 
-            for i in range(5):
+            for i in range(1, 5):
                 print("Write")
-                print(np.ones([batch_size, key_length]))
+                print(np.ones([batch_size, key_length]) * i)
                 sess.run(write_op, {keys: np.ones([batch_size, key_length]) * i, values: np.ones([batch_size]) * i})
             
             sess.run(dnd.update_index())
 
-            print("Lookup")
-            print(np.ones([1, key_length]))
-            value = sess.run(lookup_op, {lookup_keys: np.ones([1, key_length])})
-            print(f"===> {value}")
+            for i in range(100):
+                print("Lookup")
+                print(3 * np.ones([1, key_length]))
+                value = sess.run(lookup_op, {lookup_keys: 3 * np.ones([1, key_length])})
+                print(f"===> {value}")
 
             print("Keys\n", dnd.keys.eval())
             print("Values\n", dnd.values.eval())

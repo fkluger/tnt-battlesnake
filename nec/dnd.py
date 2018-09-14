@@ -80,29 +80,31 @@ class DifferentiableNeuralDictionary:
 
     def write(self, keys, values):
         with tf.name_scope("write"):
-            batch_size = tf.shape(keys)[0]
-            # [batch_size, capacity]
-            distances = self._distance_kernel(keys)
-            # [batch_size] of indices of self.keys
-            min_distance_indices = tf.argmax(distances, axis=-1, output_type=tf.int32)
-            # [batch_size] of minimal distances to self.values
-            min_distances = tf.gather_nd(
-                distances,
-                tf.stack([tf.range(batch_size), min_distance_indices], axis=1),
-            )
+            # batch_size = tf.shape(keys)[0]
+            # # [batch_size, capacity]
+            # distances = self._distance_kernel(keys)
+            # # [batch_size] of indices of self.keys
+            # min_distance_indices = tf.argmax(distances, axis=-1, output_type=tf.int32)
+            # # [batch_size] of minimal distances to self.values
+            # min_distances = tf.gather_nd(
+            #     distances,
+            #     tf.stack([tf.range(batch_size), min_distance_indices], axis=1),
+            # )
 
-            zero_distances_mask = tf.equal(min_distances, 1. / self.delta)
-            not_zero_distances_mask = tf.logical_not(tf.equal(min_distances, 0.))
+            # zero_distances_mask = tf.equal(min_distances, 1. / self.delta)
+            # not_zero_distances_mask = tf.logical_not(tf.equal(min_distances, 0.))
 
-            update_values_op = self._update_values(
-                tf.boolean_mask(min_distance_indices, zero_distances_mask),
-                tf.boolean_mask(min_distances, zero_distances_mask),
-            )
+            # update_values_op = self._update_values(
+            #     tf.boolean_mask(min_distance_indices, zero_distances_mask),
+            #     tf.boolean_mask(min_distances, zero_distances_mask),
+            # )
 
-            new_keys, new_values = (
-                tf.boolean_mask(keys, not_zero_distances_mask),
-                tf.boolean_mask(values, not_zero_distances_mask),
-            )
+            # new_keys, new_values = (
+            #     tf.boolean_mask(keys, not_zero_distances_mask),
+            #     tf.boolean_mask(values, not_zero_distances_mask),
+            # )
+
+            new_keys, new_values = keys, values
 
             condition_pointer_less_capacity = tf.cond(
                 tf.less_equal(
@@ -112,11 +114,11 @@ class DifferentiableNeuralDictionary:
                 lambda: self._replace(new_keys, new_values),
             )
 
-            # Update values when min_distances is evaluated
-            with tf.control_dependencies([update_values_op]):
-                condition_pointer_less_capacity = tf.identity(
-                    condition_pointer_less_capacity
-                )
+            # # Update values when min_distances is evaluated
+            # with tf.control_dependencies([update_values_op]):
+            #     condition_pointer_less_capacity = tf.identity(
+            #         condition_pointer_less_capacity
+            #     )
 
             return condition_pointer_less_capacity
 

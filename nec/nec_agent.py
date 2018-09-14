@@ -35,13 +35,12 @@ class NECAgent:
             for a in range(config.num_actions)
         ]
         self.encoder = create_encoder(config.get_input_shape(), config.nec_key_length)
-        self._train, self._act, self._write = build_graph(
+        self._train, self._act, self._write, self._update_indices = build_graph(
             self.encoder,
             tf.train.AdamOptimizer(config.learning_rate),
             self.dnds,
             config.get_input_shape(),
-            config.num_actions,
-            config.nec_key_length,
+            config.num_actions
         )
 
     def act(self, state):
@@ -76,6 +75,7 @@ class NECAgent:
                     for observations in observations_per_action
                 ]
                 self._write(states_per_action, q_values_per_action)
+                self._update_indices()
                 self.write_buffer.clear()
 
     def train(self):
@@ -87,7 +87,7 @@ class NECAgent:
         actions = [obs.action for obs in batch]
         target_q_values = self._compute_q_values(batch)
 
-        error = self._train(states, actions, target_q_values)
+        return self._train(states, actions, target_q_values)
 
     def _compute_q_values(self, observations: List[Observation]):
         q_values = np.zeros(len(observations))

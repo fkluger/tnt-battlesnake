@@ -9,8 +9,7 @@ def build_graph(
     optimizer: tf.train.Optimizer,
     dnds: List[DifferentiableNeuralDictionary],
     input_shape: List[int],
-    num_actions: int,
-    key_length: int,
+    num_actions: int
 ):
     with tf.variable_scope("nec", reuse=None):
         observations_ph = tf.placeholder(
@@ -30,6 +29,11 @@ def build_graph(
         q_values_selected = tf.gather(q_values, actions_ph, name="q_values_selected")
         loss = tf.reduce_sum(tf.square(target_q_values_ph - q_values_selected))
         train_op = optimizer.minimize(loss)
+
+        def update_indices():
+            return tf.get_default_session().run(
+                [dnd.update_index() for dnd in dnds]
+            )
 
         def train(observations, actions, target_q_values):
             error, _ = tf.get_default_session().run(
@@ -60,4 +64,4 @@ def build_graph(
                 if len(observations_per_action[a])
             ]
 
-        return train, act, write
+        return train, act, write, update_indices

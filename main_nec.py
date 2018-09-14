@@ -6,7 +6,7 @@ import numpy as np
 from apex import Configuration, Observation
 from nec import NECAgent
 from environment.battlesnake_environment import BattlesnakeEnvironment
-from tensorboard_logger import TensorboardLogger
+from tensorboard_logger import TensorboardLogger, Metric, MetricType
 from main_utils import wrap_main
 
 
@@ -32,7 +32,8 @@ def main():
             while not terminal:
                 if env.stats.steps > config.random_initial_steps:
                     if env.stats.steps % 16 == 0:
-                        agent.train()
+                        error = agent.train()
+                        tensorboard_logger.log(Metric("loss", MetricType.Value, error, env.stats.steps))
                     action, greedy = agent.act(state)
                 else:
                     action = np.random.choice(3)

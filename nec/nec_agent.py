@@ -52,12 +52,12 @@ class NECAgent:
             if len(state.shape) == 3:
                 state = np.expand_dims(state, 0)
             best_action, _ = self._act(state)
-            return best_action, True
+            return np.squeeze(best_action), True
 
     def observe(self, observation: Observation):
         # TODO: Compute error
         self.episode_buffer.append(observation)
-        self.epsilon = 0.01 + (1.0 - 0.01) * np.exp(-0.0001 * self.steps)
+        self.epsilon = 0.01 + (1.0 - 0.01) * np.exp(-1e-6 * self.steps)
         if observation.next_state is None:
             self.episode_buffer = self._compute_multistep_bootstrap(self.episode_buffer)
             self.write_buffer.extend(self.episode_buffer)

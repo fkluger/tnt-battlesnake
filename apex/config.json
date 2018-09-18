@@ -4,9 +4,9 @@
     "output_directory": "tmp",
 
     "num_actions": 3,
-    "width": 8,
-    "height": 8,
-    "snakes": 1,
+    "width": 15,
+    "height": 15,
+    "snakes": 2,
     "fruits": 1,
 
     "sparse_rewards": false,
@@ -35,9 +35,9 @@
     "actors": {
         "192.168.1.4": 1
     },
-    "actor_buffer_size": 1000,
+    "actor_buffer_size": 2000,
 
-    "nec_key_length": 16,
+    "nec_key_length": 32,
     "nec_capacity": 500000,
     "nec_num_nearest_neighbours": 50,
     "nec_delta": 1e-3,

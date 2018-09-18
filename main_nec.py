@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorboard.plugins import projector
 import numpy as np
 
-from apex import Configuration, Observation
+from apex import Configuration, Observation, EnemyActor
 from nec import NECAgent
 from environment.battlesnake_environment import BattlesnakeEnvironment
 from tensorboard_logger import TensorboardLogger, Metric, MetricType
@@ -21,9 +21,12 @@ def main():
         )
         agent = NECAgent(config, tensorboard_logger.writer)
         output_directory = f"{config.output_directory}/actor-{actor_index}"
+        enemy_agents = []
+        for _ in range(config.snakes - 1):
+            enemy_agents.append(EnemyActor(agent))
         env = BattlesnakeEnvironment(
             config,
-            enemy_agents=[],
+            enemy_agents=enemy_agents,
             output_directory=output_directory,
             actor_idx=actor_index,
             tensorboard_logger=tensorboard_logger,

@@ -1,21 +1,20 @@
-from typing import List, Tuple
-from timeit import default_timer as timer
+from typing import List
 
 import tensorflow as tf
 from tensorboard.plugins import projector
-from .dnd import DifferentiableNeuralDictionary
 from dqn.huber_loss import huber_loss
+
+from .dnd import DifferentiableNeuralDictionary
 
 
 def build_graph(
-    writer: tf.summary.FileWriter,
     encoder: tf.keras.Model,
     optimizer: tf.train.Optimizer,
     dnds: List[DifferentiableNeuralDictionary],
     input_shape: List[int],
     num_actions: int,
 ):
-    with tf.variable_scope("nec", reuse=None):
+    with tf.name_scope("nec"):
         observations_ph = tf.placeholder(
             name="observations", shape=[None] + input_shape, dtype=tf.int8
         )
@@ -26,16 +25,22 @@ def build_graph(
         )
 
         keys = encoder(tf.to_float(observations_ph))
+        q_values = tf.transpose([dnd.lookup(keys) for dnd in dnds], name="q_values")
 
-        q_values = [dnd.lookup(keys) for dnd in dnds]
-        mean_q_values = tf.reduce_mean(q_values)
-        best_actions = tf.argmax(tf.transpose(q_values), axis=1, name="best_actions")
+        with tf.name_scope("compute_best_action"):
+            mean_q_values = tf.reduce_mean(q_values)
+            best_actions = tf.argmax(q_values, axis=1, name="best_actions")
 
-        q_values_selected = tf.gather(q_values, actions_ph, name="q_values_selected")
-        loss, losses = huber_loss(target_q_values_ph, q_values_selected)
-        train_op = optimizer.minimize(loss)
+        with tf.name_scope("loss"):
+            q_values_selected = tf.reduce_sum(
+                q_values * tf.one_hot(actions_ph, num_actions),
+                axis=1,
+                name="q_values_selected",
+            )
+            loss, losses = huber_loss(target_q_values_ph, q_values_selected)
+            train_op = optimizer.minimize(loss)
 
-        losses = tf.reduce_mean(losses, axis=-1)
+            losses = tf.reduce_mean(losses, axis=-1)
 
         age_summaries = [
             tf.summary.histogram(f"dnd_{idx}/ages", dnd.ages)

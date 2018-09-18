@@ -80,13 +80,13 @@ class DifferentiableNeuralDictionary:
 
             update_ages_op = self._update_ages(nn_indices)
 
-            nn_values = tf.nn.embedding_lookup(self.values, nn_indices)
-            nn_keys = tf.nn.embedding_lookup(self.keys, nn_indices)
-            nn_distances = self._distance_kernel(keys, nn_keys)
+            with tf.name_scope("compute_values"):
+                nn_values = tf.nn.embedding_lookup(self.values, nn_indices)
+                nn_keys = tf.nn.embedding_lookup(self.keys, nn_indices)
+                nn_distances = self._distance_kernel(keys, nn_keys)
 
-            weights = nn_distances / tf.reduce_sum(nn_distances, -1, keepdims=True)
-
-            values = tf.reduce_sum(nn_values * weights, axis=-1)
+                weights = nn_distances / tf.reduce_sum(nn_distances, -1, keepdims=True)
+                values = tf.reduce_sum(nn_values * weights, axis=-1)
 
             with tf.control_dependencies([update_ages_op, self.write(keys, values)]):
                 return tf.identity(values)
@@ -103,7 +103,7 @@ class DifferentiableNeuralDictionary:
             min_distances = nn_distances[:, 0]
 
             zero_distances_mask = tf.equal(min_distances, 0.)
-            not_zero_distances_mask = tf.logical_not(tf.equal(min_distances, 0.))
+            not_zero_distances_mask = tf.logical_not(zero_distances_mask)
 
             update_values_op = self._update_values(
                 tf.boolean_mask(nn_indices, tf.expand_dims(zero_distances_mask, 0)),
@@ -116,22 +116,20 @@ class DifferentiableNeuralDictionary:
                 lambda: 0.0,
             )
 
-            # Update values when min_distances is evaluated
-            with tf.control_dependencies([cond_update_values_op]):
-                keys = tf.identity(keys)
-
             new_keys, new_values = (
                 tf.boolean_mask(keys, not_zero_distances_mask),
                 tf.boolean_mask(values, not_zero_distances_mask),
             )
 
-            return tf.cond(
-                tf.less_equal(
-                    tf.add(self.pointer, tf.shape(new_keys)[0]), self.capacity
-                ),
-                lambda: self._append(new_keys, new_values),
-                lambda: self._replace(new_keys, new_values),
-            )
+            # Update values when min_distances is evaluated
+            with tf.control_dependencies([cond_update_values_op]):
+                return tf.cond(
+                    tf.less_equal(
+                        tf.add(self.pointer, tf.shape(new_keys)[0]), self.capacity
+                    ),
+                    lambda: self._append(new_keys, new_values),
+                    lambda: self._replace(new_keys, new_values),
+                )
 
     def _replace(self, keys, values):
         with tf.name_scope("replace"):

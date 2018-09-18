@@ -37,7 +37,6 @@ class NECAgent:
         ]
         self.encoder = create_encoder(config.get_input_shape(), config.nec_key_length)
         self._train, self._act, self._write, self.update_indices, self.get_values, self.embedding_config, self.get_summaries = build_graph(
-            writer,
             self.encoder,
             tf.train.AdamOptimizer(config.learning_rate),
             self.dnds,
@@ -63,7 +62,7 @@ class NECAgent:
             self.write_buffer.extend(self.episode_buffer)
             self.episode_buffer.clear()
 
-            if len(self.write_buffer) > 1000:
+            if len(self.write_buffer) > self.config.actor_buffer_size:
                 observations_per_action = [
                     [obs for obs in self.write_buffer if obs.action == a]
                     for a in range(self.config.num_actions)
@@ -94,8 +93,9 @@ class NECAgent:
         # TODO: Use importance weights
 
         loss, q_values, errors = self._train(states, actions, target_q_values)
-        for idx, error in enumerate(errors):
-            self.replay_buffer.update(indices[idx], error)
+        if type(errors) == list:
+            for idx, error in enumerate(errors):
+                self.replay_buffer.update(indices[idx], error)
         return loss, q_values
 
     def _compute_q_values(self, observations: List[Observation]):
@@ -116,7 +116,7 @@ class NECAgent:
                     q_values[idx] = obs.reward
                 else:
                     q_values[idx] = obs.reward + obs.discount_factor * np.amax(
-                        np.transpose(q_values_next)[idx]
+                        q_values_next[idx]
                     )
         return q_values
 

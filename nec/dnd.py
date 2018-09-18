@@ -1,5 +1,6 @@
 import tensorflow as tf
-import faiss
+
+nn_module = tf.load_op_library("./nec/ops/build/libnearest_neighbor.dylib")
 
 
 class DifferentiableNeuralDictionary:
@@ -18,7 +19,6 @@ class DifferentiableNeuralDictionary:
         self.num_nearest_neighbours = num_nearest_neighbours
         self.delta = delta
         self.learning_rate = learning_rate
-        self._reset_index()
         with tf.name_scope(f"dnd_{action_index}"):
             self.pointer = tf.get_variable(
                 f"pointer_{action_index}",
@@ -49,28 +49,42 @@ class DifferentiableNeuralDictionary:
                 trainable=False,
             )
 
-    def update_index(self):
-        def _update_index(keys):
-            self.index.reset()
-            self.index.add(keys)
-            return True
+            # TODO: Save observations with their correct index in a tensor on the cpu
+            # TODO: Then extract them and create a sprite image
 
-        return tf.py_func(_update_index, [self.keys], bool)
+    def update_index(self):
+        return nn_module.add_to_index(
+            self.keys, reset=True, index_name=f"dnd_{self.action_index}"
+        )
+
+    def _distance_kernel(self, query_keys, nn_keys):
+        # We do not use tf.norm here because its gradient is not numerically stable for small values
+        distances = tf.reduce_sum(
+            tf.square(
+                tf.expand_dims(query_keys, 1)  # [batch_size, 1, key_length]
+                - nn_keys  # [batch_size, k, key_length]
+            ),
+            axis=-1,
+        )
+        return 1. / (distances + self.delta)
 
     def lookup(self, keys):
         with tf.name_scope("lookup"):
             # [batch_size, num_nearest_neighbours]
-            nn_distances, nn_indices = self._find_nearest_neighbours(keys)
+
+            _, nn_indices = nn_module.nearest_neighbors(
+                keys,
+                k=self.num_nearest_neighbours,
+                index_name=f"dnd_{self.action_index}",
+            )
 
             update_ages_op = self._update_ages(nn_indices)
 
             nn_values = tf.nn.embedding_lookup(self.values, nn_indices)
+            nn_keys = tf.nn.embedding_lookup(self.keys, nn_indices)
+            nn_distances = self._distance_kernel(keys, nn_keys)
 
-            nn_distances = 1. / (nn_distances + self.delta)
-
-            weights = nn_distances / tf.reshape(
-                tf.reduce_sum(nn_distances, -1), [-1, 1]
-            )
+            weights = nn_distances / tf.reduce_sum(nn_distances, -1, keepdims=True)
 
             values = tf.reduce_sum(nn_values * weights, axis=-1)
 
@@ -80,7 +94,11 @@ class DifferentiableNeuralDictionary:
     def write(self, keys, values):
         with tf.name_scope("write"):
             # [batch_size, num_nearest_neighbours], [batch_size, num_nearest_neighbours]
-            nn_distances, nn_indices = self._find_nearest_neighbours(keys)
+            nn_distances, nn_indices = nn_module.nearest_neighbors(
+                keys,
+                k=self.num_nearest_neighbours,
+                index_name=f"dnd_{self.action_index}",
+            )
             # [batch_size] of minimal distances to self.values
             min_distances = nn_distances[:, 0]
 
@@ -155,22 +173,6 @@ class DifferentiableNeuralDictionary:
                 values - values_to_update
             )
             return tf.scatter_update(self.values, indices, updated_values)
-
-    def _reset_index(self):
-        self.index = faiss.IndexFlatL2(self.key_length)
-
-    def _find_nearest_neighbours(self, keys):
-        with tf.name_scope("find_nearest_neighbours"):
-
-            def approximate_nearest_neighbours(query_keys):
-                return self.index.search(query_keys, self.num_nearest_neighbours)
-
-            nn_distances, nn_indices = tf.py_func(
-                approximate_nearest_neighbours, [keys], [tf.float32, tf.int64]
-            )
-            nn_distances.set_shape([None, self.num_nearest_neighbours])
-            nn_indices.set_shape([None, self.num_nearest_neighbours])
-            return nn_distances, nn_indices
 
     def _update_ages(self, indices):
         with tf.name_scope("update_ages"):

@@ -10,3 +10,9 @@
 [submodule "enemies/snakebot"]
 	path = enemies/snakebot
 	url = https://github.com/graeme-hill/snakebot
+[submodule "nec/ops/faiss"]
+	path = nec/ops/faiss
+	url = https://github.com/facebookresearch/faiss
+[submodule "nec/ops/googletest"]
+	path = nec/ops/googletest
+	url = https://github.com/google/googletest

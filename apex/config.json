@@ -11,7 +11,7 @@
 
     "sparse_rewards": false,
 
-    "random_initial_steps": 5000,
+    "random_initial_steps": 10000,
     "batch_size": 32,
     "learning_rate": 0.001,
     "discount_factor": 0.99,
@@ -37,7 +37,7 @@
     },
     "actor_buffer_size": 1000,
 
-    "nec_key_length": 32,
+    "nec_key_length": 16,
     "nec_capacity": 500000,
     "nec_num_nearest_neighbours": 50,
     "nec_delta": 1e-3,

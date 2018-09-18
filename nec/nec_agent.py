@@ -11,7 +11,7 @@ from .encoder import create_encoder
 
 
 class NECAgent:
-    def __init__(self, config: Configuration):
+    def __init__(self, config: Configuration, writer: tf.summary.FileWriter):
         self.config = config
         self.beta = config.replay_importance_weight
         self.steps = 0
@@ -36,12 +36,13 @@ class NECAgent:
             for a in range(config.num_actions)
         ]
         self.encoder = create_encoder(config.get_input_shape(), config.nec_key_length)
-        self._train, self._act, self._write, self.update_indices = build_graph(
+        self._train, self._act, self._write, self.update_indices, self.get_values, self.embedding_config, self.get_summaries = build_graph(
+            writer,
             self.encoder,
             tf.train.AdamOptimizer(config.learning_rate),
             self.dnds,
             config.get_input_shape(),
-            config.num_actions
+            config.num_actions,
         )
 
     def act(self, state):
@@ -55,9 +56,8 @@ class NECAgent:
             return np.squeeze(best_action), True
 
     def observe(self, observation: Observation):
-        # TODO: Compute error
         self.episode_buffer.append(observation)
-        self.epsilon = 0.01 + (1.0 - 0.01) * np.exp(-1e-6 * self.steps)
+        self.epsilon = 0.01 + (1.0 - 0.01) * np.exp(-1e-5 * self.steps)
         if observation.next_state is None:
             self.episode_buffer = self._compute_multistep_bootstrap(self.episode_buffer)
             self.write_buffer.extend(self.episode_buffer)
@@ -91,7 +91,12 @@ class NECAgent:
         actions = [obs.action for obs in batch]
         target_q_values = self._compute_q_values(batch)
 
-        return self._train(states, actions, target_q_values)
+        # TODO: Use importance weights
+
+        loss, q_values, errors = self._train(states, actions, target_q_values)
+        for idx, error in enumerate(errors):
+            self.replay_buffer.update(indices[idx], error)
+        return loss, q_values
 
     def _compute_q_values(self, observations: List[Observation]):
         q_values = np.zeros(len(observations))

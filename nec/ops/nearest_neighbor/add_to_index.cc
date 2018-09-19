@@ -48,7 +48,7 @@ public:
     IndexContainer *indexContainer = NULL;
     ResourceMgr *rm = context->resource_manager();
 
-    Status s = rm->LookupOrCreate<IndexContainer>(std::string(index_name), std::string("index"), &indexContainer, [d, this](IndexContainer **ret) {
+    Status s = rm->LookupOrCreate<IndexContainer>(std::string(index_name), std::string("index"), &indexContainer, [d](IndexContainer **ret) {
       *ret = new IndexContainer(d);
       return Status::OK();
     });

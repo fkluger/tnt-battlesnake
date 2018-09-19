@@ -37,10 +37,9 @@ def build_graph(
                 axis=1,
                 name="q_values_selected",
             )
-            loss, losses = huber_loss(target_q_values_ph, q_values_selected)
+            losses = tf.square(target_q_values_ph - q_values_selected)
+            loss = tf.reduce_mean(losses)
             train_op = optimizer.minimize(loss)
-
-            losses = tf.reduce_mean(losses, axis=-1)
 
         age_summaries = [
             tf.summary.histogram(f"dnd_{idx}/ages", dnd.ages)

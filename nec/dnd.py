@@ -136,6 +136,12 @@ class DifferentiableNeuralDictionary:
             _, max_age_indices = tf.nn.top_k(
                 self.ages, k=tf.shape(keys)[0], sorted=False
             )
+            restrict_to_capacity_mask = tf.less_equal(max_age_indices, self.capacity)
+            keys, values, max_age_indices = (
+                tf.boolean_mask(keys, restrict_to_capacity_mask),
+                tf.boolean_mask(values, restrict_to_capacity_mask),
+                tf.boolean_mask(max_age_indices, restrict_to_capacity_mask),
+            )
             replace_op = tf.group(
                 tf.scatter_update(self.keys, max_age_indices, keys),
                 tf.scatter_update(self.values, max_age_indices, values),

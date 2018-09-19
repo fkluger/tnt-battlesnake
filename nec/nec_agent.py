@@ -46,6 +46,7 @@ class NECAgent:
 
     def act(self, state):
         self.steps += 1
+        self.epsilon = 0.01 + (1.0 - 0.01) * np.exp(-1e-5 * self.steps)
         if np.random.uniform(0.0, 1.0) < self.epsilon:
             return np.random.choice(self.config.num_actions), False
         else:
@@ -56,7 +57,6 @@ class NECAgent:
 
     def observe(self, observation: Observation):
         self.episode_buffer.append(observation)
-        self.epsilon = 0.01 + (1.0 - 0.01) * np.exp(-1e-5 * self.steps)
         if observation.next_state is None:
             self.episode_buffer = self._compute_multistep_bootstrap(self.episode_buffer)
             self.write_buffer.extend(self.episode_buffer)
@@ -93,8 +93,7 @@ class NECAgent:
         # TODO: Use importance weights
 
         loss, q_values, errors = self._train(states, actions, target_q_values)
-        if type(errors) == list:
-            for idx, error in enumerate(errors):
+        for idx, error in enumerate(errors):
                 self.replay_buffer.update(indices[idx], error)
         return loss, q_values
 

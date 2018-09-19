@@ -1,6 +1,10 @@
+import platform
 import tensorflow as tf
 
-nn_module = tf.load_op_library("./nec/ops/build/libnearest_neighbor.dylib")
+if platform.system() == "Darwin":
+    nn_module = tf.load_op_library("./nec/ops/build/libnearest_neighbor.dylib")
+else:
+    nn_module = tf.load_op_library("./nec/ops/build/libnearest_neighbor.so")
 
 
 class DifferentiableNeuralDictionary:

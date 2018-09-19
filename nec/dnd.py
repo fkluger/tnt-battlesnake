@@ -1,10 +1,11 @@
-import platform
+# import platform
 import tensorflow as tf
+from faiss import IndexFlatL2
 
-if platform.system() == "Darwin":
-    nn_module = tf.load_op_library("./nec/ops/build/libnearest_neighbor.dylib")
-else:
-    nn_module = tf.load_op_library("./nec/ops/build/libnearest_neighbor.so")
+# if platform.system() == "Darwin":
+#     nn_module = tf.load_op_library("./nec/ops/build/libnearest_neighbor.dylib")
+# else:
+#     nn_module = tf.load_op_library("./nec/ops/build/libnearest_neighbor.so")
 
 
 class DifferentiableNeuralDictionary:
@@ -23,6 +24,7 @@ class DifferentiableNeuralDictionary:
         self.num_nearest_neighbours = num_nearest_neighbours
         self.delta = delta
         self.learning_rate = learning_rate
+        self.index = IndexFlatL2(self.key_length)
         with tf.name_scope(f"dnd_{action_index}"):
             self.pointer = tf.get_variable(
                 f"pointer_{action_index}",
@@ -57,9 +59,25 @@ class DifferentiableNeuralDictionary:
             # TODO: Then extract them and create a sprite image
 
     def update_index(self):
-        return nn_module.add_to_index(
-            self.keys, reset=True, index_name=f"dnd_{self.action_index}"
-        )
+        def _update_index(keys):
+            self.index.reset()
+            self.index.add(keys)
+            return True
+
+        return tf.py_func(_update_index, [self.keys], bool)
+
+    def _find_nearest_neighbours(self, keys):
+        with tf.name_scope("find_nearest_neighbours"):
+
+            def approximate_nearest_neighbours(query_keys):
+                return self.index.search(query_keys, self.num_nearest_neighbours)
+
+            nn_distances, nn_indices = tf.py_func(
+                approximate_nearest_neighbours, [keys], [tf.float32, tf.int64]
+            )
+            nn_distances.set_shape([None, self.num_nearest_neighbours])
+            nn_indices.set_shape([None, self.num_nearest_neighbours])
+            return nn_distances, nn_indices
 
     def _distance_kernel(self, query_keys, nn_keys):
         # We do not use tf.norm here because its gradient is not numerically stable for small values
@@ -76,11 +94,7 @@ class DifferentiableNeuralDictionary:
         with tf.name_scope("lookup"):
             # [batch_size, num_nearest_neighbours]
 
-            _, nn_indices = nn_module.nearest_neighbors(
-                keys,
-                k=self.num_nearest_neighbours,
-                index_name=f"dnd_{self.action_index}",
-            )
+            _, nn_indices = self._find_nearest_neighbours(keys)
 
             update_ages_op = self._update_ages(nn_indices)
 
@@ -98,11 +112,7 @@ class DifferentiableNeuralDictionary:
     def write(self, keys, values):
         with tf.name_scope("write"):
             # [batch_size, num_nearest_neighbours], [batch_size, num_nearest_neighbours]
-            nn_distances, nn_indices = nn_module.nearest_neighbors(
-                keys,
-                k=self.num_nearest_neighbours,
-                index_name=f"dnd_{self.action_index}",
-            )
+            nn_distances, nn_indices = self._find_nearest_neighbours(keys)
             # [batch_size] of minimal distances to self.values
             min_distances = nn_distances[:, 0]
 

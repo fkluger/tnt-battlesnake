@@ -4,16 +4,16 @@ import numpy as np
 
 
 class Field:
-    own_head_up = -42
-    own_head_right = -42
-    own_head_down = -42
-    own_head_left = -42
-    own_body = 32
-    own_tail = 33
-    head = 31
-    body = 32
-    tail = 33
-    fruit = 42
+    own_head_up = 200
+    own_head_right = 205
+    own_head_down = 210
+    own_head_left = 215
+    own_body = 190
+    own_tail = 180
+    head = 170
+    body = 180
+    tail = 190
+    fruit = 160
 
 
 class StateSerializer:

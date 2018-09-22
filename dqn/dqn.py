@@ -20,6 +20,7 @@ class DQN:
         self.callbacks = []
 
     def predict(self, state, target=False):
+        state = np.divide(state, 255.0, dtype=np.float)
         if len(state.shape) == 3:
             # Single state
             state = np.expand_dims(state, 0)
@@ -77,9 +78,9 @@ class DQN:
         )
         states = np.array([o.state for o in observations])
 
-        q_values = np.array(self.online_model.predict(states))
-        q_values_next = np.array(self.online_model.predict(next_states))
-        q_values_next_target = np.array(self.target_model.predict(next_states))
+        q_values = np.array(self.predict(states))
+        q_values_next = np.array(self.predict(next_states))
+        q_values_next_target = np.array(self.predict(next_states, target=True))
 
         return q_values, q_values_next, q_values_next_target
 

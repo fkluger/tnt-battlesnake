@@ -1,13 +1,13 @@
 import pickle
 
-from apex import AbstractLearner
+from apex import AbstractLearner, Configuration
 from dqn import DQN
 
 
 class Learner(AbstractLearner):
-    def __init__(self, config):
+    def __init__(self, config: Configuration):
         super().__init__(config)
-        self.input_shape = (config.width, config.height, self.config.stacked_frames)
+        self.input_shape = config.get_input_shape()
         self.dqn = DQN(
             input_shape=self.input_shape,
             num_actions=3,

@@ -54,7 +54,7 @@ class Configuration:
             self.nec_learning_rate: float = config["nec_learning_rate"]
 
     def get_input_shape(self):
-        return [self.width, self.height, self.stacked_frames]
+        return (self.width, self.height, self.stacked_frames)
 
     def get_num_actors(self) -> int:
         num_actors = 0

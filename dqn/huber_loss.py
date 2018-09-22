@@ -13,4 +13,4 @@ def huber_loss(y_true, y_pred):
 
         loss = tf.where(cond, L2, L1)
 
-        return tf.reduce_mean(loss), loss
+        return tf.reduce_mean(loss)

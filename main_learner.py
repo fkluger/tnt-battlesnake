@@ -1,18 +1,18 @@
 import time
 
-from apex.learner import Learner
-from apex.configuration import Configuration
+from dqn import Learner
+from apex import Configuration
 from main_utils import wrap_main
 
 
 def main():
-
-    learner = Learner(Configuration("./apex/config.json"))
+    config = Configuration("./apex/config.json")
+    learner = Learner(config)
     last_parameter_update = time.time()
     while True:
         learner.update_experiences()
         learner.evaluate_experiences()
-        if time.time() - last_parameter_update > 5:
+        if time.time() - last_parameter_update > config.parameter_update_interval:
             last_parameter_update = time.time()
             learner.send_parameters()
 

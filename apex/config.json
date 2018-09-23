@@ -18,10 +18,10 @@
     "target_update_interval": 250,
     "training_interval": 8,
     "parameter_update_interval": 100,
-    "multi_step_n": 5,
+    "multi_step_n": 3,
     "stacked_frames": 4,
 
-    "epsilon_base": 0.3,
+    "epsilon_base": 0.4,
 
     "replay_capacity": 2000000,
     "replay_min_priority": 0.01,
@@ -30,10 +30,10 @@
     "replay_importance_weight": 0.4,
     "replay_importance_weight_annealing_step_size": 0,
 
-    "learner_ip_address": "192.168.1.4",
+    "learner_ip_address": "130.75.31.197",
     "starting_port": "7680",
     "actors": {
-        "192.168.1.4": 3
+        "paris2": 10
     },
     "actor_buffer_size": 400,
 

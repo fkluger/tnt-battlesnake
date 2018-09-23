@@ -20,7 +20,7 @@ class DQN:
         self.callbacks = []
 
     def predict(self, state, target=False):
-        state = np.divide(state, 255.0, dtype=np.float)
+        state = state.astype(float) / 255.0
         if len(state.shape) == 3:
             # Single state
             state = np.expand_dims(state, 0)

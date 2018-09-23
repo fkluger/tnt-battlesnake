@@ -12,7 +12,7 @@ def main():
     while True:
         learner.update_experiences()
         learner.evaluate_experiences()
-        if time.time() - last_parameter_update > config.parameter_update_interval:
+        if time.time() - last_parameter_update > config.parameter_update_interval / 10.0:
             last_parameter_update = time.time()
             learner.send_parameters()
 

@@ -16,6 +16,9 @@ pip install sacred gym black pylint pybox2d tensorflow keras tensorboardX
 
 # Train a DQN agent
 python run.py train_dqn
+
+# In another terminal window
+tensorboard --logdir tmp
 ```
 
 ## Repository structure

@@ -31,9 +31,10 @@ class EpsilonGreedyStrategy(ExplorationStrategy):
             self._update_epsilon()
             self.last_episode = episode
         if np.random.random() < self.epsilon:
-            return np.random.randint(len(q_values))
+            size = q_values.shape[0] if len(q_values) == 2 else 1
+            return np.random.randint(q_values.shape[-1], size=(size,))
         else:
-            return np.argmax(q_values)
+            return np.argmax(q_values, axis=-1)
 
     def _update_epsilon(self):
         self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)

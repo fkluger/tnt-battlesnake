@@ -59,16 +59,16 @@ class DQNAgent:
         """
         self.global_step += 1
         is_convolutional = len(self.dqn.input_shape[0]) == 4
-        state = np.array(state)
+        state = np.asarray(state)
         if is_convolutional:
             if len(state.shape) == 3:
                 state = np.expand_dims(state, 0)
-            state = state / 255.0
+            state = state / 127.0
         else:
             if len(state.shape) == 1:
                 state = np.expand_dims(state, 0)
         q_values = np.squeeze(
-            self.dqn.predict([state, np.ones(shape=(1, self.num_actions))])
+            self.dqn.predict([state, np.ones(shape=(state.shape[0], self.num_actions))])
         )
         return self.exploration_strategy.choose_action(q_values, self.episode)
 
@@ -178,14 +178,26 @@ class DQNAgent:
         Returns:
             `Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]` -- Tensors to be used for training
         """
-        state_tensor = np.array([np.array(t.state) for t in transitions])
-        action_tensor = np.array([t.action for t in transitions], dtype=np.int64)
-        reward_tensor = np.array([t.reward for t in transitions])
-        next_state_tensor = np.array(
-            [np.array(t.next_state) for t in transitions if t.next_state is not None]
+        is_convolutional = len(self.dqn.input_shape[0]) == 4
+        state_tensor = np.asarray(
+            [
+                np.asarray(t.state) / 127.0 if is_convolutional else np.array(t.state)
+                for t in transitions
+            ]
+        )
+        action_tensor = np.asarray([t.action for t in transitions], dtype=np.int64)
+        reward_tensor = np.asarray([t.reward for t in transitions])
+        next_state_tensor = np.asarray(
+            [
+                np.asarray(t.next_state) / 127.0
+                if is_convolutional
+                else np.asarray(t.next_state)
+                for t in transitions
+                if t.next_state is not None
+            ]
         )
 
-        non_terminal_mask = np.array(
+        non_terminal_mask = np.asarray(
             [t.next_state is not None for t in transitions], dtype=np.uint8
         ).nonzero()
         return (

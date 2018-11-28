@@ -1,0 +1,35 @@
+{
+    "env": "CartPole-v0",
+    "episodes": 5000,
+    "render_episode_interval": 50,
+    "max_episode_length": 1000,
+    "frame_stack": 1,
+    "training_interval": 4,
+
+    "replay_memory": {
+        "capacity": 100000,
+        "epsilon": 0.01,
+        "alpha": 0.7,
+        "max_priority": 1.0
+    },
+
+    "dqn": {
+        "batch_size": 32,
+        "hidden_dim": 32,
+
+        "learning_rate": 0.0005,
+        "gamma": 0.99,
+        "target_update_rate": 0.001,
+
+        "dueling": true,
+        "double": true,
+
+        "beta": 0.4
+    },
+
+    "exploration": {
+        "epsilon_min": 0.02,
+        "epsilon_max": 1.0,
+        "epsilon_decay": 0.999
+    }
+}

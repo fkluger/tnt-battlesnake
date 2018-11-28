@@ -1,14 +1,20 @@
+from typing import List, Tuple
+
 import numpy as np
+
+from common.models.transition import Transition
 
 from .sum_tree import SumTree
 
 
-class PrioritizedBuffer:
+class PrioritizedMemory:
     """
-    Buffer that samples observations proportional to their time-difference error.
+    Buffer that samples transitions proportional to their time-difference error.
     """
 
-    def __init__(self, capacity, epsilon, alpha, max_priority):
+    def __init__(
+        self, capacity: int, epsilon: float, alpha: float, max_priority: float
+    ):
         self.tree = SumTree(capacity)
         self.capacity = capacity
         self.epsilon = epsilon
@@ -18,15 +24,17 @@ class PrioritizedBuffer:
     def size(self):
         return self.tree.size
 
-    def add(self, observation, error=None):
+    def add(self, transition: Transition, error=None):
         if error is None:
             priority = self.max_priority
         else:
             priority = self._getPriority(error)
-        return self.tree.add(priority, observation)
+        return self.tree.add(priority, transition)
 
-    def sample(self, batch_size, beta):
-        observations = np.ndarray(batch_size, dtype=tuple)
+    def sample(
+        self, batch_size: int, beta: float
+    ) -> Tuple[List[Transition], List[int], List[float]]:
+        transitions = np.ndarray(batch_size, dtype=tuple)
         indices = np.ndarray(batch_size, dtype=int)
         weights = np.ndarray(batch_size, dtype=float)
 
@@ -37,24 +45,28 @@ class PrioritizedBuffer:
             b = segment * (i + 1)
             s = np.random.uniform(a, b)
 
-            (idx, priority, observation) = self.tree.get(s)
+            (idx, priority, transition) = self.tree.get(s)
 
             # importance sampling weight
             weight = np.power(self.capacity * priority, -beta)
 
             weights[i] = weight
             indices[i] = idx
-            observations[i] = observation
+            transitions[i] = transition
 
         # Normalize weights to stabilize updates
         weights /= max(weights)
 
-        return observations, indices, weights
+        return transitions, indices, weights
 
-    def update(self, idx, error):
+    def update(self, indices: np.ndarray, errors: np.ndarray):
+        for idx, error in zip(indices, errors):
+            self._update(idx, error)
+
+    def _update(self, idx: int, error: float):
         p = self._getPriority(error)
         self.max_priority = max(p, self.max_priority)
         self.tree.update(idx, p)
 
-    def _getPriority(self, error):
+    def _getPriority(self, error: float):
         return (error + self.epsilon) ** self.alpha

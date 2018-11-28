@@ -12,7 +12,7 @@ conda create -n bs python=3.6 pip
 conda activate bs
 
 # Install dependencies
-pip install sacred gym black pylint pybox2d tensorflow keras tensorboardX
+pip install sacred gym black pylint tensorflow keras tensorboardX
 
 # Train a DQN agent
 python run.py train_dqn

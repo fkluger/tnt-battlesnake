@@ -4,18 +4,18 @@
     "render_episode_interval": 10000,
     "max_episode_length": 1000,
     "frame_stack": 2,
-    "num_envs": 8,
+    "num_envs": 16,
     "training_interval": 4,
 
     "replay_memory": {
-        "capacity": 100000,
+        "capacity": 1000000,
         "epsilon": 0.01,
         "alpha": 0.7,
         "max_priority": 1.0
     },
 
     "dqn": {
-        "batch_size": 32,
+        "batch_size": 64,
         "hidden_dim": 256,
 
         "learning_rate": 0.00025,
@@ -31,6 +31,6 @@
     "exploration": {
         "epsilon_min": 0.01,
         "epsilon_max": 1.0,
-        "epsilon_decay": 0.9999
+        "epsilon_decay": 0.99999
     }
 }

@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import List
 
 import numpy as np
 
@@ -11,5 +12,5 @@ class Agent(ABC):
         pass
 
     @abstractmethod
-    def observe(self, transition: Transition):
+    def observe(self, transitions: List[Transition]):
         pass

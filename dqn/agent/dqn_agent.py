@@ -72,9 +72,10 @@ class DQNAgent:
         )
         return self.exploration_strategy.choose_action(q_values, self.episode)
 
-    def observe(self, transition: Transition):
-        self.replay_memory.add(transition)
-        if transition.next_state is None:
+    def observe(self, transitions: List[Transition]):
+        for transition in transitions:
+            self.replay_memory.add(transition)
+        if len(transitions) != 1 or transitions[0].next_state is None:
             self.episode += 1
 
     def train(self):

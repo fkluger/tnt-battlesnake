@@ -35,6 +35,7 @@ def run_episode_vec(
     episode_length = 0
     unfinished_envs = []
     unfinished_envs.extend(environments)
+    transition_episodes = {}
     states = [env.reset() for env in unfinished_envs]
     for _ in range(max_length):
         episode_length += 1
@@ -44,13 +45,17 @@ def run_episode_vec(
         next_states, rewards, terminals, _ = zip(
             *[env.step(action) for action, env in zip(actions, unfinished_envs)]
         )
-        for state, action, reward, next_state, terminal in zip(
-            states, actions, rewards, next_states, terminals
+        for state, action, reward, next_state, terminal, env in zip(
+            states, actions, rewards, next_states, terminals, unfinished_envs
         ):
             if state is not None:
-                agent.observe(
-                    Transition(state, action, reward, None if terminal else next_state)
+                transition = Transition(
+                    state, action, reward, None if terminal else next_state
                 )
+                if env in transition_episodes:
+                    transition_episodes[env].append(transition)
+                else:
+                    transition_episodes[env] = [transition]
             episode_rewards.append(reward)
         unfinished_envs = [
             env for env, terminal in zip(unfinished_envs, terminals) if not terminal
@@ -58,4 +63,6 @@ def run_episode_vec(
         states = next_states
         if not unfinished_envs:
             break
+    for episode in transition_episodes.values():
+        agent.observe(episode)
     return np.mean(episode_rewards), episode_length

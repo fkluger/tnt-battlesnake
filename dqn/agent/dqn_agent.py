@@ -70,7 +70,9 @@ class DQNAgent:
         q_values = np.squeeze(
             self.dqn.predict([state, np.ones(shape=(state.shape[0], self.num_actions))])
         )
-        return self.exploration_strategy.choose_action(q_values, self.episode)
+        return np.squeeze(
+            self.exploration_strategy.choose_action(q_values, self.episode)
+        )
 
     def observe(self, transitions: List[Transition]):
         for transition in transitions:

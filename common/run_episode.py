@@ -18,7 +18,7 @@ def run_episode(environment: gym.Env, agent: Agent, render: bool, max_length: in
         action = agent.act(state)
         next_state, reward, terminal, _ = environment.step(action)
         agent.observe(
-            Transition(state, action, reward, None if terminal else next_state)
+            [Transition(state, action, reward, None if terminal else next_state)]
         )
         episode_reward += reward
         if terminal:

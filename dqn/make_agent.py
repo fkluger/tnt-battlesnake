@@ -16,9 +16,9 @@ def make_agent(
 
     hyper_parameters = dqn.HyperParameters(
         dqn_config.learning_rate,
-        dqn_config.gamma,
+        dqn_config.discount_factor,
         dqn_config.batch_size,
-        dqn_config.beta,
+        dqn_config.importance_weight_exponent,
     )
 
     if dqn_config.dueling:

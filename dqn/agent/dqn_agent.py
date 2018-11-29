@@ -11,9 +11,9 @@ from dqn.exploration import ExplorationStrategy
 
 class HyperParameters(NamedTuple):
     learning_rate: float
-    gamma: float
+    discount_factor: float
     batch_size: int
-    beta: float
+    importance_weight_exponent: float
 
 
 class DQNAgent:
@@ -42,6 +42,7 @@ class DQNAgent:
         self.dqn = dqn
         self.optimizer = keras.optimizers.Adam(lr=hyper_parameters.learning_rate)
         self.dqn.compile(loss=huber_loss, optimizer=self.optimizer)
+        # This is needed to compute the time difference errors during training
         self.dqn.metrics_tensors += [self.dqn.layers[-1].output]
         self.dqn.summary()
         self.replay_memory = replay_memory
@@ -91,7 +92,8 @@ class DQNAgent:
             return
 
         transitions, indices, weights = self.replay_memory.sample(
-            self.hyper_parameters.batch_size, self.hyper_parameters.beta
+            self.hyper_parameters.batch_size,
+            self.hyper_parameters.importance_weight_exponent,
         )
         tensors = self._get_tensors(transitions)
         loss, time_difference_errors = self._compute_loss(
@@ -143,7 +145,8 @@ class DQNAgent:
 
         for i in range(self.hyper_parameters.batch_size):
             q_values_target[i, action_tensor[i]] = (
-                reward_tensor[i] + self.hyper_parameters.gamma * q_values_next_max[i]
+                reward_tensor[i]
+                + self.hyper_parameters.discount_factor * q_values_next_max[i]
             )
 
         actions_one_hot = np.eye(self.num_actions)[action_tensor]

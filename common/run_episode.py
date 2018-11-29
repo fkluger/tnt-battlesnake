@@ -40,8 +40,9 @@ def run_episode_vec(
     for _ in range(max_length):
         episode_length += 1
         actions = agent.act([state for state in states if state is not None])
-        if np.isscalar(actions):
+        if not actions.shape:
             actions = [actions]
+
         next_states, rewards, terminals, _ = zip(
             *[env.step(action) for action, env in zip(actions, unfinished_envs)]
         )

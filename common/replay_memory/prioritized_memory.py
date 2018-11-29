@@ -13,12 +13,16 @@ class PrioritizedMemory:
     """
 
     def __init__(
-        self, capacity: int, epsilon: float, alpha: float, max_priority: float
+        self,
+        capacity: int,
+        min_error: float,
+        prioritization_exponent: float,
+        max_priority: float,
     ):
         self.tree = SumTree(capacity)
         self.capacity = capacity
-        self.epsilon = epsilon
-        self.alpha = alpha
+        self.min_error = min_error
+        self.prioritization_exponent = prioritization_exponent
         self.max_priority = max_priority
 
     def size(self):
@@ -32,7 +36,7 @@ class PrioritizedMemory:
         return self.tree.add(priority, transition)
 
     def sample(
-        self, batch_size: int, beta: float
+        self, batch_size: int, importance_weight_exponent: float
     ) -> Tuple[List[Transition], List[int], List[float]]:
         transitions = np.ndarray(batch_size, dtype=tuple)
         indices = np.ndarray(batch_size, dtype=int)
@@ -48,7 +52,7 @@ class PrioritizedMemory:
             (idx, priority, transition) = self.tree.get(s)
 
             # importance sampling weight
-            weight = np.power(self.capacity * priority, -beta)
+            weight = np.power(self.capacity * priority, -importance_weight_exponent)
 
             weights[i] = weight
             indices[i] = idx
@@ -69,4 +73,4 @@ class PrioritizedMemory:
         self.tree.update(idx, p)
 
     def _getPriority(self, error: float):
-        return (error + self.epsilon) ** self.alpha
+        return (error + self.min_error) ** self.prioritization_exponent

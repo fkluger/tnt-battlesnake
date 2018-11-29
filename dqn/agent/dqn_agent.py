@@ -6,6 +6,7 @@ import numpy as np
 from common.models.transition import Transition
 from common.replay_memory import PrioritizedMemory
 from common.tensorflow.huber_loss import huber_loss
+from common.utils.compute_multi_step_rewards import compute_multi_step_rewards
 from dqn.exploration import ExplorationStrategy
 
 
@@ -14,6 +15,7 @@ class HyperParameters(NamedTuple):
     discount_factor: float
     batch_size: int
     importance_weight_exponent: float
+    multi_step_n: int
 
 
 class DQNAgent:
@@ -76,6 +78,12 @@ class DQNAgent:
         )
 
     def observe(self, transitions: List[Transition]):
+        if self.hyper_parameters.multi_step_n > 1:
+            transitions = compute_multi_step_rewards(
+                transitions,
+                self.hyper_parameters.multi_step_n,
+                self.hyper_parameters.discount_factor,
+            )
         for transition in transitions:
             self.replay_memory.add(transition)
         if len(transitions) != 1 or transitions[0].next_state is None:

@@ -1,15 +1,15 @@
 {
     "env": "battlesnake-9x9-easy-v0",
-    "episodes": 100000,
+    "episodes": 10000000,
     "render_episode_interval": 10000,
     "max_episode_length": 1000,
     "frame_stack": 2,
-    "num_envs": 1,
+    "num_envs": 32,
     "training_interval": 4,
 
     "replay_memory": {
         "capacity": 1000000,
-        "prioritization_exponent": 0.7,
+        "prioritization_exponent": 0.9,
         "max_priority": 1.0,
         "min_error": 0.01
     },
@@ -18,14 +18,15 @@
         "batch_size": 64,
         "hidden_dim": 256,
 
-        "learning_rate": 0.00025,
+        "learning_rate": 0.0001,
         "discount_factor": 0.9,
         "target_update_rate": 0.001,
 
         "dueling": true,
         "double": true,
 
-        "importance_weight_exponent": 0.4
+        "importance_weight_exponent": 0.6,
+        "multi_step_n": 2
     },
 
     "exploration": {

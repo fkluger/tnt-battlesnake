@@ -51,7 +51,7 @@ def run_episode_vec(
         ):
             if state is not None:
                 transition = Transition(
-                    state, action, reward, None if terminal else next_state
+                    state, np.asscalar(action), reward, None if terminal else next_state
                 )
                 if env in transition_episodes:
                     transition_episodes[env].append(transition)

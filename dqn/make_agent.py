@@ -19,6 +19,7 @@ def make_agent(
         dqn_config.discount_factor,
         dqn_config.batch_size,
         dqn_config.importance_weight_exponent,
+        dqn_config.multi_step_n
     )
 
     if dqn_config.dueling:

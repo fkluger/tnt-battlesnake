@@ -41,5 +41,5 @@ tensorboard --logdir tmp
 python run.py train_dqn_distributed
 
 # In other terminals
-python run.py train_dqn_distributed --actor [number] --skip_observe
+python run.py train_dqn_distributed --actor [number] --skip_observe --learner_address [IP address]
 ```

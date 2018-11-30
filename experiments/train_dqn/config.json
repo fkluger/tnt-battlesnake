@@ -26,7 +26,9 @@
         "double": true,
 
         "importance_weight_exponent": 0.6,
-        "multi_step_n": 2
+        "multi_step_n": 2,
+
+        "noisy_nets": false
     },
 
     "exploration": {

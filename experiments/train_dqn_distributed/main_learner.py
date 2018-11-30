@@ -53,8 +53,9 @@ def main_learner(run_id, config):
 
         if time.time() - last_log_ts > config.logging_interval and losses:
             last_log_ts = time.time()
+            mean_loss = np.mean(losses)
             writer.add_scalar(
-                "learner/loss/mean", np.mean(losses), global_step=training_steps
+                "learner/loss/mean", mean_loss, global_step=training_steps
             )
             writer.add_scalar(
                 "learner/loss/std", np.std(losses), global_step=training_steps
@@ -73,4 +74,5 @@ def main_learner(run_id, config):
             )
             last_training_steps = training_steps
             last_received_experiences = learner.received_experiences
+            print(f"Training step: {training_steps}\tLoss: {mean_loss}")
             losses.clear()

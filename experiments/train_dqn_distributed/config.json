@@ -28,13 +28,15 @@
         "double": true,
 
         "importance_weight_exponent": 0.6,
-        "multi_step_n": 1
+        "multi_step_n": 1,
+        
+        "noisy_nets": true
     },
 
     "exploration": {
-        "epsilon_min": 0.01,
-        "epsilon_max": 1.0,
-        "epsilon_decay": 0.99999
+        "epsilon_min": 0.00,
+        "epsilon_max": 0.0,
+        "epsilon_decay": 0.0
     },
 
     "distributed": {

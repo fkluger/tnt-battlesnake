@@ -10,6 +10,8 @@ def make_agent(
     input_shape,
     num_actions: int,
     output_dir: str,
+    dqn_agent_class=dqn.DQNAgent,
+    double_dqn_agent_class=dqn.DoubleDQNAgent,
 ):
     replay_memory = PrioritizedMemory(**replay_memory_config)
     exploration_strategy = EpsilonGreedyStrategy(**exploration_config)
@@ -19,7 +21,7 @@ def make_agent(
         dqn_config.discount_factor,
         dqn_config.batch_size,
         dqn_config.importance_weight_exponent,
-        dqn_config.multi_step_n
+        dqn_config.multi_step_n,
     )
 
     if dqn_config.dueling:
@@ -28,7 +30,7 @@ def make_agent(
         dqn_class = dqn.make_dqn
 
     if dqn_config.double:
-        agent = dqn.DoubleDQNAgent(
+        agent = double_dqn_agent_class(
             target_dqn=dqn_class(
                 input_shape=input_shape,
                 hidden_dim=dqn_config.hidden_dim,
@@ -47,7 +49,7 @@ def make_agent(
             output_dir=output_dir,
         )
     else:
-        agent = dqn.DQNAgent(
+        agent = dqn_agent_class(
             dqn=dqn_class(
                 input_shape=input_shape,
                 hidden_dim=dqn_config.hidden_dim,

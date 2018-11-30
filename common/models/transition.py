@@ -15,3 +15,5 @@ class Transition:
         self.action = action
         self.reward = reward
         self.next_state = next_state
+        self.time_difference_error = None
+        self.times_sampled = 0

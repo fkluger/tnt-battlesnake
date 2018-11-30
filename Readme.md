@@ -33,3 +33,13 @@ tensorboard --logdir tmp
     - An OpenAI `gym` environment for Battlesnake.
 - `legacy`
     - Contains the old APEX-DQN code that has not been refactored yet.
+
+## Distributed DQN
+
+```bash
+# Start Learner
+python run.py train_dqn_distributed
+
+# In other terminals
+python run.py train_dqn_distributed --actor [number] --skip_observe
+```

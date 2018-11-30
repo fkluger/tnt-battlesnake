@@ -87,7 +87,7 @@ class DQNAgent:
         for transition in transitions:
             self.replay_memory.add(transition)
         if len(transitions) != 1 or transitions[0].next_state is None:
-            self.episode += 1
+            self.episode += len(transitions)
 
     def train(self):
         """
@@ -138,20 +138,16 @@ class DQNAgent:
         Returns:
             `float` -- Loss 
         """
+        batch_size = state_tensor.shape[0]
         q_values_next = self.dqn.predict(
-            [
-                next_state_tensor,
-                np.ones(shape=(self.hyper_parameters.batch_size, self.num_actions)),
-            ]
+            [next_state_tensor, np.ones(shape=(batch_size, self.num_actions))]
         )
-        q_values_next_max = np.zeros(shape=(self.hyper_parameters.batch_size,))
+        q_values_next_max = np.zeros(shape=(batch_size,))
         q_values_next_max[non_terminal_mask] = np.max(q_values_next, axis=-1)
 
-        q_values_target = np.zeros(
-            shape=(self.hyper_parameters.batch_size, self.num_actions)
-        )
+        q_values_target = np.zeros(shape=(batch_size, self.num_actions))
 
-        for i in range(self.hyper_parameters.batch_size):
+        for i in range(batch_size):
             q_values_target[i, action_tensor[i]] = (
                 reward_tensor[i]
                 + self.hyper_parameters.discount_factor * q_values_next_max[i]

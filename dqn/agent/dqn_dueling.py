@@ -18,7 +18,7 @@ def make_dqn_dueling(
     encoded = encode(input_observations, input_shape, hidden_dim)
 
     advantage = keras.layers.Dense(
-        units=hidden_dim // 2, activation="relu", name="advantage/dense1"
+        units=hidden_dim, activation="relu", name="advantage/dense1"
     )(encoded)
     advantage = keras.layers.Dense(
         units=num_actions, activation="linear", name="advantage/dense2"
@@ -29,7 +29,7 @@ def make_dqn_dueling(
     )(advantage)
 
     value = keras.layers.Dense(
-        units=hidden_dim // 2, activation="relu", name="value/dense1"
+        units=hidden_dim, activation="relu", name="value/dense1"
     )(encoded)
     value = keras.layers.Dense(units=1, activation="linear", name="value/dense2")(value)
     value = keras.layers.Lambda(

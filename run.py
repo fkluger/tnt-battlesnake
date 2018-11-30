@@ -14,14 +14,22 @@ def main():
         help="Name of the experiment's package in the ./experiments directory.",
         type=str,
     )
-    args = parser.parse_args()
+    parser.add_argument(
+        "--skip_observe",
+        help="Whether to add an sacred observer.",
+        type=bool,
+        default=False,
+        nargs="?",
+    )
+    args, _ = parser.parse_known_args()
 
     experiment_module = importlib.import_module(
         f"experiments.{args.experiment_name}.main"
     )
-    experiment_module.ex.observers.append(
-        FileStorageObserver.create(f"./tmp/{args.experiment_name}")
-    )
+    if args.skip_observe is False:
+        experiment_module.ex.observers.append(
+            FileStorageObserver.create(f"./tmp/{args.experiment_name}")
+        )
     experiment_module.ex.run()
 
 

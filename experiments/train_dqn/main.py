@@ -92,3 +92,4 @@ def main(_run, _config):
                     )
                 )
                 rewards.clear()
+                lengths.clear()

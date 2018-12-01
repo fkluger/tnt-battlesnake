@@ -116,7 +116,7 @@ class DQNAgent:
 
         if self.global_step % 1000 == 0:
             try:
-                self.dqn.save_weights("{}/checkpoint.h5".format(self.output_dir))
+                self.dqn.save("/tmp/checkpoint-schubert-battlesnake-model.h5")
             except Exception:
                 print("Could not save checkpoint")
 

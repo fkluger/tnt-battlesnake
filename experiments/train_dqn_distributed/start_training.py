@@ -1,4 +1,5 @@
 from typing import List
+import time
 import argparse
 
 from fabric import Connection
@@ -34,7 +35,8 @@ def start(
             if learner_ip:
                 with c.prefix("conda activate bs"):
                     for process in range(processes):
-                        command = f'screen -dmS "actor-{process}" "python" "run.py" "train_dqn_distributed" "--actor" "{actor_index}" "--skip_observe" "--learner_address" "{learner_ip}"'  # pylint: disable=C0301
+                        index = actor_index * processes + process
+                        command = f'screen -dmS "actor-{process}" "python" "run.py" "train_dqn_distributed" "--actor" "{index}" "--skip_observe" "--learner_address" "{learner_ip}"'  # pylint: disable=C0301
                         print(command)
                         c.run(command)
                         print(
@@ -47,7 +49,7 @@ def start(
                         command = f'screen -dmS "learner" "python" "run.py" "train_dqn_distributed"'  # pylint: disable=C0301
                         print(command)
                         c.run(command)
-                        print(f"Starting master on {host}...")
+                        print(f"Starting learner on {host}...")
 
 
 def main():
@@ -91,6 +93,7 @@ def main():
 
     start(args.learner, args.path, args.gpus)
     print("Learner started!")
+    time.sleep(60)
     start_actors(args.learner, args.actors, args.processes, args.path)
     print("Actors started successfully!")
 

@@ -22,12 +22,14 @@ def is_int(s: str):
 
 
 def get_run_id(base_dir: str):
-    dirnames = [
-        dirname
-        for dirname in os.listdir(base_dir)
-        if os.path.isdir(os.path.join(base_dir, dirname))
-    ]
-    run_ids = sorted([int(dirname) for dirname in dirnames if is_int(dirname)])
+    run_ids = []
+    while not run_ids:
+        dirnames = [
+            dirname
+            for dirname in os.listdir(base_dir)
+            if os.path.isdir(os.path.join(base_dir, dirname))
+        ]
+        run_ids = sorted([int(dirname) for dirname in dirnames if is_int(dirname)])
     return run_ids[-1]
 
 

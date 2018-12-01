@@ -61,6 +61,16 @@ def main_learner(run_id, config):
                 "learner/loss/std", np.std(losses), global_step=training_steps
             )
 
+            writer.add_histogram(
+                "learner/memory/mean_samples",
+                np.mean(learner.dqn_agent.replay_memory.tree.sampling_counter),
+            )
+
+            writer.add_histogram(
+                "learner/memory/mean_priorities",
+                np.mean(learner.dqn_agent.replay_memory.tree.priorities),
+            )
+
             writer.add_scalar(
                 "learner/experiences_per_second",
                 (learner.received_experiences - last_received_experiences)

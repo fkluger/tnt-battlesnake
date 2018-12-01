@@ -34,7 +34,7 @@ class DoubleDQNAgent(DQNAgent):
         importance_weights,
     ):
         """
-        Compute the Q-Learning loss for the Double DQN.
+        Compute the Q-Learning loss for the DQN.
 
         Arguments:
             state_tensor {`np.ndarray`} -- Tensor of states
@@ -45,8 +45,27 @@ class DoubleDQNAgent(DQNAgent):
             importance_weights {`np.ndarray`} -- Tensor of importance weights
 
         Returns:
-            `float` -- Loss
+            `float` -- Loss 
         """
+        loss_and_time_difference_errors = super()._compute_loss(
+            state_tensor,
+            action_tensor,
+            reward_tensor,
+            next_state_tensor,
+            non_terminal_mask,
+            importance_weights,
+        )
+        self._update_target()
+        return loss_and_time_difference_errors
+
+    def _compute_targets(
+        self,
+        state_tensor,
+        action_tensor,
+        reward_tensor,
+        next_state_tensor,
+        non_terminal_mask,
+    ):
         batch_size = state_tensor.shape[0]
 
         q_values_next = self.dqn.predict(
@@ -76,15 +95,7 @@ class DoubleDQNAgent(DQNAgent):
                 * q_values_next_target[i, q_values_next_argmax[i]]
             )
 
-        actions_one_hot = np.eye(self.num_actions)[action_tensor]
-
-        loss_and_time_difference_errors = self._fit(
-            x=[state_tensor, actions_one_hot],
-            y=q_values_target,
-            importance_weights=importance_weights,
-        )
-        self._update_target()
-        return loss_and_time_difference_errors
+        return q_values_target
 
     def _update_target(self, soft: bool = True):
         """

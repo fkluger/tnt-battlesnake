@@ -1,5 +1,7 @@
 import pickle
 
+import numpy as np
+
 from common.distributed.actor import Actor
 from common.utils.compute_multi_step_rewards import compute_multi_step_rewards
 from dqn.agent.dqn_agent import DQNAgent
@@ -35,9 +37,18 @@ class DQNActor(DQNAgent):
             self.dqn.set_weights(weights)
 
     def _compute_time_difference_errors(self):
-        tensors = self._get_tensors(self.actor.buffer)
-        _, time_difference_errors = self._compute_loss(
-            *tensors, importance_weights=None
+        state_tensor, action_tensor, reward_tensor, next_state_tensor, non_terminal_mask = self._get_tensors(
+            self.actor.buffer
         )
+        actions_one_hot = np.eye(self.num_actions)[action_tensor]
+        outputs = self.dqn.predict([state_tensor, actions_one_hot])
+        y = self._compute_targets(
+            state_tensor,
+            action_tensor,
+            reward_tensor,
+            next_state_tensor,
+            non_terminal_mask,
+        )
+        time_difference_errors = np.mean(np.square(y - outputs), axis=-1)
         for transition, error in zip(self.actor.buffer, time_difference_errors):
             transition.time_difference_error = error

@@ -142,6 +142,25 @@ class DQNAgent:
         Returns:
             `float` -- Loss 
         """
+        y = self._compute_targets(
+            state_tensor,
+            action_tensor,
+            reward_tensor,
+            next_state_tensor,
+            non_terminal_mask,
+        )
+        actions_one_hot = np.eye(self.num_actions)[action_tensor]
+        x = [state_tensor, actions_one_hot]
+        return self._fit(x=x, y=y, importance_weights=importance_weights)
+
+    def _compute_targets(
+        self,
+        state_tensor,
+        action_tensor,
+        reward_tensor,
+        next_state_tensor,
+        non_terminal_mask,
+    ):
         batch_size = state_tensor.shape[0]
         q_values_next = self.dqn.predict(
             [next_state_tensor, np.ones(shape=(batch_size, self.num_actions))]
@@ -157,13 +176,7 @@ class DQNAgent:
                 + self.hyper_parameters.discount_factor * q_values_next_max[i]
             )
 
-        actions_one_hot = np.eye(self.num_actions)[action_tensor]
-
-        return self._fit(
-            x=[state_tensor, actions_one_hot],
-            y=q_values_target,
-            importance_weights=importance_weights,
-        )
+        return q_values_target
 
     def _fit(self, x: np.ndarray, y: np.ndarray, importance_weights: np.ndarray):
         """

@@ -47,6 +47,7 @@ def main_learner(run_id, config):
         loss = learner.dqn_agent.train()
         if loss is not None:
             training_steps += learner.dqn_agent.hyper_parameters.batches
+            learner.dqn_agent.global_step += 1
             losses.append(loss)
             if training_steps % 100 == 0:
                 learner.send_parameters()

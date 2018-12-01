@@ -61,8 +61,7 @@ def main(_run, _config):
         rewards.append(episode_rewards)
         lengths.append(episode_length)
         if episode % config.training_interval == 0:
-            for _ in range(config.training_interval):
-                loss = agent.train()
+            loss = agent.train()
 
             if loss and episode % (config.training_interval * 10) == 0:
                 mean_rewards, std_rewards = np.mean(rewards), np.std(rewards)

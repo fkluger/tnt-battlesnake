@@ -17,11 +17,12 @@ def make_agent(
     exploration_strategy = EpsilonGreedyStrategy(**exploration_config)
 
     hyper_parameters = dqn.HyperParameters(
-        dqn_config.learning_rate,
-        dqn_config.discount_factor,
-        dqn_config.batch_size,
-        dqn_config.importance_weight_exponent,
-        dqn_config.multi_step_n,
+        learning_rate=dqn_config.learning_rate,
+        discount_factor=dqn_config.discount_factor,
+        batch_size=dqn_config.batch_size,
+        importance_weight_exponent=dqn_config.importance_weight_exponent,
+        multi_step_n=dqn_config.multi_step_n,
+        batches=dqn_config.batches
     )
 
     if dqn_config.dueling:

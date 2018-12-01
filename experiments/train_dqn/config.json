@@ -15,6 +15,7 @@
     },
 
     "dqn": {
+        "batches": 4,
         "batch_size": 64,
         "hidden_dim": 256,
 

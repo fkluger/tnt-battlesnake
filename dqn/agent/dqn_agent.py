@@ -16,6 +16,7 @@ class HyperParameters(NamedTuple):
     batch_size: int
     importance_weight_exponent: float
     multi_step_n: int
+    batches: int
 
 
 class DQNAgent:
@@ -96,11 +97,14 @@ class DQNAgent:
         Returns:
             `float` -- Mean loss for the sampled training batch
         """
-        if self.replay_memory.size() < self.hyper_parameters.batch_size:
+        if (
+            self.replay_memory.size()
+            < self.hyper_parameters.batch_size * self.hyper_parameters.batches
+        ):
             return
 
         transitions, indices, weights = self.replay_memory.sample(
-            self.hyper_parameters.batch_size,
+            self.hyper_parameters.batch_size * self.hyper_parameters.batches,
             self.hyper_parameters.importance_weight_exponent,
         )
         tensors = self._get_tensors(transitions)
@@ -172,11 +176,28 @@ class DQNAgent:
         Returns:
             `float` -- Loss
         """
-        loss, outputs = self.dqn.train_on_batch(
-            x=x, y=y, sample_weight=importance_weights
-        )
-        time_difference_errors = np.mean(np.square(y - outputs), axis=-1)
-        return loss, time_difference_errors
+        losses = []
+        errors = []
+        for (
+            state_tensor_batch,
+            actions_one_hot_batch,
+            y_batch,
+            importance_weight_batch,
+        ) in zip(
+            np.split(x[0], self.hyper_parameters.batches),
+            np.split(x[1], self.hyper_parameters.batches),
+            np.split(y, self.hyper_parameters.batches),
+            np.split(importance_weights, self.hyper_parameters.batches),
+        ):
+            loss, outputs = self.dqn.train_on_batch(
+                x=[state_tensor_batch, actions_one_hot_batch],
+                y=y_batch,
+                sample_weight=importance_weight_batch,
+            )
+            losses.append(loss)
+            time_difference_errors = np.mean(np.square(y_batch - outputs), axis=-1)
+            errors.extend(time_difference_errors)
+        return np.mean(losses), time_difference_errors
 
     def _get_tensors(self, transitions: List[Transition]):
         """

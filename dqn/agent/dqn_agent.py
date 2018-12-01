@@ -114,8 +114,11 @@ class DQNAgent:
 
         self.replay_memory.update(indices, time_difference_errors)
 
-        # if self.global_step % 1000 == 0:
-        #     self.dqn.save_weights("{}/checkpoint.h5".format(self.output_dir))
+        if self.global_step % 1000 == 0:
+            try:
+                self.dqn.save_weights("{}/checkpoint.h5".format(self.output_dir))
+            except Exception:
+                print("Could not save checkpoint")
 
         return loss
 

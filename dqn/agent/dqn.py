@@ -20,8 +20,8 @@ def encode(
     else:
         encoded = keras.layers.Conv2D(
             filters=32,
-            kernel_size=8,
-            strides=4,
+            kernel_size=1,
+            strides=1,
             padding="same",
             input_shape=input_shape,
             activation="relu",

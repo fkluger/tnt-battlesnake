@@ -1,5 +1,5 @@
 {
-    "env": "battlesnake-9x9-easy-v0",
+    "env": "battlesnake-15x15-easy-v0",
     "episodes": 10000000,
     "render_episode_interval": 10000,
     "max_episode_length": 1000,
@@ -17,7 +17,7 @@
     },
 
     "dqn": {
-        "batches": 16,
+        "batches": 64,
         "batch_size": 512,
         "hidden_dim": 512,
 
@@ -29,7 +29,7 @@
         "double": true,
 
         "importance_weight_exponent": 0.6,
-        "multi_step_n": 1,
+        "multi_step_n": 2,
         
         "noisy_nets": false
     },

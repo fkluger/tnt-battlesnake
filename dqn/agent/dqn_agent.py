@@ -61,7 +61,6 @@ class DQNAgent:
         Returns:
             `int` -- Index of the chosen action
         """
-        self.global_step += 1
         is_convolutional = len(self.dqn.input_shape[0]) == 4
         state = np.asarray(state)
         if is_convolutional:
@@ -74,6 +73,7 @@ class DQNAgent:
         q_values = np.squeeze(
             self.dqn.predict([state, np.ones(shape=(state.shape[0], self.num_actions))])
         )
+        self.global_step += state.shape[0]
         return np.squeeze(
             self.exploration_strategy.choose_action(q_values, self.episode)
         )

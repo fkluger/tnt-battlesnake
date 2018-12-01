@@ -52,6 +52,8 @@ def main_actor(run_id, config, actor: int):
 
     writer = SummaryWriter(output_directory)
 
+    config.exploration["epsilon_max"] /= actor
+
     agent = make_agent(
         SimpleNamespace(**config.dqn),
         config.replay_memory,

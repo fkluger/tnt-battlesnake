@@ -64,11 +64,13 @@ def main_learner(run_id, config):
             writer.add_histogram(
                 "learner/memory/mean_samples",
                 np.mean(learner.dqn_agent.replay_memory.tree.sampling_counter),
+                global_step=training_steps,
             )
 
             writer.add_histogram(
                 "learner/memory/mean_priorities",
                 np.mean(learner.dqn_agent.replay_memory.tree.priorities),
+                global_step=training_steps,
             )
 
             writer.add_scalar(

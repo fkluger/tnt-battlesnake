@@ -70,7 +70,11 @@ class State:
         self._place_fruits_or_snakes(fruits_eaten, True)
 
         if len(self.snakes) == 1:
-            snake_won = False
+            if len(self.snakes[0].body) == (self.width - 2) * (self.height - 2):
+                snake_won = True
+            else:
+                snake_won = False
+
         else:
             snakes_alive = [s for s in self.snakes if s.is_dead() is False]
             snake_won = self.snakes[0].is_dead() is False and len(snakes_alive) == 1

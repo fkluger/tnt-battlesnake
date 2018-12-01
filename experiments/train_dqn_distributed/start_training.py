@@ -35,7 +35,7 @@ def start(
             if learner_ip:
                 with c.prefix("conda activate bs"):
                     for process in range(processes):
-                        index = actor_index * processes + process
+                        index = actor_index * processes + process + 1
                         command = f'screen -dmS "actor-{process}" "python" "run.py" "train_dqn_distributed" "--actor" "{index}" "--skip_observe" "--learner_address" "{learner_ip}"'  # pylint: disable=C0301
                         print(command)
                         c.run(command)
@@ -93,7 +93,7 @@ def main():
 
     start(args.learner, args.path, args.gpus)
     print("Learner started!")
-    time.sleep(60)
+    time.sleep(10)
     start_actors(args.learner, args.actors, args.processes, args.path)
     print("Actors started successfully!")
 

@@ -3,12 +3,12 @@
     "episodes": 10000000,
     "render_episode_interval": 10000,
     "max_episode_length": 1000,
-    "frame_stack": 1,
-    "num_envs": 1,
+    "frame_stack": 2,
+    "num_envs": 32,
     "training_interval": 4,
 
     "replay_memory": {
-        "capacity": 1000000,
+        "capacity": 100000,
         "prioritization_exponent": 0.9,
         "max_priority": 1.0,
         "min_error": 0.01
@@ -27,7 +27,7 @@
         "double": true,
 
         "importance_weight_exponent": 0.6,
-        "multi_step_n": 2,
+        "multi_step_n": 3,
 
         "noisy_nets": false
     },
@@ -35,6 +35,6 @@
     "exploration": {
         "epsilon_min": 0.01,
         "epsilon_max": 1.0,
-        "epsilon_decay": 0.99999
+        "epsilon_decay": 0.999
     }
 }

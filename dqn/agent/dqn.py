@@ -20,9 +20,10 @@ def encode(
     else:
         encoded = keras.layers.Conv2D(
             filters=32,
-            kernel_size=1,
-            strides=1,
+            kernel_size=8,
+            strides=4,
             padding="same",
+            data_format="channels_first",
             input_shape=input_shape,
             activation="relu",
             name="encoder/conv1",
@@ -32,6 +33,7 @@ def encode(
             kernel_size=4,
             strides=2,
             padding="same",
+            data_format="channels_first",
             activation="relu",
             name="encoder/conv2",
         )(encoded)
@@ -40,6 +42,7 @@ def encode(
             kernel_size=3,
             strides=1,
             padding="same",
+            data_format="channels_first",
             activation="relu",
             name="encoder/conv3",
         )(encoded)
@@ -62,9 +65,7 @@ def make_dqn(
 
     encoded = encode(input_observations, input_shape, hidden_dim)
 
-    output = Dense(units=num_actions, activation="linear", name="output")(
-        encoded
-    )
+    output = Dense(units=num_actions, activation="linear", name="output")(encoded)
     masked_output = keras.layers.Multiply()([output, input_actions])
     model = keras.Model(
         inputs=[input_observations, input_actions], outputs=masked_output

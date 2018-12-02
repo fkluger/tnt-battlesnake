@@ -2,15 +2,14 @@ import os
 import time
 from types import SimpleNamespace
 
-import gym
 import numpy as np
 from tensorboardX import SummaryWriter
 
-from common.run_episode import run_episode, run_episode_vec
 from common.distributed.actor import Actor
-from dqn.distributed import DQNActor, DoubleDQNActor
+from common.run_episode import run_episode, run_episode_vec
+from common.utils.make_environments import make_environments
+from dqn.distributed import DoubleDQNActor, DQNActor
 from dqn.make_agent import make_agent
-from gym_battlesnake.wrappers import FrameStack
 
 
 def is_int(s: str):
@@ -34,12 +33,7 @@ def get_run_id(base_dir: str):
 
 
 def main_actor(run_id, config, actor: int):
-    environments = []
-    for _ in range(config.num_envs):
-        environment = gym.make(config.env)
-        if config.frame_stack > 1:
-            environment = FrameStack(environment, num_stacked_frames=config.frame_stack)
-        environments.append(environment)
+    environments = make_environments(config)
 
     input_shape = environments[0].observation_space.shape
     num_actions = environments[0].action_space.n

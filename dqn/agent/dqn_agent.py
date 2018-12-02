@@ -66,7 +66,7 @@ class DQNAgent:
         if is_convolutional:
             if len(state.shape) == 3:
                 state = np.expand_dims(state, 0)
-            state = state / 127.0
+            state = state / 255.0
         else:
             if len(state.shape) == 1:
                 state = np.expand_dims(state, 0)
@@ -232,7 +232,7 @@ class DQNAgent:
         is_convolutional = len(self.dqn.input_shape[0]) == 4
         state_tensor = np.asarray(
             [
-                np.asarray(t.state) / 127.0 if is_convolutional else np.array(t.state)
+                np.asarray(t.state) / 255.0 if is_convolutional else np.array(t.state)
                 for t in transitions
             ]
         )
@@ -240,7 +240,7 @@ class DQNAgent:
         reward_tensor = np.asarray([t.reward for t in transitions])
         next_state_tensor = np.asarray(
             [
-                np.asarray(t.next_state) / 127.0
+                np.asarray(t.next_state) / 255.0
                 if is_convolutional
                 else np.asarray(t.next_state)
                 for t in transitions

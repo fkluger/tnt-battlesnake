@@ -39,7 +39,7 @@ def run_episode_vec(
     states = [env.reset() for env in unfinished_envs]
     for _ in range(max_length):
         episode_length += 1
-        actions = agent.act([state for state in states if state is not None])
+        actions = agent.act([np.array(state) for state in states if state is not None])
         if not actions.shape:
             actions = [actions]
 

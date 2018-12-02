@@ -52,7 +52,9 @@ def main_actor(run_id, config, actor: int):
 
     writer = SummaryWriter(output_directory)
 
-    config.exploration["epsilon_max"] /= actor
+    config.exploration["epsilon_max"] = config.exploration["epsilon_max"] ** (
+        (actor / 9) * 7
+    )
 
     agent = make_agent(
         SimpleNamespace(**config.dqn),

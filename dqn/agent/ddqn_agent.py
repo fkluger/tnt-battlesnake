@@ -91,7 +91,10 @@ class DoubleDQNAgent(DQNAgent):
         for i in range(batch_size):
             q_values_target[i, action_tensor[i]] = (
                 reward_tensor[i]
-                + self.hyper_parameters.discount_factor
+                + (
+                    self.hyper_parameters.discount_factor
+                    ** self.hyper_parameters.multi_step_n
+                )
                 * q_values_next_target[i, q_values_next_argmax[i]]
             )
 

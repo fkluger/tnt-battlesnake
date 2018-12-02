@@ -49,6 +49,6 @@ class DQNActor(DQNAgent):
             next_state_tensor,
             non_terminal_mask,
         )
-        time_difference_errors = np.mean(np.square(y - outputs), axis=-1)
+        time_difference_errors = np.abs(y - outputs, axis=-1)
         for transition, error in zip(self.actor.buffer, time_difference_errors):
             transition.time_difference_error = error

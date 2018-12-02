@@ -176,7 +176,11 @@ class DQNAgent:
         for i in range(batch_size):
             q_values_target[i, action_tensor[i]] = (
                 reward_tensor[i]
-                + self.hyper_parameters.discount_factor * q_values_next_max[i]
+                + (
+                    self.hyper_parameters.discount_factor
+                    ** self.hyper_parameters.multi_step_n
+                )
+                * q_values_next_max[i]
             )
 
         return q_values_target
@@ -211,7 +215,7 @@ class DQNAgent:
                 sample_weight=importance_weight_batch,
             )
             losses.append(loss)
-            time_difference_errors = np.mean(np.square(y_batch - outputs), axis=-1)
+            time_difference_errors = np.abs(y_batch - outputs, axis=-1)
             errors.extend(time_difference_errors)
         return np.mean(losses), time_difference_errors
 

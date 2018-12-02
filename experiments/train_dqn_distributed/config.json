@@ -11,7 +11,7 @@
 
     "replay_memory": {
         "capacity": 2000000,
-        "prioritization_exponent": 0.9,
+        "prioritization_exponent": 0.6,
         "max_priority": 1.0,
         "min_error": 0.01
     },
@@ -19,25 +19,25 @@
     "dqn": {
         "batches": 64,
         "batch_size": 512,
-        "hidden_dim": 512,
+        "hidden_dim": 256,
 
-        "learning_rate": 0.00025,
+        "learning_rate": 0.0001,
         "discount_factor": 0.99,
         "target_update_rate": 0.001,
 
         "dueling": true,
         "double": true,
 
-        "importance_weight_exponent": 0.6,
-        "multi_step_n": 2,
+        "importance_weight_exponent": 0.4,
+        "multi_step_n": 3,
         
         "noisy_nets": false
     },
 
     "exploration": {
-        "epsilon_min": 0.01,
-        "epsilon_max": 1.0,
-        "epsilon_decay": 0.99999
+        "epsilon_min": 0.4,
+        "epsilon_max": 0.4,
+        "epsilon_decay": 1.0
     },
 
     "distributed": {

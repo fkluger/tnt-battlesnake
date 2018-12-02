@@ -16,6 +16,7 @@ def run_server_process(
         distributed_config.learner_parameter_port,
         distributed_config.learner_experience_port,
     )
+    experiences_buffer = []
     while True:
         socks = dict(server.poller.poll())
         if (
@@ -26,7 +27,10 @@ def run_server_process(
             experiences_compressed = message[1]
             experiences_pickled = zlib.decompress(experiences_compressed)
             experiences = pickle.loads(experiences_pickled)
-            experience_queue.put(experiences)
+            experiences_buffer.extend(experiences)
+            if len(experiences_buffer) > 10000:
+                experience_queue.put(experiences_buffer)
+                experiences_buffer = []
         if not parameter_queue.empty():
             server.parameter_socket.send_multipart(
                 [b"parameters", *parameter_queue.get()]
@@ -63,8 +67,5 @@ class Learner:
         if self.experience_queue.empty():
             return False
         else:
-            experiences = []
-            while not self.experience_queue.empty():
-                experiences.extend(self.experience_queue.get())
-            self._process_experiences(experiences)
+            self._process_experiences(self.experience_queue.get())
             return True

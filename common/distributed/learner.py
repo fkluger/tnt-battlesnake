@@ -28,7 +28,7 @@ def run_server_process(
             experiences_pickled = zlib.decompress(experiences_compressed)
             experiences = pickle.loads(experiences_pickled)
             experience_buffer.extend(experiences)
-            if len(experience_buffer) >= 5000:
+            if len(experience_buffer) >= 1000:
                 experience_queue.put(experience_buffer)
                 experience_buffer = []
         if not parameter_queue.empty():

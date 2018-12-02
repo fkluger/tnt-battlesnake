@@ -17,7 +17,7 @@
     },
 
     "dqn": {
-        "batches": 64,
+        "batches": 32,
         "batch_size": 512,
         "hidden_dim": 256,
 
@@ -41,7 +41,7 @@
     },
 
     "distributed": {
-        "max_buffer_size": 1000,
+        "max_buffer_size": 100,
         "learner_address": "172.16.10.225",
         "learner_parameter_port": 7681,
         "learner_experience_port": 7680

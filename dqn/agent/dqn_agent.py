@@ -215,7 +215,7 @@ class DQNAgent:
                 sample_weight=importance_weight_batch,
             )
             losses.append(loss)
-            time_difference_errors = np.sum(np.abs(y - outputs), axis=-1)
+            time_difference_errors = np.sum(np.abs(y_batch - outputs), axis=-1)
             errors.extend(time_difference_errors)
         return np.mean(losses), time_difference_errors
 

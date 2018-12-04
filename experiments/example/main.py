@@ -9,7 +9,7 @@ from common.run_episode import run_episode, run_episode_vec
 from common.utils.make_environments import make_environments
 from example.random_agent import RandomAgent
 
-ex = Experiment("train_dqn")
+ex = Experiment("example")
 config_path = os.path.dirname(__file__) + "/config.json"
 ex.add_config(config_path)
 
@@ -19,7 +19,7 @@ def main(_run, _config):
     config = SimpleNamespace(**_config)
     environments = make_environments(config)
 
-    output_directory = f"./tmp/train_dqn/{_run._id}/"
+    output_directory = f"./tmp/example/{_run._id}/"
 
     writer = SummaryWriter(output_directory)
 

@@ -10,6 +10,7 @@ def serialize(
     width: int,
     height: int,
     snakes: List[Snake],
+    # [x, y]
     fruits: List[List[int]],
     own_snake_index: int = 0,
 ):

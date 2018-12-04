@@ -6,6 +6,7 @@ import numpy as np
 
 from gym_battlesnake.envs.state import State
 from gym_battlesnake.envs.constants import Reward
+from .game_renderer import GameRenderer
 
 
 class BattlesnakeEnv(gym.Env):
@@ -30,6 +31,7 @@ class BattlesnakeEnv(gym.Env):
         self.sparse_rewards = sparse_rewards
         self.num_fruits = num_fruits
         self.num_snakes = 1
+        self.game_renderer = GameRenderer(width, height, self.num_snakes)
         self.state = None
 
     def reset(self):
@@ -58,6 +60,7 @@ class BattlesnakeEnv(gym.Env):
 
     def render(self, mode="human"):
         # TODO: Implement rgb mode and human mode using pygame
+        self.game_renderer.display(self.state)
         print(self.state.observe())
 
     def _evaluate_reward(

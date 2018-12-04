@@ -28,8 +28,8 @@ class State:
                 ),
                 self.stacked_frames,
             )
-            for snake_idx in range(num_snakes)
-        ]
+            for snake_idx in range(num_snakes)]
+
         self._place_fruits_or_snakes(num_fruits, True)
         self._place_fruits_or_snakes(num_snakes, False)
         self._update_state()

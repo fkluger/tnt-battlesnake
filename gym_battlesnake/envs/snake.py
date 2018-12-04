@@ -68,6 +68,7 @@ class Snake:
                 return Direction.up
 
     def _get_next_head(self, direction: str, head=None):
+
         if not head:
             head = self.body[0]
         if direction == Direction.up:

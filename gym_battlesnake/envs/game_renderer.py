@@ -5,7 +5,7 @@ from .state import State
 from .constants import Field, Direction
 import pygame
 
-if os.environ["DISPLAY"]:
+if "DISPLAY" in os.environ:
     pygame.init()
     pygame.font.init()
 

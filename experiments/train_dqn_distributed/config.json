@@ -10,8 +10,8 @@
     "logging_interval": 30,
 
     "replay_memory": {
-        "capacity": 2000000,
-        "prioritization_exponent": 0.6,
+        "capacity": 1000000,
+        "prioritization_exponent": 0.8,
         "max_priority": 1.0,
         "min_error": 0.01
     },
@@ -21,7 +21,7 @@
         "batch_size": 512,
         "hidden_dim": 256,
 
-        "learning_rate": 0.0001,
+        "learning_rate": 0.00025,
         "discount_factor": 0.99,
         "target_update_rate": 0.001,
 
@@ -35,9 +35,9 @@
     },
 
     "exploration": {
-        "epsilon_min": 0.4,
-        "epsilon_max": 0.4,
-        "epsilon_decay": 1.0
+        "epsilon_min": 0.01,
+        "epsilon_max": 1.0,
+        "epsilon_decay": 0.99999
     },
 
     "distributed": {

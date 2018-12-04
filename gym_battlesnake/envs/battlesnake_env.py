@@ -54,7 +54,7 @@ class BattlesnakeEnv(gym.Env):
         else:
             next_state = self.state.observe()
 
-        return next_state, reward, terminal, {}
+        return next_state, reward, terminal, self.state
 
     def render(self, mode="human"):
         # TODO: Implement rgb mode and human mode using pygame

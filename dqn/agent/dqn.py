@@ -19,7 +19,7 @@ def encode(
         )(encoded)
     else:
         encoded = keras.layers.Conv2D(
-            filters=32,
+            filters=16,
             kernel_size=1,
             strides=1,
             padding="same",
@@ -29,7 +29,7 @@ def encode(
             name="encoder/conv1",
         )(input_observations)
         encoded = keras.layers.Conv2D(
-            filters=64,
+            filters=32,
             kernel_size=4,
             strides=2,
             padding="same",
@@ -38,7 +38,7 @@ def encode(
             name="encoder/conv2",
         )(encoded)
         encoded = keras.layers.Conv2D(
-            filters=64,
+            filters=32,
             kernel_size=3,
             strides=1,
             padding="same",

@@ -1,3 +1,4 @@
+import os
 from typing import List, Union
 
 import gym
@@ -31,7 +32,8 @@ class BattlesnakeEnv(gym.Env):
         self.sparse_rewards = sparse_rewards
         self.num_fruits = num_fruits
         self.num_snakes = 1
-        self.game_renderer = GameRenderer(width, height, self.num_snakes)
+        if "DISPLAY" in os.environ:
+            self.game_renderer = GameRenderer(width, height, self.num_snakes)
         self.state = None
 
     def reset(self):
@@ -60,7 +62,8 @@ class BattlesnakeEnv(gym.Env):
 
     def render(self, mode="human"):
         # TODO: Implement rgb mode and human mode using pygame
-        self.game_renderer.display(self.state)
+        if "DISPLAY" in os.environ:
+            self.game_renderer.display(self.state)
         print(self.state.observe())
 
     def _evaluate_reward(

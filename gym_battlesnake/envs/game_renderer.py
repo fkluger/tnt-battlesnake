@@ -1,11 +1,13 @@
+import os
+
 import numpy as np
 from .state import State
 from .constants import Field, Direction
 import pygame
 
-
-pygame.init()
-pygame.font.init()
+if os.environ["DISPLAY"]:
+    pygame.init()
+    pygame.font.init()
 
 LEADERBOARD_WIDTH = 300
 LEADERBOARD_ITEM_HEIGHT = 100

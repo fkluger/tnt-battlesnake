@@ -17,6 +17,9 @@ pip install sacred gym black pylint tensorflow keras tensorboardX opencv-python 
 # Train a DQN agent
 python run.py train_dqn
 
+# Or run example random agent
+python run.py example
+
 # In another terminal window
 tensorboard --logdir tmp
 ```

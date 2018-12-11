@@ -1,5 +1,4 @@
 import gym
-import common.utils.wrappers as wrappers
 from gym_battlesnake.wrappers import FrameStack
 
 
@@ -12,8 +11,6 @@ def make_environments(config):
                 environment = FrameStack(
                     environment, num_stacked_frames=config.frame_stack
                 )
-        else:
-            environment = wrappers.wrap_dqn(environment)
         environments.append(environment)
 
     return environments

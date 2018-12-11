@@ -3,8 +3,8 @@
     "episodes": 10000000,
     "render_episode_interval": 10000,
     "max_episode_length": 1000,
-    "frame_stack": 1,
-    "num_envs": 1,
+    "frame_stack": 2,
+    "num_envs": 32,
     "training_interval": 4,
 
     "replay_memory": {
@@ -19,7 +19,7 @@
         "batch_size": 64,
         "hidden_dim": 256,
 
-        "learning_rate": 0.0001,
+        "learning_rate": 0.00025,
         "discount_factor": 0.9,
         "target_update_rate": 0.001,
 

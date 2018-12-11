@@ -4,8 +4,7 @@ import keras
 import tensorflow as tf
 
 from common.tensorflow.noisy_dense import NoisyDense
-
-from .dqn import encode
+from common.tensorflow.encoder import encoder
 
 
 def make_dqn_dueling(
@@ -18,7 +17,7 @@ def make_dqn_dueling(
         shape=input_shape, name="input/observations"
     )
     input_actions = keras.layers.Input(shape=(num_actions,), name="input/actions")
-    encoded = encode(input_observations, input_shape, hidden_dim)
+    encoded = encoder(input_observations, input_shape, hidden_dim)
 
     Dense = NoisyDense if use_noisy_dense_layers else keras.layers.Dense
 

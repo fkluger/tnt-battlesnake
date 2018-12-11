@@ -45,4 +45,7 @@ python run.py train_dqn_distributed
 
 # In other terminals
 python run.py train_dqn_distributed --actor [number] --skip_observe --learner_address [IP address]
+
+# Or automated via ssh
+python start_training.py -l [gpu server] -a [worker server 1] [worker server 2] ... -p [number of actors on worker 1] [number of actors on worker 2]... --gpus [ID of the GPUs]
 ```

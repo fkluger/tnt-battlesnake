@@ -26,16 +26,18 @@ tensorboard --logdir tmp
 
 ## Repository structure
 
+- `battlesnake` (WIP)
+    - Adapter to use the trained agent in the Battlesnake game.
 - `common`
     - Common models and functions that can be shared between multiple RL algorithms.
 - `dqn`
     - Contains a DQN agent with several improvements.
+- `example`
+    - An example of a randomly acting agent that can be used with the `gym` environment.
 - `experiments`
     - Experiments should have an unique name and a `main.py` file which defines a `sacred` Experiment called `ex` for reproducibility.
 - `gym_battlesnake`
     - An OpenAI `gym` environment for Battlesnake.
-- `legacy`
-    - Contains the old APEX-DQN code that has not been refactored yet.
 
 ## Distributed DQN
 

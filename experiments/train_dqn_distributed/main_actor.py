@@ -86,29 +86,31 @@ def main_actor(run_id, config, actor: int):
             last_log_ts = time.time()
             mean_rewards, std_rewards = np.mean(rewards), np.std(rewards)
             mean_length, std_length = np.mean(lengths), np.std(lengths)
-            global_step = config.num_envs * episode
+            episodes_total = config.num_envs * episode
             writer.add_scalar(
-                "actor/rewards/mean", mean_rewards, global_step=global_step
+                "actor/rewards/mean", mean_rewards, global_step=episodes_total
             )
             writer.add_scalar(
-                "actor/rewards/standard_deviation", std_rewards, global_step=global_step
+                "actor/rewards/standard_deviation",
+                std_rewards,
+                global_step=episodes_total,
             )
             writer.add_scalar(
-                "actor/episode_length/mean", mean_length, global_step=global_step
+                "actor/episode_length/mean", mean_length, global_step=episodes_total
             )
             writer.add_scalar(
                 "actor/episode_length/standard_deviation",
                 std_length,
-                global_step=global_step,
+                global_step=episodes_total,
             )
             writer.add_scalar(
                 "actor/dqn/epsilon",
                 agent.exploration_strategy.epsilon,
-                global_step=global_step,
+                global_step=episodes_total,
             )
             print(
                 "Episode {}\tMean rewards {:f}\tEpsilon {:f}".format(
-                    episode, mean_rewards, agent.exploration_strategy.epsilon
+                    episodes_total, mean_rewards, agent.exploration_strategy.epsilon
                 )
             )
             rewards.clear()

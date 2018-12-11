@@ -4,7 +4,7 @@
     "render_episode_interval": 10000,
     "max_episode_length": 1000,
     "frame_stack": 2,
-    "num_envs": 32,
+    "num_envs": 64,
     "training_interval": 4,
 
     "replay_memory": {

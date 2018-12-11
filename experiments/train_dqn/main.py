@@ -60,28 +60,35 @@ def main(_run, _config):
             if loss and episode % (config.training_interval * 10) == 0:
                 mean_rewards, std_rewards = np.mean(rewards), np.std(rewards)
                 mean_length, std_length = np.mean(lengths), np.std(lengths)
-                global_step = config.num_envs * episode
-                writer.add_scalar("dqn/loss", loss, global_step=global_step)
-                writer.add_scalar("rewards/mean", mean_rewards, global_step=global_step)
+                episodes_total = config.num_envs * episode
+                writer.add_scalar("dqn/loss", loss, global_step=episodes_total)
                 writer.add_scalar(
-                    "rewards/standard_deviation", std_rewards, global_step=global_step
+                    "rewards/mean", mean_rewards, global_step=episodes_total
                 )
                 writer.add_scalar(
-                    "episode_length/mean", mean_length, global_step=global_step
+                    "rewards/standard_deviation",
+                    std_rewards,
+                    global_step=episodes_total,
+                )
+                writer.add_scalar(
+                    "episode_length/mean", mean_length, global_step=episodes_total
                 )
                 writer.add_scalar(
                     "episode_length/standard_deviation",
                     std_length,
-                    global_step=global_step,
+                    global_step=episodes_total,
                 )
                 writer.add_scalar(
                     "dqn/epsilon",
                     agent.exploration_strategy.epsilon,
-                    global_step=global_step,
+                    global_step=episodes_total,
                 )
                 print(
                     "Episode {}\tMean rewards {:f}\tLoss {:f}\tEpsilon {:f}".format(
-                        episode, mean_rewards, loss, agent.exploration_strategy.epsilon
+                        episodes_total,
+                        mean_rewards,
+                        loss,
+                        agent.exploration_strategy.epsilon,
                     )
                 )
                 rewards.clear()

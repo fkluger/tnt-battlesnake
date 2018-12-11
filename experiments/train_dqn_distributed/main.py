@@ -8,9 +8,10 @@ from experiments.train_dqn_distributed.main_actor import main_actor
 from experiments.train_dqn_distributed.main_learner import main_learner
 
 ex = Experiment("train_dqn_distributed")
+base_config_path = os.path.dirname(__file__) + "/../dqn_base_config.json"
+ex.add_config(base_config_path)
 config_path = os.path.dirname(__file__) + "/config.json"
 ex.add_config(config_path)
-
 
 @ex.automain
 def main(_run, _config):

@@ -4,6 +4,7 @@ import importlib
 import gym_battlesnake
 
 from sacred.observers import FileStorageObserver
+from sacred.arg_parser import get_config_updates
 
 
 def main():
@@ -21,7 +22,11 @@ def main():
         default=False,
         nargs="?",
     )
-    args, _ = parser.parse_known_args()
+    args, unknown_args = parser.parse_known_args()
+
+    config_updates, _ = get_config_updates(
+        [arg for arg in unknown_args if arg != "with"]
+    )
 
     experiment_module = importlib.import_module(
         f"experiments.{args.experiment_name}.main"
@@ -30,7 +35,7 @@ def main():
         experiment_module.ex.observers.append(
             FileStorageObserver.create(f"./tmp/{args.experiment_name}")
         )
-    experiment_module.ex.run()
+    experiment_module.ex.run(config_updates=config_updates)
 
 
 if __name__ == "__main__":

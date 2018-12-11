@@ -1,44 +1,5 @@
 {
-    "env": "battlesnake-15x15-easy-v0",
-    "episodes": 10000000,
-    "render_episode_interval": 10000,
-    "max_episode_length": 1000,
-    "frame_stack": 2,
-    "num_envs": 32,
-    "training_interval": 4,
-
     "logging_interval": 30,
-
-    "replay_memory": {
-        "capacity": 1000000,
-        "prioritization_exponent": 0.8,
-        "max_priority": 1.0,
-        "min_error": 0.01
-    },
-
-    "dqn": {
-        "batches": 64,
-        "batch_size": 512,
-        "hidden_dim": 256,
-
-        "learning_rate": 0.00025,
-        "discount_factor": 0.99,
-        "target_update_rate": 0.001,
-
-        "dueling": true,
-        "double": true,
-
-        "importance_weight_exponent": 0.4,
-        "multi_step_n": 3,
-        
-        "noisy_nets": false
-    },
-
-    "exploration": {
-        "epsilon_min": 0.01,
-        "epsilon_max": 1.0,
-        "epsilon_decay": 0.99999
-    },
 
     "distributed": {
         "max_buffer_size": 1000,

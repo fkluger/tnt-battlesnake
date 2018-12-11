@@ -10,7 +10,7 @@ from common.utils.make_environments import make_environments
 from dqn.make_agent import make_agent
 
 ex = Experiment("train_dqn")
-config_path = os.path.dirname(__file__) + "/config.json"
+config_path = os.path.dirname(__file__) + "/../dqn_base_config.json"
 ex.add_config(config_path)
 
 

@@ -6,15 +6,18 @@
 class State{
     public:
         State(int width, int height, int num_snakes, int num_fruits);
-		State(const State &old_state);
-		State() {};
+        State(const State &old_state);
+        State() {};
         int move_snake(int action);
-		Snake get_snake(int idx);
-		std::vector<coords> get_fruits();
+        Snake get_snake(int idx);
+        std::vector<coords> get_fruits();
         int get_current_player();
         void set_current_player(int idx);
         int** get_array();
-		void set_health(int health);
+        void set_health(int health);
+        int get_snake_count();
+        int get_field_height();
+        int get_field_width();
     private:
         int move_snakes(std::vector<int> actions);
         void collision_check();

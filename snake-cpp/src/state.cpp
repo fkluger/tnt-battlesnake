@@ -39,7 +39,7 @@ int** State::get_array(){
         array[y] = new int[m_width];
         for (int x = 0; x < m_width; ++x){
             if (x == 0 || x == m_width - 1 || y == 0 || y == m_height - 1){
-                array[y][x] = 40;
+                array[y][x] = 30;
             } else {
                 array[y][x] = 0;
             }
@@ -48,13 +48,17 @@ int** State::get_array(){
 
     for (int j = 0; j < m_snakes_alive.size(); ++j){
         std::vector<coords> body = m_snakes_alive[j]->get_body();
-        for (int i = 0; i < body.size(); ++i){
-            array[body[i].y][body[i].x] = 50 * (m_snakes_alive[j]->get_idx() + 1);
+        for (int i = 1; i < body.size() - 1; ++i){
+            array[body[i].y][body[i].x] = 50 * (m_snakes_alive[j]->get_idx() + 1) - 5;
         }
+        array[body[0].y][body[0].x] = 50 * (m_snakes_alive[j]->get_idx() + 1);
+        array[body[body.size() - 1].y][body[body.size() - 1].x] = 50 * (m_snakes_alive[j]->get_idx() + 1) - 10;
+        array[j][0] = m_snakes_alive[j]->get_health();
+
     }
 
     for (int j = 0; j < m_fruits.size(); ++j){
-        array[m_fruits[j].y][m_fruits[j].x] = 11;
+        array[m_fruits[j].y][m_fruits[j].x] = 130;
     }
 
     return array;
@@ -161,6 +165,19 @@ int State::move_snake(int action){
 Snake State::get_snake(int idx)
 {
 	return m_snakes[idx];
+}
+
+int State::get_snake_count()
+{
+	return m_snakes.size();
+}
+
+int State::get_field_height(){
+    return m_height;
+}
+
+int State::get_field_width(){
+    return m_width;
 }
 
 std::vector<coords> State::get_fruits()

@@ -9,13 +9,13 @@ class Snake{
         direction get_direction(int action);
         coords get_next_head(direction dir);
 		
-		bool m_alive;
+        bool m_alive;
         int m_health;
         direction m_head_direction;
         std::vector<coords> m_body;
         int m_idx;
         int m_max_length;
-		int m_maxhealth;
+        int m_maxhealth;
 
     public:
         Snake(coords head, int idx);

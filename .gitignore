@@ -114,3 +114,7 @@ geckodriver
 experiment - */
 
 .DS_Store
+
+#cpp binaries
+
+snake-cpp/bin

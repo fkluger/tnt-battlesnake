@@ -120,6 +120,7 @@ int main(int argc, char const *argv[])
 			std::cout << std::endl;
 		}
 		wins.push_back(winner);
+		agent1.save("test.txt");
 		save_states(states, moves, winner, field_size, n);
 	}
 	for (auto& win : wins) {

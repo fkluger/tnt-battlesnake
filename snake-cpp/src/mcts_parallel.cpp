@@ -5,9 +5,11 @@
 #include <algorithm>
 #include <future> 
 
-MCTSParallel::MCTSParallel(float simulation_time, int num_actions, bool use_fruits) :
-	m_simulation_time(simulation_time), m_num_actions(num_actions), m_use_fruits(use_fruits)
-{
+MCTSParallel::MCTSParallel(float simulation_time, int num_actions, bool use_fruits)
+{ 
+	m_simulation_time = simulation_time;
+	m_num_actions = num_actions;
+	m_use_fruits = use_fruits;
 }
 
 MCTSParallel::MCTSParallel()
@@ -16,6 +18,7 @@ MCTSParallel::MCTSParallel()
 
 int MCTSParallel::get_action(State state)
 {
+	delete m_root_node;
 	srand((unsigned)time(0));
 	std::vector<UCTNode*> action_nodes(m_num_actions, nullptr);
 	std::vector<std::thread> action_threads;
@@ -45,7 +48,7 @@ int MCTSParallel::get_action(State state)
 	int best_action = std::distance(v.begin(), result);
 
 	std::cout << m_root_node->get_visits() << std::endl;
-	delete m_root_node;
+	
 	return best_action;
 
 }

@@ -7,6 +7,7 @@ class MCTSAgent : Agent{
     public:
         MCTSAgent(float time, int num_actions, int idx, int health = 100, bool parallel = false, bool use_fruits = true);
 		~MCTSAgent();
+        void save(std::string file);
 		int act(State state) override;
     private:
         float m_time;

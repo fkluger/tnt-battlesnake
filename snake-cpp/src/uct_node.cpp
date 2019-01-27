@@ -2,6 +2,7 @@
 #include <numeric>
 #include <algorithm>
 #include <math.h> 
+#include <sstream>
 #include <iostream>
 
 UCTNode::UCTNode(State state, int active_player, int action, int num_actions, int winner, UCTNode* parent):
@@ -13,7 +14,7 @@ UCTNode::UCTNode(State state, int active_player, int action, int num_actions, in
         m_children = std::vector<UCTNode*>(m_num_actions, nullptr);
     }
 
-UCTNode::UCTNode(State state, int active_player, int action, int num_actions, std::vector<UCTNode*> children):
+UCTNode::UCTNode(State state, int active_player, int action, int num_actions, std::vector<UCTNode*>& children):
 	m_state(state), m_active_player(active_player), m_action(action), m_num_actions(num_actions)
 {	
 	m_isleaf = false;
@@ -31,6 +32,54 @@ UCTNode::UCTNode() {
 
 }
 
+void fill_spaces(int dim, std::ofstream& file){
+	for (int j = 0; j < dim; ++j){
+		file << "\t";
+	}
+}
+
+std::vector<std::string> UCTNode::to_json() {
+	std::vector<std::string> node_json;
+	const void * address = static_cast<const void*>(this);
+	std::stringstream ss;
+	ss << address;  
+	std::string name = ss.str(); 
+	node_json.push_back("\tID: " + name);
+	std::string root = ((m_parent != nullptr)? "1" : "0");
+	node_json.push_back("\tRoot: " + root);
+	node_json.push_back("\tVisits: " + std::to_string(m_visits));
+	node_json.push_back("\tValue: " + std::to_string(m_value));
+	node_json.push_back("\tChildren: [\n");
+	return node_json;
+}
+
+void UCTNode::save_tree(int dim, std::ofstream& uct_file){
+	std::vector<std::string> node_json = to_json();
+	for (int i = 0; i < node_json.size(); ++i){
+		fill_spaces(dim, uct_file);
+		uct_file << node_json[i];
+		uct_file << std::endl;
+	}
+	for (int i = 0; i < m_children.size(); ++i)
+	{
+		if(m_children[i] != nullptr){
+			fill_spaces(dim + 1, uct_file);
+			uct_file << "{" << std::endl;
+			m_children[i]->save_tree(dim + 1, uct_file);
+			
+			fill_spaces(dim + 1, uct_file);
+			uct_file << "}";
+			if(i < m_children.size() - 1 && m_children[i+1] != nullptr){
+				uct_file << ",";
+			}
+			uct_file << std::endl;
+		}
+	}
+	fill_spaces(dim + 1, uct_file);
+	uct_file << "]" << std::endl;
+	
+	 
+}
 
 UCTNode::~UCTNode(){
 	for (std::vector< UCTNode* >::iterator it = m_children.begin(); it != m_children.end(); ++it)
@@ -114,10 +163,10 @@ void UCTNode::backup(int winner, int fruits_eaten){
     do {
         current_node->set_visits(current_node->get_visits() + 1);
         if (winner == current_node->get_active_player()){
-            current_node->set_value(current_node->get_value() + 3 + fruits_eaten);
+            current_node->set_value(current_node->get_value() + 1);// + fruits_eaten);
 		}
 		else {
-			current_node->set_value(current_node->get_value() - 3 + fruits_eaten);
+			current_node->set_value(current_node->get_value()); // + fruits_eaten);
 		}
         current_node = current_node->get_parent();
 	} while (current_node);

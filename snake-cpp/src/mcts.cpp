@@ -54,3 +54,7 @@ int MCTS::get_action(State state){
 	delete m_root_node;
     return best_action;
 }
+
+UCTNode* MCTS::get_root_node(){
+    return m_root_node;
+}

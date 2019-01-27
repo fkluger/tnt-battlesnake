@@ -1,5 +1,6 @@
 #include "mcts_agent.hpp"
 #include "mcts_parallel.h"
+#include <fstream>
 
 MCTSAgent::MCTSAgent(float time, int num_actions, int idx, int health, bool parallel, bool use_fruits) : m_idx(idx), m_health(health) {
 	m_parallel = parallel;
@@ -19,4 +20,11 @@ int MCTSAgent::act(State state){
 	state.set_health(m_health);
     state.set_current_player(m_idx);
     return m_mcts->get_action(state);
+}
+
+
+void MCTSAgent::save(std::string file){
+	std::ofstream uct_file;
+	uct_file.open (file);
+	m_mcts->get_root_node()->save_tree(1, uct_file);
 }

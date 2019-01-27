@@ -1,10 +1,12 @@
 #include "state.hpp"
 #pragma once
+#include <string>
+#include <fstream>
 
 class UCTNode{
     public:
         UCTNode(State state, int active_player, int action, int num_actions, int winner = -2, UCTNode* parent = nullptr);
-		UCTNode(State state, int active_player, int action, int num_actions, std::vector<UCTNode*> children);
+		UCTNode(State state, int active_player, int action, int num_actions, std::vector<UCTNode*>& children);
 		UCTNode();
 		~UCTNode();
         void set_visits(float visits);
@@ -21,6 +23,8 @@ class UCTNode{
         std::vector<float> res();
         float get_visits();
 		float get_value();
+        void save_tree(int dim, std::ofstream& uct_file);
+        std::vector<std::string> to_json();
     private:
         
         std::vector<float> child_uct();

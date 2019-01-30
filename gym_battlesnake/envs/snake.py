@@ -35,7 +35,6 @@ class Snake:
 
     def die(self):
         self.health = 0
-        self.body.clear()
 
     def _get_direction(self, action: int):
         if self.head_direction == Direction.up:

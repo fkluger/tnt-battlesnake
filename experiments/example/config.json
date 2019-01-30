@@ -3,6 +3,6 @@
     "episodes": 10000,
     "render_episode_interval": 1000,
     "max_episode_length": 1000,
-    "frame_stack": 1,
+    "frame_stack": 2,
     "num_envs": 1
 }

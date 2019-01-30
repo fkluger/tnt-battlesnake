@@ -39,7 +39,7 @@ def main(_run, _config):
             episode_rewards, episode_length = run_episode(
                 environments[0],
                 agent,
-                render=episode % config.render_episode_interval == 0,
+                render=episode % config.render_episode_interval == 0 and False,
                 max_length=config.max_episode_length,
             )
         rewards.append(episode_rewards)

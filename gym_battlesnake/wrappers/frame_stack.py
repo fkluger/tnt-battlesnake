@@ -12,7 +12,11 @@ class FrameStack(gym.Wrapper):
         self.observation_space = gym.spaces.Box(
             low=0,
             high=255,
-            shape=(num_stacked_frames, env.width, env.height),
+            shape=(
+                env.observation_space.shape[1],
+                env.observation_space.shape[2],
+                num_stacked_frames,
+            ),
             dtype=np.uint8,
         )
 
@@ -23,8 +27,19 @@ class FrameStack(gym.Wrapper):
             num_snakes=self.unwrapped.num_snakes,
             num_fruits=self.unwrapped.num_fruits,
             stacked_frames=self.num_stacked_frames,
+            window_width=self.unwrapped.window_width,
+            window_height=self.unwrapped.window_height,
         )
-        return self.unwrapped.state.observe()
+        obs = self.unwrapped.state.observe()
+        obs = np.moveaxis(obs, 0, -1)
+        return obs
 
     def step(self, action: int):
-        return self.env.step(action)
+        obs, rew, done, info = self.env.step(action)
+        if obs is None:
+            obs = np.zeros(
+                shape=(self.observation_space.shape), dtype=self.observation_space.dtype
+            )
+        else:
+            obs = np.moveaxis(obs, 0, -1)
+        return obs, rew, done, info

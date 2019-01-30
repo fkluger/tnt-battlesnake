@@ -5,6 +5,7 @@ import numpy as np
 
 from gym_battlesnake.envs.snake import Snake
 from gym_battlesnake.envs.serialize import serialize
+from gym_battlesnake.envs.serialize_sliding_window import serialize_window
 
 
 class State:
@@ -14,21 +15,27 @@ class State:
         height: int,
         num_snakes: int,
         num_fruits: int,
+        window_width: int,
+        window_height: int,
         stacked_frames: int = 1,
     ):
         self.width = width
         self.height = height
+        self.window_width = window_width
+        self.window_height = window_height
         self.fruits = []
         self.snakes = []
         self.stacked_frames = stacked_frames
         self.last_frames_per_snake = [
             deque(
                 np.zeros(
-                    [self.stacked_frames, self.width, self.height], dtype=np.uint8
+                    [self.stacked_frames, self.window_width, self.window_height],
+                    dtype=np.uint8,
                 ),
                 self.stacked_frames,
             )
-            for snake_idx in range(num_snakes)]
+            for snake_idx in range(num_snakes)
+        ]
 
         self._place_fruits_or_snakes(num_fruits, True)
         self._place_fruits_or_snakes(num_snakes, False)
@@ -88,9 +95,11 @@ class State:
 
     def _update_state(self):
         for snake_idx, state in enumerate(self.snakes):
-            state = serialize(
+            state = serialize_window(
                 width=self.width,
                 height=self.height,
+                window_width=self.window_width,
+                window_height=self.window_height,
                 snakes=self.snakes,
                 fruits=self.fruits,
                 own_snake_index=snake_idx,

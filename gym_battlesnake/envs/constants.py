@@ -20,11 +20,12 @@ class Reward(Enum):
 
 class Field(Enum):
     own_head_up = 255
-    own_head_right = 255
-    own_head_down = 255
-    own_head_left = 255
-    own_body = 180
-    own_tail = 160
+    own_head_right = 245
+    own_head_down = 235
+    own_head_left = 225
+    own_body = 200
+    own_tail = 190
+    wall = 100
     head = 70
     body = 40
     tail = 20

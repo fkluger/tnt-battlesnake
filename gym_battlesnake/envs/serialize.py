@@ -49,7 +49,7 @@ def serialize(
                     if body_idx == snake_length - 1
                     else Field.body.value
                 )
-        current_state[snake_index, 0] = snake.health
+        # current_state[snake_index, 0] = snake.health
     for [x, y] in fruits:
         current_state[x, y] = Field.fruit.value
     return current_state

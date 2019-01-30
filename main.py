@@ -15,7 +15,7 @@ def env_creator(config):
 
 def main():
 
-    ray.init()
+    ray.init(redis_address="130.75.31.53:6379")
     ray.tune.register_env("battlesnake", env_creator)
     tune.run_experiments(
         {
@@ -36,10 +36,12 @@ def main():
                         "frame_stack": 2,
                         "name": "battlesnake-18x18-easy-v0",
                     },
-                    "sample_batch_size": 50,
+                    "num_data_loader_buffers": 4,
+                    "sample_batch_size": 500,
                     "train_batch_size": 500,
                     "num_workers": 32,
                     "num_envs_per_worker": 10,
+                    "max_sample_requests_in_flight_per_worker": 5
                 },
             }
         }

@@ -27,8 +27,6 @@ class FrameStack(gym.Wrapper):
             num_snakes=self.unwrapped.num_snakes,
             num_fruits=self.unwrapped.num_fruits,
             stacked_frames=self.num_stacked_frames,
-            window_width=self.unwrapped.window_width,
-            window_height=self.unwrapped.window_height,
         )
         obs = self.unwrapped.state.observe()
         obs = np.moveaxis(obs, 0, -1)

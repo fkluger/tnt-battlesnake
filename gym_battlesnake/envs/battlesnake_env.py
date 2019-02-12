@@ -8,8 +8,6 @@ import numpy as np
 from gym_battlesnake.envs.state import State
 from gym_battlesnake.envs.constants import Reward
 
-# from .game_renderer import GameRenderer
-
 
 class BattlesnakeEnv(gym.Env):
 
@@ -20,40 +18,24 @@ class BattlesnakeEnv(gym.Env):
     metadata = {"render.modes": ["human"]}
 
     def __init__(
-        self,
-        width: int,
-        height: int,
-        num_fruits: int = 1,
-        sparse_rewards: bool = False,
-        window_width: int = 18,
-        window_height: int = 18,
+        self, width: int, height: int, num_fruits: int = 1, sparse_rewards: bool = False
     ):
 
         self.width = width
         self.height = height
 
-        self.window_width = window_width
-        self.window_height = window_height
-
         self.sparse_rewards = sparse_rewards
         self.num_fruits = num_fruits
         self.num_snakes = 1
-        # if "DISPLAY" in os.environ:
-        #     self.game_renderer = GameRenderer(width, height, self.num_snakes)
         self.state = State(
             width=self.width,
             height=self.height,
             num_snakes=self.num_snakes,
             num_fruits=self.num_fruits,
-            window_width=self.window_width,
-            window_height=self.window_height,
         )
         self.action_space = spaces.Discrete(3)
         self.observation_space = spaces.Box(
-            low=0,
-            high=255,
-            shape=(1, self.window_width, self.window_height),
-            dtype=np.uint8,
+            low=0, high=255, shape=(1, self.width, self.height), dtype=np.uint8
         )
 
     def reset(self):
@@ -62,10 +44,16 @@ class BattlesnakeEnv(gym.Env):
             height=self.height,
             num_snakes=self.num_snakes,
             num_fruits=self.num_fruits,
-            window_width=self.window_width,
-            window_height=self.window_height,
         )
-        return self.state.observe()
+        if self.num_snakes == 1:
+            return self.state.observe()
+        else:
+            return dict(
+                zip(
+                    range(self.num_snakes),
+                    [self.state.observe(i) for i in range(self.num_snakes)],
+                )
+            )
 
     def step(self, action: Union[List[int], int]):
 
@@ -78,13 +66,19 @@ class BattlesnakeEnv(gym.Env):
         if terminal:
             next_state = None
         else:
-            next_state = self.state.observe()
+            if self.num_snakes == 1:
+                next_state = self.state.observe()
+            else:
+                next_state = dict(
+                    zip(
+                        range(self.num_snakes),
+                        [self.state.observe(i) for i in range(self.num_snakes)],
+                    )
+                )
 
         return next_state, reward, terminal, {}
 
     def render(self, mode="human"):
-        # if "DISPLAY" in os.environ:
-        #     self.game_renderer.display(self.state)
         print(self.state.observe())
 
     def _evaluate_reward(

@@ -1,5 +1,5 @@
 {
-    "env": "battlesnake-9x9-easy-v0",
+    "env": "battlesnake-v0",
     "episodes": 10000,
     "render_episode_interval": 1000,
     "max_episode_length": 1000,

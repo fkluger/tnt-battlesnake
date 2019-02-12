@@ -1,5 +1,7 @@
+import tensorflow as tf
 import ray
 import ray.tune as tune
+from ray.rllib.models import Model, ModelCatalog
 import gym
 
 import gym_battlesnake
@@ -13,35 +15,35 @@ def env_creator(config):
     return env
 
 
+class BattlesnakeVisionNet(Model):
+    def _build_layers_v2(self, input_dict, num_outputs, options):
+        inputs = input_dict["obs"]
+
+        with tf.name_scope("battlesnake_vision_net"):
+            hidden = tf.layers.Conv2D(16, 1, 1, activation=tf.nn.leaky_relu)(inputs)
+            hidden = tf.layers.Conv2D(32, 2, 2, activation=tf.nn.leaky_relu)(hidden)
+            hidden = tf.layers.Conv2D(32, 3, 1, activation=tf.nn.leaky_relu)(hidden)
+            hidden = tf.layers.Flatten()(hidden)
+            last_layer = tf.layers.Dense(256, activation=tf.nn.leaky_relu)(hidden)
+            output = tf.layers.Dense(num_outputs)(last_layer)
+            return output, last_layer
+
+
 def main():
 
-    ray.init(redis_address="130.75.31.53:6379")
+    ray.init()
     ray.tune.register_env("battlesnake", env_creator)
+    ModelCatalog.register_custom_model("battlesnake_vision_net", BattlesnakeVisionNet)
     tune.run_experiments(
         {
             "battlesnake": {
-                "run": "IMPALA",
+                "run": "DQN",
                 "env": "battlesnake",
-                "stop": {"episode_reward_mean": 200},
+                "stop": {"episode_reward_mean": 40},
                 "config": {
-                    "model": {
-                        "use_lstm": True,
-                        "conv_filters": [
-                            [16, [2, 2], 1],
-                            [32, [2, 2], 2],
-                            [256, [9, 9], 1],
-                        ],
-                    },
-                    "env_config": {
-                        "frame_stack": 2,
-                        "name": "battlesnake-18x18-easy-v0",
-                    },
-                    "num_data_loader_buffers": 4,
-                    "sample_batch_size": 500,
-                    "train_batch_size": 500,
-                    "num_workers": 32,
-                    "num_envs_per_worker": 10,
-                    "max_sample_requests_in_flight_per_worker": 5
+                    "model": {"custom_model": "battlesnake_vision_net"},
+                    "env_config": {"frame_stack": 2, "name": "battlesnake-v0"},
+                    "num_envs_per_worker": 32,
                 },
             }
         }

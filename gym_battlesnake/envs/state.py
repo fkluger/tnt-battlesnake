@@ -5,7 +5,20 @@ import numpy as np
 
 from gym_battlesnake.envs.snake import Snake
 from gym_battlesnake.envs.serialize import serialize
-from gym_battlesnake.envs.serialize_sliding_window import serialize_window
+
+
+def get_snake_starting_position(width, height, snake_idx):
+    positions = {
+        0: [2, 2],
+        1: [width - 2, height - 2],
+        3: [2, height - 2],
+        4: [width - 2, 2],
+        5: [(width + 2) // 2, 2],
+        6: [width - 2, (height + 2) // 2],
+        7: [(width + 2) // 2, height - 2],
+        8: [2, (height + 2) // 2],
+    }
+    return positions[snake_idx]
 
 
 class State:
@@ -15,22 +28,17 @@ class State:
         height: int,
         num_snakes: int,
         num_fruits: int,
-        window_width: int,
-        window_height: int,
         stacked_frames: int = 1,
     ):
         self.width = width
         self.height = height
-        self.window_width = window_width
-        self.window_height = window_height
         self.fruits = []
         self.snakes = []
         self.stacked_frames = stacked_frames
         self.last_frames_per_snake = [
             deque(
                 np.zeros(
-                    [self.stacked_frames, self.window_width, self.window_height],
-                    dtype=np.uint8,
+                    [self.stacked_frames, self.width, self.height], dtype=np.uint8
                 ),
                 self.stacked_frames,
             )
@@ -95,11 +103,9 @@ class State:
 
     def _update_state(self):
         for snake_idx, state in enumerate(self.snakes):
-            state = serialize_window(
+            state = serialize(
                 width=self.width,
                 height=self.height,
-                window_width=self.window_width,
-                window_height=self.window_height,
                 snakes=self.snakes,
                 fruits=self.fruits,
                 own_snake_index=snake_idx,
@@ -152,17 +158,16 @@ class State:
                     available = False
         return available
 
-    def _place_fruits_or_snakes(self, fields: List[int], is_fruit: bool):
-        # Leave one row/column for snakes to prevent instant-death episodes
-        padding = 1 if is_fruit else 2
-        for _ in range(fields):
+    def _place_fruits_or_snakes(self, fields: int, is_fruit: bool):
+        for i in range(fields):
             field = None
-            while not self._is_available(field):
-                field = (
-                    np.random.randint(padding, self.width - padding),
-                    np.random.randint(padding, self.height - padding),
-                )
             if is_fruit:
+                while not self._is_available(field):
+                    field = (
+                        np.random.randint(1, self.width - 1),
+                        np.random.randint(1, self.height - 1),
+                    )
                 self.fruits.append(field)
             else:
+                field = get_snake_starting_position(self.width, self.height, i)
                 self.snakes.append(Snake(field))

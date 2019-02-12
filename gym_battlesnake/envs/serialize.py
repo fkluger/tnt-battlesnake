@@ -10,7 +10,6 @@ def serialize(
     width: int,
     height: int,
     snakes: List[Snake],
-    # [x, y]
     fruits: List[List[int]],
     own_snake_index: int = 0,
 ):
@@ -19,13 +18,15 @@ def serialize(
         for y in range(height):
             if x == 0 or y == 0 or x == width - 1 or y == height - 1:
                 current_state[x, y] = Field.body.value
+    snake_direction = None
     for snake_index, snake in enumerate(snakes):
         if snake.is_dead():
             continue
         snake_length = len(snake.body)
         for body_idx, [x, y] in enumerate(snake.body):
-            # Snake at position 0 is the agent
             if snake_index == own_snake_index:
+                if snake_direction is None:
+                    snake_direction = snake.head_direction
                 if body_idx == 0:
                     if snake.head_direction == Direction.up:
                         current_state[x, y] = Field.own_head_up.value
@@ -49,7 +50,13 @@ def serialize(
                     if body_idx == snake_length - 1
                     else Field.body.value
                 )
-        # current_state[snake_index, 0] = snake.health
+        current_state[snake_index, 0] = snake.health
     for [x, y] in fruits:
         current_state[x, y] = Field.fruit.value
+    if snake_direction == Direction.left:
+        current_state = np.rot90(current_state, k=3)
+    elif snake_direction == Direction.down:
+        current_state = np.rot90(current_state, k=2)
+    elif snake_direction == Direction.right:
+        current_state = np.rot90(current_state, k=1)
     return current_state

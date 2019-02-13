@@ -1,5 +1,5 @@
 from collections import deque
-from typing import List, Union
+from typing import List, Union, Dict
 
 import numpy as np
 
@@ -11,12 +11,12 @@ def get_snake_starting_position(width, height, snake_idx):
     positions = {
         0: [2, 2],
         1: [width - 2, height - 2],
-        3: [2, height - 2],
-        4: [width - 2, 2],
-        5: [(width + 2) // 2, 2],
-        6: [width - 2, (height + 2) // 2],
-        7: [(width + 2) // 2, height - 2],
-        8: [2, (height + 2) // 2],
+        2: [2, height - 2],
+        3: [width - 2, 2],
+        4: [(width + 2) // 2, 2],
+        5: [width - 2, (height + 2) // 2],
+        6: [(width + 2) // 2, height - 2],
+        7: [2, (height + 2) // 2],
     }
     return positions[snake_idx]
 
@@ -49,22 +49,27 @@ class State:
         self._place_fruits_or_snakes(num_snakes, False)
         self._update_state()
 
-    def move_snakes(self, actions: Union[List[int], int]):
+    def move_snakes(self, actions: Union[Dict[str, int], int]):
 
-        if not isinstance(actions, list):
-            actions = [actions]
+        if not isinstance(actions, dict):
+            actions = {"0": actions}
 
         for snake_idx, snake in enumerate(self.snakes):
-            snake.move_head(actions[snake_idx])
+            if str(snake_idx) not in actions:
+                snake.die()
+                continue
+            snake.move_head(actions[str(snake_idx)])
 
-        snake_collided = False
-        snake_ate_fruit = False
-        snake_starved = False
-        snake_won = False
+        snake_collided = []
+        snake_ate_fruit = []
+        snake_starved = []
+        snake_won = []
 
         fruits_eaten = 0
 
         for snake_idx, snake in enumerate(self.snakes):
+            if str(snake_idx) not in actions:
+                continue
             collided = self._collided(snake, snake.get_head())
             ate_fruit = self._ate_fruit(snake)
             starved = snake.is_dead()
@@ -72,10 +77,9 @@ class State:
             if ate_fruit:
                 fruits_eaten += 1
 
-            if snake_idx == 0:
-                snake_collided = collided
-                snake_ate_fruit = ate_fruit
-                snake_starved = starved
+            snake_collided.append(collided)
+            snake_ate_fruit.append(ate_fruit)
+            snake_starved.append(starved)
 
             if not collided and not starved:
                 snake.move_tail(ate_fruit)
@@ -84,22 +88,28 @@ class State:
 
         self._place_fruits_or_snakes(fruits_eaten, True)
 
-        if len(self.snakes) == 1:
-            if len(self.snakes[0].body) == (self.width - 2) * (self.height - 2):
-                snake_won = True
+        for snake_idx, snake in enumerate(self.snakes):
+            if str(snake_idx) not in actions:
+                continue
+            if len(self.snakes) == 1:
+                if len(self.snakes[0].body) == (self.width - 2) * (self.height - 2):
+                    snake_won.append(True)
+                else:
+                    snake_won.append(False)
             else:
-                snake_won = False
-
-        else:
-            snakes_alive = [s for s in self.snakes if s.is_dead() is False]
-            snake_won = self.snakes[0].is_dead() is False and len(snakes_alive) == 1
+                snakes_alive = [s for s in self.snakes if s.is_dead() is False]
+                snake_won.append(
+                    self.snakes[snake_idx].is_dead() is False and len(snakes_alive) == 1
+                )
 
         self._update_state()
 
         return snake_ate_fruit, snake_collided, snake_starved, snake_won
 
     def observe(self, snake_perspective=0):
-        return np.array(self.last_frames_per_snake[snake_perspective])
+        return np.moveaxis(
+            np.array(self.last_frames_per_snake[snake_perspective]), 0, -1
+        )
 
     def _update_state(self):
         for snake_idx, state in enumerate(self.snakes):

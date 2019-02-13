@@ -2,16 +2,22 @@ import tensorflow as tf
 import ray
 import ray.tune as tune
 from ray.rllib.models import Model, ModelCatalog
+from ray.rllib.agents.dqn.dqn_policy_graph import DQNPolicyGraph
 import gym
 
 import gym_battlesnake
+from gym_battlesnake.envs import BattlesnakeEnv
 from gym_battlesnake.wrappers import FrameStack
 
 
 def env_creator(config):
-    env = gym.make(config["name"])
-    if config["frame_stack"] > 1:
-        env = FrameStack(env, num_stacked_frames=config["frame_stack"])
+    env = BattlesnakeEnv(
+        width=config["width"],
+        height=config["height"],
+        num_fruits=config["num_fruits"],
+        num_snakes=config["num_snakes"],
+        stacked_frames=config["stacked_frames"],
+    )
     return env
 
 
@@ -34,21 +40,41 @@ def main():
     ray.init()
     ray.tune.register_env("battlesnake", env_creator)
     ModelCatalog.register_custom_model("battlesnake_vision_net", BattlesnakeVisionNet)
+    env_config = {
+        "width": 7,
+        "height": 7,
+        "num_fruits": 1,
+        "num_snakes": 3,
+        "stacked_frames": 2,
+    }
+    env = env_creator(env_config)
     tune.run_experiments(
         {
             "battlesnake": {
-                "run": "APEX",
+                "run": "DQN",
                 "env": "battlesnake",
                 "stop": {"episode_reward_mean": 40},
+                # "checkpoint_freq": 20,
                 "config": {
                     "model": {"custom_model": "battlesnake_vision_net"},
-                    "env_config": {"frame_stack": 2, "name": "battlesnake-v0"},
-                    "num_workers": 6,
+                    "env_config": env_config,
+                    "num_workers": 3,
                     "num_envs_per_worker": 32,
                     "num_atoms": 51,
                     "v_min": -2.0,
                     "v_max": 40.0,
                     "noisy": True,
+                    "multiagent": {
+                        "policy_graphs": {
+                            "snake_0": (
+                                DQNPolicyGraph,
+                                env.obs_space,
+                                env.action_space,
+                                {},
+                            )
+                        },
+                        "policy_mapping_fn": tune.function(lambda agent_id: "snake_0"),
+                    },
                 },
             }
         }

@@ -5,9 +5,9 @@ from gym_battlesnake.envs import BattlesnakeEnv
 from gym_battlesnake.envs.state import State
 
 
-class FrameStack(gym.Wrapper):
+class FrameStack:
     def __init__(self, env: BattlesnakeEnv, num_stacked_frames: int):
-        super().__init__(env)
+        self.env = env
         self.num_stacked_frames = num_stacked_frames
         self.observation_space = gym.spaces.Box(
             low=0,
@@ -21,14 +21,14 @@ class FrameStack(gym.Wrapper):
         )
 
     def reset(self):
-        self.unwrapped.state = State(
-            width=self.unwrapped.width,
-            height=self.unwrapped.height,
-            num_snakes=self.unwrapped.num_snakes,
-            num_fruits=self.unwrapped.num_fruits,
+        self.env.state = State(
+            width=self.env.width,
+            height=self.env.height,
+            num_snakes=self.env.num_snakes,
+            num_fruits=self.env.num_fruits,
             stacked_frames=self.num_stacked_frames,
         )
-        obs = self.unwrapped.state.observe()
+        obs = self.env.state.observe()
         obs = np.moveaxis(obs, 0, -1)
         return obs
 

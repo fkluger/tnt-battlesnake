@@ -57,7 +57,7 @@ def get_agent_config(
         "env_config": env_config,
         "num_workers": num_workers,
         "num_envs_per_worker": 32,
-        "double": False,
+        "double_q": False,
         "num_atoms": 51,
         "v_min": -2.0,
         "v_max": env_config["width"] ** 2.0,

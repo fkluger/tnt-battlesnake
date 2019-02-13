@@ -1,3 +1,5 @@
+import argparse
+
 import tensorflow as tf
 import ray
 import ray.tune as tune
@@ -66,16 +68,24 @@ def get_agent_config(
 
 
 def main():
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--algorithm", help="Name of the RL algorithm.", type=str, default="DQN"
+    )
+    parser.add_argument("--size", help="Width/Height of the game.", type=int, default=13)
+    parser.add_argument("--snakes", help="Number of snakes.", type=int, default=3)
+    args, _ = parser.parse_known_args()
     ray.init()
     tune.run_experiments(
         {
             "battlesnake": {
-                "run": "DQN",
+                "run": args.algorithm,
                 "env": "battlesnake",
                 "stop": {"episode_reward_mean": 30},
                 "checkpoint_freq": 100,
-                "config": get_agent_config(),
+                "config": get_agent_config(
+                    width=args.size, height=args.size, num_snakes=args.snakes
+                ),
             }
         }
     )

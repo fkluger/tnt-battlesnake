@@ -20,6 +20,10 @@ def serialize(
                 current_state[x, y] = Field.body.value
     snake_direction = None
     for snake_index, snake in enumerate(snakes):
+        if snake_index == own_snake_index:
+            current_state[0, height - 1] = snake.health
+        else:
+            current_state[snake_index, 0] = snake.health
         if snake.is_dead():
             continue
         snake_length = len(snake.body)
@@ -50,7 +54,6 @@ def serialize(
                     if body_idx == snake_length - 1
                     else Field.body.value
                 )
-        current_state[snake_index, 0] = snake.health
     for [x, y] in fruits:
         current_state[x, y] = Field.fruit.value
     if snake_direction == Direction.left:

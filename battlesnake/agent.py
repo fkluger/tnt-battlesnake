@@ -18,7 +18,9 @@ class Agent(Snake):
         self.width = width
         self.height = height
         self.stacked_frames = stacked_frames
-        config = get_agent_config(num_snakes=1)
+        config = get_agent_config(
+            width=width, height=height, stacked_frames=stacked_frames, num_snakes=1
+        )
         config["num_workers"] = 0
         config["num_envs_per_worker"] = 1
         del config["multiagent"]

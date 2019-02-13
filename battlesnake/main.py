@@ -42,9 +42,12 @@ def ping():
 def start():
     global agent
     data = bottle.request.json
-    print("Test")
     if agent is None:
-        agent = Agent(width=9, height=9, stacked_frames=2)
+        agent = Agent(
+            width=data["board"]["width"] + 2,
+            height=data["board"]["height"] + 2,
+            stacked_frames=2,
+        )
     agent.on_reset()
     print(json.dumps(data))
 

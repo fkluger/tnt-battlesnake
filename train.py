@@ -27,11 +27,11 @@ class BattlesnakeVisionNet(Model):
         inputs = input_dict["obs"]
 
         with tf.name_scope("battlesnake_vision_net"):
-            hidden = tf.layers.Conv2D(16, 1, 1, activation=tf.nn.leaky_relu)(inputs)
-            hidden = tf.layers.Conv2D(32, 2, 2, activation=tf.nn.leaky_relu)(hidden)
-            hidden = tf.layers.Conv2D(32, 3, 1, activation=tf.nn.leaky_relu)(hidden)
+            hidden = tf.layers.Conv2D(32, 1, 1, activation=tf.nn.leaky_relu)(inputs)
+            hidden = tf.layers.Conv2D(64, 2, 2, activation=tf.nn.leaky_relu)(hidden)
+            hidden = tf.layers.Conv2D(64, 3, 1, activation=tf.nn.leaky_relu)(hidden)
             hidden = tf.layers.Flatten()(hidden)
-            last_layer = tf.layers.Dense(256, activation=tf.nn.leaky_relu)(hidden)
+            last_layer = tf.layers.Dense(512, activation=tf.nn.leaky_relu)(hidden)
             output = tf.layers.Dense(num_outputs)(last_layer)
             return output, last_layer
 
@@ -57,10 +57,16 @@ def get_agent_config(
         "env_config": env_config,
         "num_workers": num_workers,
         "num_envs_per_worker": 32,
+        "double": False,
         "num_atoms": 51,
         "v_min": -2.0,
         "v_max": env_config["width"] ** 2.0,
-        "noisy": True,
+        "buffer_size": 1000000,
+        "exploration_final_eps": 0.01,
+        "exploration_fraction": 0.1,
+        "prioritized_replay_alpha": 0.5,
+        "beta_annealing_fraction": 1.0,
+        "final_prioritized_replay_beta": 1.0,
         "multiagent": {
             "policy_graphs": {
                 "snake_0": (DQNPolicyGraph, env.obs_space, env.action_space, {})
@@ -93,8 +99,7 @@ def main():
             "battlesnake": {
                 "run": args.algorithm,
                 "env": "battlesnake",
-                "stop": {"episode_reward_mean": 30},
-                "checkpoint_freq": 100,
+                "checkpoint_freq": 25,
                 "config": get_agent_config(
                     width=args.size,
                     height=args.size,

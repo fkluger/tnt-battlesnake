@@ -37,13 +37,18 @@ def main():
     tune.run_experiments(
         {
             "battlesnake": {
-                "run": "DQN",
+                "run": "APEX",
                 "env": "battlesnake",
                 "stop": {"episode_reward_mean": 40},
                 "config": {
                     "model": {"custom_model": "battlesnake_vision_net"},
                     "env_config": {"frame_stack": 2, "name": "battlesnake-v0"},
+                    "num_workers": 6,
                     "num_envs_per_worker": 32,
+                    "num_atoms": 51,
+                    "v_min": -2.0,
+                    "v_max": 40.0,
+                    "noisy": True,
                 },
             }
         }

@@ -35,6 +35,9 @@ class State:
         self.fruits = []
         self.snakes = []
         self.stacked_frames = stacked_frames
+        self.fruit_spawn_factor = 2.0
+        self.min_fruit_spawn_probability = 0.1
+        self.fruit_spawn_probability = 0.1
         self.last_frames_per_snake = [
             deque(
                 np.zeros(
@@ -65,17 +68,12 @@ class State:
         snake_starved = []
         snake_won = []
 
-        fruits_eaten = 0
-
         for snake_idx, snake in enumerate(self.snakes):
             if str(snake_idx) not in actions:
                 continue
             collided = self._collided(snake, snake.get_head())
             ate_fruit = self._ate_fruit(snake)
             starved = snake.is_dead()
-
-            if ate_fruit:
-                fruits_eaten += 1
 
             snake_collided.append(collided)
             snake_ate_fruit.append(ate_fruit)
@@ -86,7 +84,11 @@ class State:
             else:
                 snake.die()
 
-        self._place_fruits_or_snakes(fruits_eaten, True)
+        if np.random.random() < self.fruit_spawn_probability:
+            self._place_fruits_or_snakes(1, True)
+            self.fruit_spawn_probability = self.min_fruit_spawn_probability
+        else:
+            self.fruit_spawn_probability *= self.fruit_spawn_factor
 
         for snake_idx, snake in enumerate(self.snakes):
             if str(snake_idx) not in actions:

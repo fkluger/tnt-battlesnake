@@ -22,7 +22,6 @@ class BattlesnakeEnv(MultiAgentEnv):
         self,
         width: int,
         height: int,
-        num_fruits: int = 1,
         num_snakes: int = 1,
         stacked_frames: int = 2,
         sparse_rewards: bool = False,
@@ -32,7 +31,7 @@ class BattlesnakeEnv(MultiAgentEnv):
         self.height = height
 
         self.sparse_rewards = sparse_rewards
-        self.num_fruits = num_fruits
+        self.num_fruits = num_snakes
         self.num_snakes = num_snakes
         self.stacked_frames = stacked_frames
         self.state = State(

@@ -14,7 +14,6 @@ def env_creator(config):
     env = BattlesnakeEnv(
         width=config["width"],
         height=config["height"],
-        num_fruits=config["num_fruits"],
         num_snakes=config["num_snakes"],
         stacked_frames=config["stacked_frames"],
     )
@@ -40,13 +39,7 @@ def main():
     ray.init()
     ray.tune.register_env("battlesnake", env_creator)
     ModelCatalog.register_custom_model("battlesnake_vision_net", BattlesnakeVisionNet)
-    env_config = {
-        "width": 7,
-        "height": 7,
-        "num_fruits": 1,
-        "num_snakes": 3,
-        "stacked_frames": 2,
-    }
+    env_config = {"width": 7, "height": 7, "num_snakes": 3, "stacked_frames": 2}
     env = env_creator(env_config)
     tune.run_experiments(
         {

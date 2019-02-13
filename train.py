@@ -37,7 +37,11 @@ class BattlesnakeVisionNet(Model):
 
 
 def get_agent_config(
-    width: int = 9, height: int = 9, stacked_frames: int = 2, num_snakes: int = 3
+    width: int = 9,
+    height: int = 9,
+    stacked_frames: int = 2,
+    num_snakes: int = 3,
+    num_workers: int = 3,
 ):
     ray.tune.register_env("battlesnake", env_creator)
     ModelCatalog.register_custom_model("battlesnake_vision_net", BattlesnakeVisionNet)
@@ -51,7 +55,7 @@ def get_agent_config(
     agent_config = {
         "model": {"custom_model": "battlesnake_vision_net"},
         "env_config": env_config,
-        "num_workers": 3,
+        "num_workers": num_workers,
         "num_envs_per_worker": 32,
         "num_atoms": 51,
         "v_min": -2.0,
@@ -72,7 +76,15 @@ def main():
     parser.add_argument(
         "--algorithm", help="Name of the RL algorithm.", type=str, default="DQN"
     )
-    parser.add_argument("--size", help="Width/Height of the game.", type=int, default=13)
+    parser.add_argument(
+        "--workers", help="Number of worker processes.", type=int, default=3
+    )
+    parser.add_argument(
+        "--frames", help="Number of stacked frames.", type=int, default=2
+    )
+    parser.add_argument(
+        "--size", help="Width/Height of the game.", type=int, default=13
+    )
     parser.add_argument("--snakes", help="Number of snakes.", type=int, default=3)
     args, _ = parser.parse_known_args()
     ray.init()
@@ -84,7 +96,11 @@ def main():
                 "stop": {"episode_reward_mean": 30},
                 "checkpoint_freq": 100,
                 "config": get_agent_config(
-                    width=args.size, height=args.size, num_snakes=args.snakes
+                    width=args.size,
+                    height=args.size,
+                    stacked_frames=args.frames,
+                    num_snakes=args.snakes,
+                    num_workers=args.workers,
                 ),
             }
         }

@@ -20,12 +20,10 @@ def serialize(
                 current_state[x, y] = Field.body.value
     snake_direction = None
     for snake_index, snake in enumerate(snakes):
-        if snake_index == own_snake_index:
-            current_state[0, height - 1] = snake.health
-        else:
-            current_state[snake_index, 0] = snake.health
         if snake.is_dead():
             continue
+        if snake_index == own_snake_index:
+            current_state[0, 0] = snake.health
         snake_length = len(snake.body)
         for body_idx, [x, y] in enumerate(snake.body):
             if snake_index == own_snake_index:

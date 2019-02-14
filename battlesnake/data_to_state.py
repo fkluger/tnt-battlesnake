@@ -9,13 +9,11 @@ def data_to_state(width, height, data, snake_direction):
         for y in range(height):
             if x == 0 or y == 0 or x == width - 1 or y == height - 1:
                 current_state[x, y] = Field.body.value
-    for idx, snake in enumerate(data["board"]["snakes"]):
-        if snake["id"] == data["you"]["id"]:
-            current_state[0, height - 1] = snake["health"]
-        else:
-            current_state[idx, 0] = snake["health"]
+    for _, snake in enumerate(data["board"]["snakes"]):
         if snake["health"] == 0:
             continue
+        if snake["id"] == data["you"]["id"]:
+            current_state[0, 0] = snake["health"]
         snake_length = len(snake["body"])
         for body_idx, coords in enumerate(snake["body"]):
             x, y = coords["x"] + 1, coords["y"] + 1

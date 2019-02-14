@@ -9,9 +9,7 @@ class Direction(Enum):
 
 
 class Reward(Enum):
-    collision = -1
-    starve = -1
-    nothing = -0.01
+    nothing = -0.1
     fruit = 1
 
     lost = -10

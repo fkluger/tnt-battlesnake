@@ -71,9 +71,9 @@ class Agent(Snake):
             if not self._check_no_collision(next_coord, data):
                 return direction
             else:
-                LOGGER.info("Avoided collision! Trying other directions...")
+                print("Avoided collision! Trying other directions...")
                 continue
-        LOGGER.info("Giving up!")
+        print("Giving up!")
         return directions[0]
 
     def _check_no_collision(self, head, data):

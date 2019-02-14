@@ -67,17 +67,19 @@ class State:
         snake_ate_fruit = []
         snake_starved = []
         snake_won = []
+        snake_ate_enemy = []
 
         for snake_idx, snake in enumerate(self.snakes):
             if str(snake_idx) not in actions:
                 continue
-            collided = self._collided(snake, snake.get_head())
+            collided, ate_enemy = self._collided(snake, snake.get_head())
             ate_fruit = self._ate_fruit(snake)
             starved = snake.is_dead()
 
             snake_collided.append(collided)
             snake_ate_fruit.append(ate_fruit)
             snake_starved.append(starved)
+            snake_ate_enemy.append(ate_enemy)
 
             if not collided and not starved:
                 snake.move_tail(ate_fruit)
@@ -106,7 +108,13 @@ class State:
 
         self._update_state()
 
-        return snake_ate_fruit, snake_collided, snake_starved, snake_won
+        return (
+            snake_ate_fruit,
+            snake_collided,
+            snake_starved,
+            snake_won,
+            snake_ate_enemy,
+        )
 
     def observe(self, snake_perspective=0):
         return np.moveaxis(
@@ -137,15 +145,19 @@ class State:
             else False
         )
         hit_snake = False
+        ate_enemy = False
         for s in self.snakes:
             for s_body_idx, s_body in enumerate(s.body):
                 if np.array_equal(snake_head, s_body):
                     if s_body_idx != 0:
                         hit_snake = True
                     else:
-                        if snake != s and len(snake.body) <= len(s.body):
-                            hit_snake = True
-        return hit_wall or hit_snake
+                        if snake != s:
+                            if len(snake.body) <= len(s.body):
+                                hit_snake = True
+                            else:
+                                ate_enemy = True
+        return hit_wall or hit_snake, ate_enemy
 
     def _ate_fruit(self, snake: Snake):
         ate_fruit = False

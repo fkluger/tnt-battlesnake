@@ -96,7 +96,7 @@ class BattlesnakeEnv(MultiAgentEnv):
     def _evaluate_reward(self, data):
         rewards = []
         terminals = []
-        for fruit_eaten, collided, starved, won in zip(*data):
+        for fruit_eaten, collided, starved, won, ate_enemy in zip(*data):
             terminal = False
             reward = Reward.nothing.value
             if collided or starved:
@@ -108,6 +108,8 @@ class BattlesnakeEnv(MultiAgentEnv):
                     terminal = True
                 elif fruit_eaten:
                     reward = Reward.fruit.value
+                elif ate_enemy:
+                    reward = Reward.ate_enemy.value
             rewards.append(reward)
             terminals.append(terminal)
         return rewards, terminals

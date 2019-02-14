@@ -1,32 +1,40 @@
+import json
 import logging
-
+import os
 from collections import deque
+
 import numpy as np
+import tensorflow as tf
+from tensorflow.python.saved_model import loader
 
-from ray.rllib.agents.dqn import DQNAgent
-
-from gym_battlesnake.envs.snake import Snake
 from gym_battlesnake.envs.constants import Direction
+from gym_battlesnake.envs.snake import Snake
+
 from .data_to_state import data_to_state
-from train import get_agent_config
 
 LOGGER = logging.getLogger("Agent")
 
 
 class Agent(Snake):
-    def __init__(self, width: int, height: int, stacked_frames: int, path: str = None):
+    def __init__(self, width: int, height: int, stacked_frames: int, path: str):
         self.width = width
         self.height = height
         self.stacked_frames = stacked_frames
-        config = get_agent_config(
-            width=width, height=height, stacked_frames=stacked_frames, num_snakes=1
-        )
-        config["num_workers"] = 0
-        config["num_envs_per_worker"] = 1
-        del config["multiagent"]
-        self.dqn = DQNAgent(config=config, env="battlesnake")
-        if path:
-            self.dqn.restore(path)
+        self.path = path
+
+        self.observation_ph, self.q_values = self._load_graph()
+
+    def _compute_action(self, observation):
+        q_values = self.sess.run(self.q_values, {self.observation_ph: [observation]})[0]
+        return np.argmax(q_values)
+
+    def _load_graph(self):
+        with tf.Graph().as_default() as graph:
+            self.sess = tf.Session(graph=graph)
+            loader.load(self.sess, [tf.saved_model.tag_constants.SERVING], self.path)
+            observation_ph = graph.get_tensor_by_name("snake_0/Placeholder:0")
+            q_values = graph.get_tensor_by_name("snake_0/q_func/Sum:0")
+            return observation_ph, q_values
 
     def on_reset(self):
         self.head_direction = Direction.up
@@ -39,7 +47,7 @@ class Agent(Snake):
         state = data_to_state(self.width, self.height, data, self.head_direction)
         self.frames.appendleft(state)
         observation = np.moveaxis(self.frames, 0, -1)
-        best_action = self.dqn.compute_action(observation)
+        best_action = self._compute_action(observation)
         actions = [best_action]
         for i in range(3):
             if i not in actions:

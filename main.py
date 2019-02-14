@@ -1,9 +1,9 @@
+import argparse
 import json
 import os
 import random
 import bottle
 
-import ray
 from battlesnake.api import ping_response, start_response, move_response, end_response
 from battlesnake.agent import Agent
 
@@ -42,12 +42,6 @@ def ping():
 def start():
     global agent
     data = bottle.request.json
-    if agent is None:
-        agent = Agent(
-            width=data["board"]["width"] + 2,
-            height=data["board"]["height"] + 2,
-            stacked_frames=2,
-        )
     agent.on_reset()
     print(json.dumps(data))
 
@@ -81,10 +75,16 @@ def end():
 application = bottle.default_app()
 
 if __name__ == "__main__":
-    ray.init()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("path", help="Path to the checkpoint.", type=str, default=None)
+    parser.add_argument(
+        "--port", help="Port of the web server.", type=str, default="8080"
+    )
+    args, _ = parser.parse_known_args()
+    agent = Agent(width=13, height=13, stacked_frames=2, path=args.path)
     bottle.run(
         application,
         host=os.getenv("IP", "0.0.0.0"),
-        port=os.getenv("PORT", "8080"),
+        port=os.getenv("PORT", args.port),
         debug=os.getenv("DEBUG", True),
     )

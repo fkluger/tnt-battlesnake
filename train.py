@@ -1,15 +1,13 @@
 import argparse
+import os
 
 import tensorflow as tf
 import ray
 import ray.tune as tune
 from ray.rllib.models import Model, ModelCatalog
 from ray.rllib.agents.dqn.dqn_policy_graph import DQNPolicyGraph
-import gym
 
-import gym_battlesnake
 from gym_battlesnake.envs import BattlesnakeEnv
-from gym_battlesnake.wrappers import FrameStack
 
 
 def env_creator(config):
@@ -36,6 +34,20 @@ class BattlesnakeVisionNet(Model):
             return output, last_layer
 
 
+def register():
+    ray.tune.register_env("battlesnake", env_creator)
+    ModelCatalog.register_custom_model("battlesnake_vision_net", BattlesnakeVisionNet)
+
+
+def on_train_result(info):
+    iterations = info["result"]["iterations_since_restore"]
+    if iterations % 25 == 0:
+        agent = info["agent"]
+        agent.export_policy_model(
+            os.path.join(agent.logdir, f"model_{iterations}"), "snake_0"
+        )
+
+
 def get_agent_config(
     width: int = 9,
     height: int = 9,
@@ -43,8 +55,6 @@ def get_agent_config(
     num_snakes: int = 3,
     num_workers: int = 3,
 ):
-    ray.tune.register_env("battlesnake", env_creator)
-    ModelCatalog.register_custom_model("battlesnake_vision_net", BattlesnakeVisionNet)
     env_config = {
         "width": width,
         "height": height,
@@ -61,12 +71,13 @@ def get_agent_config(
         "num_atoms": 51,
         "v_min": -2.0,
         "v_max": env_config["width"] ** 2.0,
-        "buffer_size": 1000000,
+        "buffer_size": 1_000_000,
         "exploration_final_eps": 0.01,
         "exploration_fraction": 0.1,
         "prioritized_replay_alpha": 0.5,
         "beta_annealing_fraction": 1.0,
         "final_prioritized_replay_beta": 1.0,
+        "callbacks": {"on_train_result": tune.function(on_train_result)},
         "multiagent": {
             "policy_graphs": {
                 "snake_0": (DQNPolicyGraph, env.obs_space, env.action_space, {})
@@ -94,12 +105,12 @@ def main():
     parser.add_argument("--snakes", help="Number of snakes.", type=int, default=3)
     args, _ = parser.parse_known_args()
     ray.init()
+    register()
     tune.run_experiments(
         {
             "battlesnake": {
                 "run": args.algorithm,
                 "env": "battlesnake",
-                "checkpoint_freq": 25,
                 "config": get_agent_config(
                     width=args.size,
                     height=args.size,

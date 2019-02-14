@@ -1,13 +1,12 @@
 import os
-from typing import List, Union, Dict
+from typing import Dict, List, Union
 
-import gym
-from gym import spaces
 import numpy as np
+from gym import spaces
 from ray.rllib.env import MultiAgentEnv
 
-from gym_battlesnake.envs.state import State
 from gym_battlesnake.envs.constants import Reward
+from gym_battlesnake.envs.state import State
 
 
 class BattlesnakeEnv(MultiAgentEnv):
@@ -16,21 +15,11 @@ class BattlesnakeEnv(MultiAgentEnv):
     Base class for different Battlesnake gym environments.
     """
 
-    metadata = {"render.modes": ["human"]}
-
-    def __init__(
-        self,
-        width: int,
-        height: int,
-        num_snakes: int = 1,
-        stacked_frames: int = 2,
-        sparse_rewards: bool = False,
-    ):
+    def __init__(self, width: int, height: int, num_snakes: int, stacked_frames: int):
 
         self.width = width
         self.height = height
 
-        self.sparse_rewards = sparse_rewards
         self.num_fruits = num_snakes
         self.num_snakes = num_snakes
         self.stacked_frames = stacked_frames
@@ -101,7 +90,7 @@ class BattlesnakeEnv(MultiAgentEnv):
 
         return next_state, reward, terminal, {}
 
-    def render(self, mode="human"):
+    def render(self):
         return self.state.observe()
 
     def _evaluate_reward(self, data):
@@ -110,26 +99,18 @@ class BattlesnakeEnv(MultiAgentEnv):
         for fruit_eaten, collided, starved, won in zip(*data):
             terminal = False
             reward = Reward.nothing.value
-            if self.sparse_rewards:
-                if collided or starved:
-                    reward = Reward.lost.value
-                    terminal = True
-                elif won:
+            if collided:
+                terminal = True
+                reward = Reward.collision.value
+            else:
+                if won:
                     reward = Reward.won.value
                     terminal = True
-            else:
-                if collided:
+                elif fruit_eaten:
+                    reward = Reward.fruit.value
+                elif starved:
                     terminal = True
-                    reward = Reward.collision.value
-                else:
-                    if won:
-                        reward = Reward.won.value
-                        terminal = True
-                    elif fruit_eaten:
-                        reward = Reward.fruit.value
-                    elif starved:
-                        terminal = True
-                        reward = Reward.starve.value
+                    reward = Reward.starve.value
             rewards.append(reward)
             terminals.append(terminal)
         return rewards, terminals

@@ -25,7 +25,8 @@ class BattlesnakeVisionNet(Model):
         inputs = input_dict["obs"]
 
         with tf.name_scope("battlesnake_vision_net"):
-            hidden = tf.layers.Conv2D(32, 1, 1, activation=tf.nn.leaky_relu)(inputs)
+            hidden = inputs / 255.0
+            hidden = tf.layers.Conv2D(32, 1, 1, activation=tf.nn.leaky_relu)(hidden)
             hidden = tf.layers.Conv2D(64, 2, 2, activation=tf.nn.leaky_relu)(hidden)
             hidden = tf.layers.Conv2D(64, 3, 1, activation=tf.nn.leaky_relu)(hidden)
             hidden = tf.layers.Flatten()(hidden)

@@ -54,10 +54,4 @@ def serialize(
                 )
     for [x, y] in fruits:
         current_state[x, y] = Field.fruit.value
-    if snake_direction == Direction.left:
-        current_state = np.rot90(current_state, k=3)
-    elif snake_direction == Direction.down:
-        current_state = np.rot90(current_state, k=2)
-    elif snake_direction == Direction.right:
-        current_state = np.rot90(current_state, k=1)
     return current_state

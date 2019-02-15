@@ -43,9 +43,9 @@ def start():
     global agent
     data = bottle.request.json
     agent.on_reset()
-    print(json.dumps(data))
+    # print(json.dumps(data))
 
-    color = "#00529E"
+    color = "#00529F"
 
     return start_response(color)
 
@@ -55,7 +55,7 @@ def move():
     global agent
     data = bottle.request.json
 
-    print(json.dumps(data))
+    # print(json.dumps(data))
 
     direction = agent.get_direction(data)
 
@@ -66,7 +66,7 @@ def move():
 def end():
     data = bottle.request.json
 
-    print(json.dumps(data))
+    # print(json.dumps(data))
 
     return end_response()
 
@@ -82,9 +82,4 @@ if __name__ == "__main__":
     )
     args, _ = parser.parse_known_args()
     agent = Agent(width=13, height=13, stacked_frames=2, path=args.path)
-    bottle.run(
-        application,
-        host=os.getenv("IP", "0.0.0.0"),
-        port=os.getenv("PORT", args.port),
-        debug=os.getenv("DEBUG", True),
-    )
+    bottle.run(application, host="0.0.0.0", port=args.port, debug=False, quiet=True)

@@ -44,10 +44,4 @@ def data_to_state(width, height, data, snake_direction):
     for coords in data["board"]["food"]:
         x, y = coords["x"], coords["y"]
         current_state[x, y] = Field.fruit.value
-    if snake_direction == Direction.left:
-        current_state = np.rot90(current_state, k=3)
-    elif snake_direction == Direction.down:
-        current_state = np.rot90(current_state, k=2)
-    elif snake_direction == Direction.right:
-        current_state = np.rot90(current_state, k=1)
     return current_state

@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import time
 from collections import deque
 
 import numpy as np
@@ -24,9 +25,10 @@ class Agent(Snake):
 
         self.observation_ph, self.q_values = self._load_graph()
 
-    def _compute_action(self, observation):
+    def _compute_actions(self, observation):
         q_values = self.sess.run(self.q_values, {self.observation_ph: [observation]})[0]
-        return np.argmax(q_values)
+        actions = np.argsort(q_values)[::-1]
+        return actions
 
     def _load_graph(self):
         with tf.Graph().as_default() as graph:
@@ -47,11 +49,7 @@ class Agent(Snake):
         state = data_to_state(self.width, self.height, data, self.head_direction)
         self.frames.appendleft(state)
         observation = np.moveaxis(self.frames, 0, -1)
-        best_action = self._compute_action(observation)
-        actions = [best_action]
-        for i in range(3):
-            if i not in actions:
-                actions.append(i)
+        actions = self._compute_actions(observation)
         self.head_direction = self._find_best_action(actions, data)
         if self.head_direction == Direction.up:
             return "up"
@@ -66,8 +64,19 @@ class Agent(Snake):
         head = data["you"]["body"][0]
         head = [head["x"] + 1, head["y"] + 1]
         directions = [self._get_direction(i) for i in actions]
-        for direction in directions:
-            next_coord = self._get_next_head(direction, head)
+        next_coords = [self._get_next_head(direction, head) for direction in directions]
+        low_health = data["you"]["health"] <= 30
+        if low_health:
+            for direction, next_coord in zip(directions, next_coords):
+                coord_is_food = any(
+                    [
+                        np.array_equal(next_coord, [coord["x"], coord["y"]])
+                        for coord in data["board"]["food"]
+                    ]
+                )
+                if coord_is_food:
+                    return direction
+        for direction, next_coord in zip(directions, next_coords):
             if not self._check_no_collision(next_coord, data):
                 return direction
             else:

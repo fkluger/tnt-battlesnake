@@ -6,6 +6,7 @@ import ray
 import ray.tune as tune
 from ray.rllib.models import Model, ModelCatalog
 from ray.rllib.agents.dqn.dqn_policy_graph import DQNPolicyGraph
+from ray.rllib.agents.impala.vtrace_policy_graph import VTracePolicyGraph
 
 from gym_battlesnake.envs import BattlesnakeEnv
 
@@ -50,6 +51,7 @@ def on_train_result(info):
 
 
 def get_agent_config(
+    algorithm: str,
     width: int = 9,
     height: int = 9,
     stacked_frames: int = 2,
@@ -63,30 +65,48 @@ def get_agent_config(
         "stacked_frames": stacked_frames,
     }
     env = env_creator(env_config)
-    agent_config = {
-        "model": {"custom_model": "battlesnake_vision_net"},
+    common_config = {
         "env_config": env_config,
-        "num_workers": num_workers,
-        "num_envs_per_worker": 32,
-        "double_q": False,
-        "num_atoms": 51,
-        "v_min": -2.0,
-        "v_max": env_config["width"] ** 2.0,
-        "buffer_size": 1_000_000,
-        "exploration_final_eps": 0.01,
-        "exploration_fraction": 0.1,
-        "prioritized_replay_alpha": 0.5,
-        "beta_annealing_fraction": 1.0,
-        "final_prioritized_replay_beta": 1.0,
         "callbacks": {"on_train_result": tune.function(on_train_result)},
-        "multiagent": {
-            "policy_graphs": {
-                "snake_0": (DQNPolicyGraph, env.obs_space, env.action_space, {})
-            },
-            "policy_mapping_fn": tune.function(lambda agent_id: "snake_0"),
-        },
     }
-    return agent_config
+    if algorithm == "APEX" or algorithm == "DQN":
+        agent_config = {
+            "model": {"custom_model": "battlesnake_vision_net"},
+            "num_workers": num_workers,
+            "num_envs_per_worker": 32,
+            "double_q": False,
+            "num_atoms": 51,
+            "v_min": -2.0,
+            "v_max": env_config["width"] ** 2.0,
+            "buffer_size": 1_000_000,
+            "exploration_final_eps": 0.01,
+            "exploration_fraction": 0.1,
+            "prioritized_replay_alpha": 0.5,
+            "beta_annealing_fraction": 1.0,
+            "final_prioritized_replay_beta": 1.0,
+            "multiagent": {
+                "policy_graphs": {
+                    "snake_0": (DQNPolicyGraph, env.obs_space, env.action_space, {})
+                },
+                "policy_mapping_fn": tune.function(lambda agent_id: "snake_0"),
+            },
+        }
+    elif algorithm == "IMPALA":
+        agent_config = {
+            "model": {"custom_model": "battlesnake_vision_net", "use_lstm": True},
+            "sample_batch_size": 50,
+            "train_batch_size": 500,
+            "num_workers": num_workers,
+            "num_envs_per_worker": 16,
+            "lr_schedule": [[0, 0.0005], [100_000_000, 0.000_000_000_001]],
+            "multiagent": {
+                "policy_graphs": {
+                    "snake_0": (VTracePolicyGraph, env.obs_space, env.action_space, {})
+                },
+                "policy_mapping_fn": tune.function(lambda agent_id: "snake_0"),
+            },
+        }
+    return {**common_config, **agent_config}
 
 
 def main():
@@ -113,6 +133,7 @@ def main():
                 "run": args.algorithm,
                 "env": "battlesnake",
                 "config": get_agent_config(
+                    algorithm=args.algorithm,
                     width=args.size,
                     height=args.size,
                     stacked_frames=args.frames,

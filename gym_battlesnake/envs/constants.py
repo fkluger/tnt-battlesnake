@@ -9,7 +9,7 @@ class Direction(Enum):
 
 
 class Reward(Enum):
-    nothing = -0.1
+    nothing = -0.01
     fruit = 1.0
     ate_enemy = 5.0
 

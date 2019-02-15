@@ -22,9 +22,10 @@ def serialize(
     for snake_index, snake in enumerate(snakes):
         if snake.is_dead():
             continue
+        snake_length = len(snake.body)
         if snake_index == own_snake_index:
             current_state[0, 0] = snake.health
-        snake_length = len(snake.body)
+            current_state[0, 1] = snake_length
         for body_idx, [x, y] in enumerate(snake.body):
             if snake_index == own_snake_index:
                 if snake_direction is None:

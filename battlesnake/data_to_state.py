@@ -12,9 +12,10 @@ def data_to_state(width, height, data, snake_direction):
     for _, snake in enumerate(data["board"]["snakes"]):
         if snake["health"] == 0:
             continue
+        snake_length = len(snake["body"])
         if snake["id"] == data["you"]["id"]:
             current_state[0, 0] = snake["health"]
-        snake_length = len(snake["body"])
+            current_state[0, 1] = snake_length
         for body_idx, coords in enumerate(snake["body"]):
             x, y = coords["x"] + 1, coords["y"] + 1
             if snake["id"] == data["you"]["id"]:

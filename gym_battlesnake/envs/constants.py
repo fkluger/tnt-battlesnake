@@ -11,10 +11,10 @@ class Direction(Enum):
 class Reward(Enum):
     nothing = -0.01
     fruit = 1.0
-    ate_enemy = 5.0
+    ate_enemy = 2.0
 
     lost = -10.0
-    won = 10.0
+    won = 5.0
 
 
 class Field(Enum):

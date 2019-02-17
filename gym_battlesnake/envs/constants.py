@@ -12,6 +12,7 @@ class Reward(Enum):
     nothing = -0.01
     fruit = 1.0
     ate_enemy = 2.0
+    action_corrected = -1.0
 
     lost = -10.0
     won = 5.0

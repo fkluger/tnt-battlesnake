@@ -58,6 +58,7 @@ class State:
         if not isinstance(actions, dict):
             actions = {"0": actions}
 
+        snake_action_corrected = []
         for snake_idx, snake in enumerate(self.snakes):
             if str(snake_idx) not in actions or snake.is_dead():
                 snake.die()
@@ -71,8 +72,10 @@ class State:
             ]
             action = actions[str(snake_idx)]
             if available_actions and action not in available_actions:
+                snake_action_corrected.append(True)
                 snake.move_head(available_actions[0])
             else:
+                snake_action_corrected.append(False)
                 snake.move_head(action)
 
         snake_collided = []
@@ -126,6 +129,7 @@ class State:
             snake_starved,
             snake_won,
             snake_ate_enemy,
+            snake_action_corrected,
         )
 
     def observe(self, snake_perspective=0):

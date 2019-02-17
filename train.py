@@ -97,8 +97,8 @@ def on_train_result(info):
 def get_agent_config(
     algorithm: str,
     model: str,
-    width: int = 9,
-    height: int = 9,
+    width: int = 11,
+    height: int = 11,
     stacked_frames: int = 2,
     num_snakes: int = 3,
     num_workers: int = 3,
@@ -112,6 +112,7 @@ def get_agent_config(
     env = env_creator(env_config)
     common_config = {
         "env_config": env_config,
+        "horizon": 1000,
         "callbacks": {"on_train_result": tune.function(on_train_result)},
     }
     if algorithm == "APEX" or algorithm == "DQN":

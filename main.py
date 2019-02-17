@@ -81,5 +81,5 @@ if __name__ == "__main__":
         "--port", help="Port of the web server.", type=str, default="8080"
     )
     args, _ = parser.parse_known_args()
-    agent = Agent(width=13, height=13, stacked_frames=2, path=args.path)
+    agent = Agent(width=9, height=9, stacked_frames=2, path=args.path)
     bottle.run(application, host="0.0.0.0", port=args.port, debug=False, quiet=True)

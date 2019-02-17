@@ -1,4 +1,5 @@
 from collections import deque
+import random
 from typing import List, Union, Dict
 
 import numpy as np
@@ -58,10 +59,21 @@ class State:
             actions = {"0": actions}
 
         for snake_idx, snake in enumerate(self.snakes):
-            if str(snake_idx) not in actions:
+            if str(snake_idx) not in actions or snake.is_dead():
                 snake.die()
                 continue
-            snake.move_head(actions[str(snake_idx)])
+            available_actions = [
+                action
+                for action in range(3)
+                if not self._collided(
+                    snake, snake._get_next_head(snake._get_direction(action))
+                )[0]
+            ]
+            action = actions[str(snake_idx)]
+            if available_actions and action not in available_actions:
+                snake.move_head(available_actions[0])
+            else:
+                snake.move_head(action)
 
         snake_collided = []
         snake_ate_fruit = []
@@ -177,6 +189,8 @@ class State:
             if np.array_equal(field, fruit_field):
                 available = False
         for snake in self.snakes:
+            if snake.is_dead():
+                continue
             for snake_field in snake.body:
                 if np.array_equal(field, snake_field):
                     available = False
@@ -186,12 +200,15 @@ class State:
         for i in range(fields):
             field = None
             if is_fruit:
-                while not self._is_available(field):
-                    field = (
-                        np.random.randint(1, self.width - 1),
-                        np.random.randint(1, self.height - 1),
-                    )
-                self.fruits.append(field)
+                available_fields = []
+                for x in range(1, self.width - 1):
+                    for y in range(1, self.height - 1):
+                        field = [x, y]
+                        if self._is_available(field):
+                            available_fields.append(field)
+                if available_fields:
+                    field = random.sample(available_fields, k=1)[0]
+                    self.fruits.append(field)
             else:
                 field = get_snake_starting_position(self.width, self.height, i)
                 self.snakes.append(Snake(field))

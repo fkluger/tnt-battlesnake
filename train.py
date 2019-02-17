@@ -21,11 +21,54 @@ def env_creator(config):
     return env
 
 
+class BattlesnakeResNet(Model):
+    def _build_layers_v2(self, input_dict, num_outputs, options):
+        inputs = input_dict["obs"]
+
+        with tf.variable_scope("battlesnake_resnet"):
+            conv_out = inputs / 255.0
+            for i, (num_ch, num_blocks) in enumerate([(16, 2), (32, 2), (32, 2)]):
+                conv_out = tf.layers.Conv2D(num_ch, 1, strides=1, padding="same")(
+                    conv_out
+                )
+                conv_out = tf.layers.BatchNormalization()(conv_out)
+                conv_out = tf.nn.pool(
+                    conv_out,
+                    window_shape=[3, 3],
+                    pooling_type="MAX",
+                    padding="SAME",
+                    strides=[2, 2],
+                )
+                # Residual block(s).
+                for j in range(num_blocks):
+                    with tf.variable_scope("residual_%d_%d" % (i, j)):
+                        block_input = conv_out
+                        conv_out = tf.nn.relu(conv_out)
+                        conv_out = tf.layers.Conv2D(
+                            num_ch, 3, strides=1, padding="same"
+                        )(conv_out)
+                        conv_out = tf.layers.BatchNormalization()(conv_out)
+                        conv_out = tf.nn.relu(conv_out)
+                        conv_out = tf.layers.Conv2D(
+                            num_ch, 3, strides=1, padding="same"
+                        )(conv_out)
+                        conv_out = tf.layers.BatchNormalization()(conv_out)
+                        conv_out += block_input
+
+            conv_out = tf.nn.relu(conv_out)
+            conv_out = tf.layers.Flatten()(conv_out)
+
+            conv_out = tf.layers.Dense(256)(conv_out)
+            last_layer = tf.nn.relu(conv_out)
+            output = tf.layers.Dense(num_outputs)(last_layer)
+            return output, last_layer
+
+
 class BattlesnakeVisionNet(Model):
     def _build_layers_v2(self, input_dict, num_outputs, options):
         inputs = input_dict["obs"]
 
-        with tf.name_scope("battlesnake_vision_net"):
+        with tf.variable_scope("battlesnake_vision_net"):
             hidden = inputs / 255.0
             hidden = tf.layers.Conv2D(32, 1, 1, activation=tf.nn.leaky_relu)(hidden)
             hidden = tf.layers.Conv2D(64, 2, 2, activation=tf.nn.leaky_relu)(hidden)
@@ -39,6 +82,7 @@ class BattlesnakeVisionNet(Model):
 def register():
     ray.tune.register_env("battlesnake", env_creator)
     ModelCatalog.register_custom_model("battlesnake_vision_net", BattlesnakeVisionNet)
+    ModelCatalog.register_custom_model("battlesnake_resnet", BattlesnakeResNet)
 
 
 def on_train_result(info):
@@ -52,6 +96,7 @@ def on_train_result(info):
 
 def get_agent_config(
     algorithm: str,
+    model: str,
     width: int = 9,
     height: int = 9,
     stacked_frames: int = 2,
@@ -71,7 +116,7 @@ def get_agent_config(
     }
     if algorithm == "APEX" or algorithm == "DQN":
         agent_config = {
-            "model": {"custom_model": "battlesnake_vision_net"},
+            "model": {"custom_model": model},
             "num_workers": num_workers,
             "num_envs_per_worker": 32,
             "double_q": False,
@@ -123,6 +168,9 @@ def main():
     parser.add_argument(
         "--size", help="Width/Height of the game.", type=int, default=13
     )
+    parser.add_argument(
+        "--model", help="Network model.", type=str, default="battlesnake_vision_net"
+    )
     parser.add_argument("--snakes", help="Number of snakes.", type=int, default=3)
     args, _ = parser.parse_known_args()
     ray.init()
@@ -134,6 +182,7 @@ def main():
                 "env": "battlesnake",
                 "config": get_agent_config(
                     algorithm=args.algorithm,
+                    model=args.model,
                     width=args.size,
                     height=args.size,
                     stacked_frames=args.frames,

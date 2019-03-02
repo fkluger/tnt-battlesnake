@@ -1,5 +1,5 @@
 import numpy as np
-from gym_battlesnake.envs.constants import Field, Direction
+from .constants import Field, Direction
 
 
 def data_to_state(width, height, data, snake_direction):

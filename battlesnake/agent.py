@@ -8,8 +8,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.saved_model import loader
 
-from gym_battlesnake.envs.constants import Direction
-from gym_battlesnake.envs.snake import Snake
+from .constants import Direction
 
 from .data_to_state import data_to_state
 

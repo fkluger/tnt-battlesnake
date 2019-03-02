@@ -7,7 +7,9 @@ import bottle
 from battlesnake.api import ping_response, start_response, move_response, end_response
 from battlesnake.agent import Agent
 
-agent = None
+agent_small = None
+agent_medium = None
+agent_large = None
 
 
 @bottle.route("/")
@@ -42,7 +44,12 @@ def ping():
 def start():
     global agent
     data = bottle.request.json
-    agent.on_reset()
+    if data["board"]["width"] == 9:
+        agent_small.on_reset()
+    elif data["board"]["width"] == 11:
+        agent_medium.on_reset()
+    else:
+        agent_large.on_reset()
     # print(json.dumps(data))
 
     color = "#00529F"
@@ -57,7 +64,12 @@ def move():
 
     # print(json.dumps(data))
 
-    direction = agent.get_direction(data)
+    if data["board"]["width"] == 9:
+        direction = agent_small.get_direction(data)
+    elif data["board"]["width"] == 11:
+        direction = agent_medium.get_direction(data)
+    else:
+        direction = agent_large.get_direction(data)
 
     return move_response(direction)
 
@@ -76,10 +88,20 @@ application = bottle.default_app()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("path", help="Path to the checkpoint.", type=str, default=None)
+    parser.add_argument(
+        "path-small", help="Path to the small checkpoint.", type=str, default=None
+    )
+    parser.add_argument(
+        "path-medium", help="Path to the medium checkpoint.", type=str, default=None
+    )
+    parser.add_argument(
+        "path-large", help="Path to the large checkpoint.", type=str, default=None
+    )
     parser.add_argument(
         "--port", help="Port of the web server.", type=str, default="8080"
     )
     args, _ = parser.parse_known_args()
-    agent = Agent(width=9, height=9, stacked_frames=2, path=args.path)
+    agent_small = Agent(width=9, height=9, stacked_frames=2, path=args.path_small)
+    agent_medium = Agent(width=13, height=13, stacked_frames=2, path=args.path_medium)
+    agent_large = Agent(width=21, height=21, stacked_frames=2, path=args.path_large)
     bottle.run(application, host="0.0.0.0", port=args.port, debug=False, quiet=True)

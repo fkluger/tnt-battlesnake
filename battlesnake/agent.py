@@ -65,7 +65,7 @@ class Agent(Snake):
         head = [head["x"] + 1, head["y"] + 1]
         directions = [self._get_direction(i) for i in actions]
         next_coords = [self._get_next_head(direction, head) for direction in directions]
-        low_health = data["you"]["health"] <= 50
+        low_health = data["you"]["health"] <= 75
         if low_health:
             for direction, next_coord in zip(directions, next_coords):
                 coord_is_food = any(

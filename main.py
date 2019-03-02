@@ -89,13 +89,13 @@ application = bottle.default_app()
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "path-small", help="Path to the small checkpoint.", type=str, default=None
+        "path_small", help="Path to the small checkpoint.", type=str, default=None
     )
     parser.add_argument(
-        "path-medium", help="Path to the medium checkpoint.", type=str, default=None
+        "path_medium", help="Path to the medium checkpoint.", type=str, default=None
     )
     parser.add_argument(
-        "path-large", help="Path to the large checkpoint.", type=str, default=None
+        "path_large", help="Path to the large checkpoint.", type=str, default=None
     )
     parser.add_argument(
         "--port", help="Port of the web server.", type=str, default="8080"

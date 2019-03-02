@@ -9,6 +9,7 @@ import tensorflow as tf
 from tensorflow.python.saved_model import loader
 
 from .constants import Direction
+from .snake import Snake
 
 from .data_to_state import data_to_state
 
